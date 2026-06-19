@@ -1,0 +1,40 @@
+name: Squash Git History
+
+on:
+  workflow_dispatch: # Cho phép kích hoạt thủ công từ giao diện GitHub Actions
+
+jobs:
+  squash:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Tải toàn bộ lịch sử để thực hiện gộp
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Squash History
+        run: |
+          # 1. Tạo một nhánh tạm thời không có lịch sử (orphan)
+          git checkout --orphan temp_branch
+          
+          # 2. Thêm tất cả các file hiện tại
+          git add -A
+          
+          # 3. Tạo một commit duy nhất chứa toàn bộ trạng thái hiện tại
+          git commit -m "Reset repository history: Tối ưu dung lượng và lưu trạng thái mới nhất"
+          
+          # 4. Xóa nhánh main cũ ở local
+          git branch -D main
+          
+          # 5. Đổi tên nhánh tạm thời thành main
+          git branch -m main
+          
+          # 6. Ép đẩy (Force Push) đè lên GitHub để xóa hoàn toàn lịch sử cũ
+          git push -f origin main

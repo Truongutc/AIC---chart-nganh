@@ -1,0 +1,66 @@
+WAIT (Chờ tín hiệu rõ ràng)
+
+======================================================================
+  💎 AIC code = AI + cơm! 💎 BÁO CÁO PHÂN TÍCH TỔNG HỢP: NAF
+  Ngày: 2026-05-27  |  Giá: 53.20
+======================================================================
+
+  [1. PHÂN TÍCH CHỈ BÁO & SETUP HÀNH ĐỘNG]
+  ● Tổng quan kỹ thuật: Tốt (Điểm đánh giá: 65/100)
+
+  [HỆ THỐNG ĐƯỜNG TRUNG BÌNH - MA]
+  ● Nhận định: - STRONG TREND: Xu hướng mạnh (MA xếp lớp chuẩn).
+- SETUP 3 (BREAKOUT + MA SUPPORT): Giá phá đỉnh, MA20 nâng đỡ dưới chân.
+  ● Hành động: - Dòng tiền đang vào, ưu tiên nắm giữ theo trend.
+- Trend được củng cố. Tiếp tục HOLD dồn vị thế.
+
+  [HỆ THỐNG MÂY ICHIMOKU]
+  ● Nhận định: STRONG UPTREND (Xu hướng MẠNH NHẤT): Giá trên mây, Tenkan > Kijun, Chikou trống đường.
+  ● Hành động: All-in mindset. Canh giá Pullback về Tenkan (nhanh) hoặc Kijun (an toàn) để BUY.
+
+  [CHỈ BÁO ĐỘNG LƯỢNG - RSI (71.4)]
+  ● Setup    : Quá mua (RSI > 70) trong Uptrend: Trend đang rất khỏe. | BULL TRAP: RSI cao (>70) nhưng Volume hụt hơi.
+  ● Khuyến nghị: Giữ lệnh, không chốt non. | Chú ý tạo đỉnh giả, cân nhắc Hạ Tỷ Trọng.
+
+  [CHỈ BÁO DÒNG TIỀN - MACD (Đà tăng mạnh (MACD > 0 & Hist > 0))]
+  ● Setup    : MACD > 0 (Trend tăng trung hạn).
+  ● Khuyến nghị: 
+
+  [XUNG LỰC XU HƯỚNG - ADX (WHITE)]
+  ● Setup    : ADX 25.8 (25–40) DỐC LÊN + MA20>MA50: TREND TĂNG SIÊU KHỎE (màu WHITE). | 📈 ADX tăng từ 17.9 → 25.8: Trend ĐANG MẠNH DẦN. Cứ HOLD, đừng chốt sớm.
+  ● Khuyến nghị: HOLD chặt hoặc ADD POSITION. Dùng RSI 40–50 để xác nhận điểm mua pullback (KHÔNG dùng RSI 30 nữa). RSI 60–70 → cẩn trọng, tránh FOMO.
+
+  [HỆ THỐNG BẢN ĐỒ NHIỆT]
+  ● Đánh giá Heatmap: CẢNH BÁO ĐẢO CHIỀU NGẮN HẠN (Trắng -> Vàng)
+
+  [CHỈ BÁO DÒNG TIỀN TẠO LẬP - MCDX]
+  ● Trạng thái : DÒNG TIỀN VỪA XUẤT HIỆN
+  ● Hành động  : MUA THĂM DÒ
+  ● Chi tiết   : Tín hiệu Inflow chớm nở, theo dõi chờ xác nhận.
+
+  [1.5 BIỆN LUẬN LÝ DO (TÍN HIỆU CƠ SỞ CHẨN ĐOÁN)]
+  ● ADX (Xung lực): 25.80 (Chop: False) | Biên độ giá: 4.65 / ATR: 1.14
+  ● Cấu Trúc (S_Bias): 0 | Xu Hướng (T_Bias): 1.0 (Trend Khoẻ: True)
+  ● Động Lượng MACD: 0.99 | Hist: 0.22
+  ● Thanh Khoản (Vol): Spike=False | Dry=True
+  ● Điểm Nổ Nến: Breakout_Up=False | Nến Lực=False
+
+  [3. MỨC GIÁ QUAN TRỌNG - S/R]
+  ● Giá hiện tại: 53.20
+  ● Hỗ trợ (S): S1: 51.85 | S2: 50.75
+  ● Kháng cự (R): R1: 58.52 | R2: 61.45
+
+----------------------------------------------------------------------
+  🎯 TỔNG KẾT CHIẾN LƯỢC TỪ AI (AIC PROFESSIONAL):
+  👉 CHIẾN LƯỢC CỐT LÕI : MUA MẠNH (TREND LEADER)
+     ● Tỷ trọng khuyến nghị : 70–100% (Mua Mạnh/Gồng lãi)
+     - Lý do hệ thống       : Sức khoẻ: Tốt (65đ). Tín hiệu: Mua mạnh (Trend Leader).
+     - 💰 Tiền lớn (MCDX)   : DÒNG TIỀN VỪA XUẤT HIỆN -> MUA THĂM DÒ
+     - 🛡️ Vị thế FULL TIỀN    : MỞ VỊ THẾ TẤN CÔNG. Vị thế đang khỏe (Tốt). Giải ngân thêm khi vượt 58.52.
+     - 💎 Vị thế ĐANG CẦM CỔ : GIA TĂNG TỶ TRỌNG. Tiếp tục gồng lãi. Mục tiêu kỳ vọng 61.45.
+     - ✂ Vị thế ĐANG KẸP     : CƠ HỘI ĐẢO NGƯỢC: Cổ đang có tín hiệu tốt. Giữ vị thế và chờ về mốc SL 49.26.
+     - 📈 Điểm Gia Tăng (Ngắm trước): Gia tăng thêm 30–50% khi ĐÓNG CỬA vượt 55,860 | Break Swing High gần nhất (55.86) | ⚠️ Chưa thấy rõ nền nghỉ — cần thêm vài phiên nén trước khi buy | Mức độ an toàn: 75%
+     - 🎯 Mốc Chốt Lời       : TP1: 61.45 | TP2: 61.45
+     - 🛑 Mốc Cắt Lỗ (SL)    : 49.26 (Thủng là Bán)
+======================================================================
+

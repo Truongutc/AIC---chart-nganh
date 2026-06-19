@@ -1,0 +1,134 @@
+name: Auto Update Stock Data
+
+on:
+  schedule:
+    # 15:15 (3:15 PM) ICT is 08:15 UTC (weekdays Monday to Friday)
+    - cron: '15 8 * * 1-5'
+  workflow_dispatch: # Enable manual run button in GitHub Actions tab
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Restore Cached Stock Data
+        uses: actions/cache@v3
+        with:
+          path: |
+            data_storage/
+            config.json
+          key: stock-data-${{ github.run_id }}
+          restore-keys: |
+            stock-data-
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+
+      - name: Check Vietstock Session (Pre-flight)
+        env:
+          PYTHONPATH: .
+          VIETSTOCK_CURL: ${{ secrets.VIETSTOCK_CURL }}
+        run: |
+          python -c '
+          import os, sys
+          from tinvest.config_manager import ConfigManager
+          from tinvest.vietstock_client import VietstockClient
+
+          # 1. Bỏ qua nạp cURL từ secret để tránh ghi đè token đã nhập từ Action thủ công
+          curl_str = ""
+          if False:
+              print(">> Đang nạp VIETSTOCK_CURL từ secret vào config...")
+              mgr = ConfigManager()
+              ok = mgr.parse_input(curl_str)
+              if not ok:
+                  print("::error::❌ Không thể parse VIETSTOCK_CURL secret. Vui lòng dán lại cURL mới.")
+                  sys.exit(1)
+              print("   Config đã cập nhật từ secret.")
+          else:
+              print(">> Không có secret mới, dùng config đã cache.")
+
+          # 2. Kiểm tra session
+          client = VietstockClient()
+          status = client.check_session_status()
+          print(f">> Trạng thái kết nối Vietstock: {status}")
+
+          ALLOWED = {"VALID", "LIMITED_BYPASSED"}
+          if status not in ALLOWED:
+              print(f"::error::❌ Kết nối Vietstock THẤT BẠI (status={status}).")
+              print("::error::   Vui lòng vào Actions → Update Vietstock Bypass URL → paste cURL mới.")
+              sys.exit(1)
+
+          print(f"✅ Kết nối OK ({status}). Tiếp tục cập nhật dữ liệu...")
+          '
+
+      - name: Run Update Script
+        env:
+          PYTHONPATH: .
+          VIETSTOCK_CURL: ${{ secrets.VIETSTOCK_CURL }}
+        run: |
+          # 1. Cấu hình cURL từ secrets (Đã tắt để ưu tiên config.json)
+          python -c '
+          import os
+          from tinvest.config_manager import ConfigManager
+          curl_str = ""
+          if curl_str and len(curl_str.strip()) > 10:
+              print("Found VIETSTOCK_CURL secret. Parsing and updating config...")
+              mgr = ConfigManager()
+              success = mgr.parse_input(curl_str)
+              if success:
+                  print("Config successfully updated with new cURL credentials!")
+              else:
+                  print("Failed to parse cURL credentials.")
+          else:
+              print("No VIETSTOCK_CURL secret provided or it is too short. Proceeding with existing config.")
+          '
+          
+          # 2. Chạy cập nhật tự động hàng ngày từ Vietstock
+          python run_headless_update.py
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Stage only the Output/ directory (data_storage/ and config.json are handled by GitHub cache)
+          git add Output/
+          
+          if ! git diff --cached --quiet; then
+            echo "📂 Đang sao lưu thư mục Output..."
+            mv Output Output_backup
+            
+            echo "🔄 Đang cập nhật nhánh main mới nhất từ GitHub..."
+            git reset --hard HEAD
+            git pull origin main
+            
+            echo "📂 Đang phục hồi thư mục Output..."
+            rm -rf Output
+            mv Output_backup Output
+            
+            echo "💾 Đang commit dữ liệu mới..."
+            git add Output/
+            git commit -m "Auto-update stock analysis: $(date +'%Y-%m-%d %H:%M:%S')"
+            
+            echo "🚀 Đẩy dữ liệu lên GitHub..."
+            git push origin main
+          else
+            echo "No changes in stock data. Skipping push."
+          fi

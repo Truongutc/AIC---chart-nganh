@@ -1,0 +1,47 @@
+{
+    "vietstock_api_url": "https://finance.vietstock.vn/data/KQGDThongKeGiaPaging",
+    "vietstock_index_url": "https://finance.vietstock.vn/data/KQGDThongKeGiaStockPaging",
+    "stocklist_api_url": "https://finance.vietstock.vn/data/stocklist",
+    "bypass_pageSize": 20,
+    "cookies": {
+        "Theme": "Light",
+        "language": "vi-VN",
+        "ASP.NET_SessionId": "gqaxuujjgbj2niecjdjuvbzm",
+        "__RequestVerificationToken": "MWPR7mTqj3vP2kmYw09Qn7nx-vl6mMfg-KTedDtwHfzvxzaZKz_sXClD71GcfXZculoZD5z36IvVspABS0_YEFJJvu_s5ihsSIjz4e9uKFY1",
+        "AnonymousNotification": "",
+        "_gid": "GA1.2.1734348464.1781677659",
+        "_gat_UA-1460625-2": "1",
+        "CookieLogin": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiaHV1dHJ1b25ndXRjQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2hhc2giOiJzay1oNHp5T0NoVTJScHBVeUVYNHJhSGlnIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZWlkZW50aWZpZXIiOiJodXV0cnVvbmd1dGNAZ21haWwuY29tIiwiZXhwIjoxNzg0MjY5NzY0LCJpc3MiOiIudmlldHN0b2NrLnZuIiwiYXVkIjoiLnZpZXRzdG9jay52biJ9.mGKxHAUke2XO7lBRtIOZy_Ftsf2ni7fVYypaRY63h9g",
+        "vst_usr_lg_token": "RLB/ofK910qlBC5beNVP/w==",
+        "AuthRequest": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9hbm9ueW1vdXMiOiJGaW5hbmNlIiwiZXhwIjoxNzgxNjc3OTUyLCJpc3MiOiJodHRwczovL2ZpbmFuY2UudmlldHN0b2NrLnZuIiwiYXVkIjoiaHR0cHM6Ly9maW5hbmNlLnZpZXRzdG9jay52biJ9.L1gyA6rzRCSST4y-VWwsO-VdNxIlxBa2N_C4b1uHHN4",
+        "_ga": "GA1.2.1417740156.1752282620",
+        "_ga_EXMM0DKVEX": "GS2.1.s1781677658$o186$g1$t1781677677$j41$l0$h0"
+    },
+    "headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
+        "Accept": "*/*",
+        "Accept-Language": "vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5",
+        "X-Requested-With": "XMLHttpRequest",
+        "Connection": "keep-alive",
+        "Origin": "https://finance.vietstock.vn",
+        "Referer": "https://finance.vietstock.vn/ket-qua-giao-dich?tab=thong-ke-gia",
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-origin",
+        "sec-ch-ua": "\"Chromium\";v=\"118\", \"Google Chrome\";v=\"118\", \"Not=A?Brand\";v=\"99\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\""
+    },
+    "payload_token": "ESgRK0sS5QmH43_Mj4cuOu8MnPlStcfR8ackH3HdEu7e5V-YC8B7zOGeR6tdVBsfTGJtsCaKHxnjnwrYCpsgBxBTHeMtPcfb8A0McVH0s-5BOAbaLR9fMy_HlCE7Ya8MAFBeHMKBrXRpTP4gOV5brA2",
+    "raw_cookie_str": "Theme=Light; language=vi-VN; ASP.NET_SessionId=gqaxuujjgbj2niecjdjuvbzm; __RequestVerificationToken=MWPR7mTqj3vP2kmYw09Qn7nx-vl6mMfg-KTedDtwHfzvxzaZKz_sXClD71GcfXZculoZD5z36IvVspABS0_YEFJJvu_s5ihsSIjz4e9uKFY1; AnonymousNotification=; _gid=GA1.2.1734348464.1781677659; _gat_UA-1460625-2=1; CookieLogin=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiaHV1dHJ1b25ndXRjQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2hhc2giOiJzay1oNHp5T0NoVTJScHBVeUVYNHJhSGlnIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZWlkZW50aWZpZXIiOiJodXV0cnVvbmd1dGNAZ21haWwuY29tIiwiZXhwIjoxNzg0MjY5NzY0LCJpc3MiOiIudmlldHN0b2NrLnZuIiwiYXVkIjoiLnZpZXRzdG9jay52biJ9.mGKxHAUke2XO7lBRtIOZy_Ftsf2ni7fVYypaRY63h9g; vst_usr_lg_token=RLB/ofK910qlBC5beNVP/w==; AuthRequest=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9hbm9ueW1vdXMiOiJGaW5hbmNlIiwiZXhwIjoxNzgxNjc3OTUyLCJpc3MiOiJodHRwczovL2ZpbmFuY2UudmlldHN0b2NrLnZuIiwiYXVkIjoiaHR0cHM6Ly9maW5hbmNlLnZpZXRzdG9jay52biJ9.L1gyA6rzRCSST4y-VWwsO-VdNxIlxBa2N_C4b1uHHN4; _ga=GA1.2.1417740156.1752282620; _ga_EXMM0DKVEX=GS2.1.s1781677658$o186$g1$t1781677677$j41$l0$h0",
+    "captured_headers": {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "Accept-Language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
+        "X-Requested-With": "XMLHttpRequest",
+        "Connection": "keep-alive",
+        "sec-ch-ua": "\"Google Chrome\";v=\"125\", \"Not.A/Brand\";v=\"8\", \"Chromium\";v=\"125\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\""
+    }
+}

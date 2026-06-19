@@ -1,0 +1,36 @@
+# Python temporary files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Local databases (Too large for Git)
+*.db
+tinvest_cache.db
+
+# Sensitive local configuration
+config.json
+test_config.json
+
+# Local data storage
+data_storage/
+
+# IDE files
+.idea/
+.vscode/
+
+# Project-specific logs
+*.log

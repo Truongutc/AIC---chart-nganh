@@ -1,0 +1,2270 @@
+{
+    "VND": {
+        "ticker": "VND",
+        "price": 17.1,
+        "date": "2026-06-12",
+        "n_history": 1232,
+        "state_vector": {
+            "rsi": 0.4977790660505816,
+            "rsi_zone": -0.5,
+            "rsi_slope": -0.055643579583470174,
+            "rsi_accel": 0.052278810730000916,
+            "macd_hist": -0.06482800127345695,
+            "macd_hist_slope": -0.014259378153404056,
+            "macd_vs_signal": -0.08769005003172917,
+            "macd_cross": 0.0,
+            "banker_norm": 0.0,
+            "hot_money_norm": 0.7303455085590371,
+            "banker_vs_ma": -0.03902419645216109,
+            "price_vs_cloud": 0.0,
+            "dist_cloud_top": 0.0,
+            "dist_kijun": -0.03381642512077293,
+            "dist_tenkan": -0.09468599033816363,
+            "price_vs_tenkan": -1.0,
+            "price_vs_kijun": -1.0,
+            "tk_cross": 0.0,
+            "chikou_pos": 1.0,
+            "cloud_thickness_pct": 0.4605263157894745,
+            "rel_vol": 0.20344368365385027,
+            "vol_spike": 0.0,
+            "vol_dry": 1.0,
+            "atr_slope_sign": -0.07246376811594159,
+            "ha_color": 1.0,
+            "hk_trend": 1.0,
+            "t2_sma_score": 0.82,
+            "t2_st_score": 0.54,
+            "oct_color": -0.5,
+            "oct_a1_sign": 1.0,
+            "oct_expanding": -1.0,
+            "adx_norm": 0.26111941337192623,
+            "adx_color": 0.0,
+            "adx_vs_diplus": -0.19147002186201031,
+            "adx_vs_diminus": -0.12525023478307953,
+            "di_dominance": 0.07892900835077428,
+            "dist_kijun65": 0.20289855072463756,
+            "dist_ma10": -0.07710144927536136,
+            "dist_ma20": -0.05140096618357424,
+            "dist_ma50": 0.09252173913043535,
+            "ma_10_vs_20": 1.0,
+            "ma_20_vs_50": 1.0,
+            "ma_50_vs_100": -1.0,
+            "ma_100_vs_200": -1.0,
+            "price_slope_1d": -0.09017713365539255,
+            "price_slope_2d": -0.13526570048309364,
+            "macd_slope": -0.20605280125833592,
+            "ma_price_zone": -0.6,
+            "ma_slope_short": 0.0,
+            "ma_slope_mid": 0.0,
+            "ma_slope_long": 0.0,
+            "ma_support_dist_change": 1.0,
+            "ma_resist_dist_change": 1.0,
+            "adx_momentum": 1.0,
+            "di_gap_change": 0.6621978707893078,
+            "adx_breakout": 0.0,
+            "cloud_dist_change": 1.0,
+            "tk_diverge": 0.3043478260869535,
+            "tk_cross_signal": 1.0,
+            "rsi_phase": 1.0,
+            "rsi_diverge": 1.0,
+            "macd_expanding": 1.0,
+            "macd_flip": -1.0,
+            "banker_trend": -1.0,
+            "price_streak": 0.3333333333333333,
+            "momentum_accel": 1.0,
+            "trend_exhaustion": 0.0
+        },
+        "zones": [
+            {
+                "price": 14.3,
+                "type": "support",
+                "confidence": 24,
+                "tolerance": 0.37,
+                "label": "S/R 14.3",
+                "hits": 2,
+                "is_confluence": false,
+                "distance_pct": -16.37,
+                "bounce_pct": 52.4,
+                "break_pct": 9.5,
+                "false_break_pct": 38.1,
+                "n_tests": 21
+            },
+            {
+                "price": 15.453675,
+                "type": "support",
+                "confidence": 96,
+                "tolerance": 0.37,
+                "label": "S/R 15.5",
+                "hits": 8,
+                "is_confluence": true,
+                "distance_pct": -9.63,
+                "bounce_pct": 50.0,
+                "break_pct": 27.8,
+                "false_break_pct": 22.2,
+                "n_tests": 18
+            },
+            {
+                "price": 16.265977777777778,
+                "type": "support",
+                "confidence": 100,
+                "tolerance": 0.37,
+                "label": "Kijun65",
+                "hits": 19,
+                "is_confluence": true,
+                "distance_pct": -4.88,
+                "bounce_pct": 57.7,
+                "break_pct": 11.5,
+                "false_break_pct": 30.8,
+                "n_tests": 26
+            },
+            {
+                "price": 17.046833333333332,
+                "type": "support",
+                "confidence": 100,
+                "tolerance": 0.37,
+                "label": "MA20",
+                "hits": 23,
+                "is_confluence": true,
+                "distance_pct": -0.31,
+                "bounce_pct": 35.3,
+                "break_pct": 29.4,
+                "false_break_pct": 35.3,
+                "n_tests": 17
+            },
+            {
+                "price": 17.615000000000002,
+                "type": "resistance",
+                "confidence": 100,
+                "tolerance": 0.37,
+                "label": "Tenkan",
+                "hits": 19,
+                "is_confluence": true,
+                "distance_pct": 3.01,
+                "reject_pct": 38.1,
+                "break_pct": 19.0,
+                "stall_pct": 42.9,
+                "n_tests": 21
+            },
+            {
+                "price": 18.40625,
+                "type": "resistance",
+                "confidence": 100,
+                "tolerance": 0.37,
+                "label": "S/R 18.4",
+                "hits": 16,
+                "is_confluence": true,
+                "distance_pct": 7.64,
+                "reject_pct": 50.0,
+                "break_pct": 25.0,
+                "stall_pct": 25.0,
+                "n_tests": 24
+            },
+            {
+                "price": 19.15116666666667,
+                "type": "resistance",
+                "confidence": 100,
+                "tolerance": 0.37,
+                "label": "MA200",
+                "hits": 13,
+                "is_confluence": true,
+                "distance_pct": 12.0,
+                "reject_pct": 52.4,
+                "break_pct": 23.8,
+                "stall_pct": 23.8,
+                "n_tests": 21
+            },
+            {
+                "price": 19.933333333333334,
+                "type": "resistance",
+                "confidence": 100,
+                "tolerance": 0.37,
+                "label": "S/R 19.9",
+                "hits": 12,
+                "is_confluence": true,
+                "distance_pct": 16.57,
+                "reject_pct": 40.0,
+                "break_pct": 33.3,
+                "stall_pct": 26.7,
+                "n_tests": 15
+            },
+            {
+                "price": 20.8125,
+                "type": "resistance",
+                "confidence": 96,
+                "tolerance": 0.37,
+                "label": "S/R 20.8",
+                "hits": 8,
+                "is_confluence": true,
+                "distance_pct": 21.71,
+                "reject_pct": 64.3,
+                "break_pct": 14.3,
+                "stall_pct": 21.4,
+                "n_tests": 14
+            },
+            {
+                "price": 21.737499999999997,
+                "type": "resistance",
+                "confidence": 96,
+                "tolerance": 0.37,
+                "label": "S/R 21.7",
+                "hits": 8,
+                "is_confluence": true,
+                "distance_pct": 27.12,
+                "reject_pct": 50.0,
+                "break_pct": 50.0,
+                "stall_pct": 0.0,
+                "n_tests": 6
+            },
+            {
+                "price": 23.110000000000003,
+                "type": "resistance",
+                "confidence": 100,
+                "tolerance": 0.37,
+                "label": "S/R 23.1",
+                "hits": 10,
+                "is_confluence": true,
+                "distance_pct": 35.15,
+                "reject_pct": 33.3,
+                "break_pct": 44.4,
+                "stall_pct": 22.2,
+                "n_tests": 9
+            },
+            {
+                "price": 24.424999999999997,
+                "type": "resistance",
+                "confidence": 96,
+                "tolerance": 0.37,
+                "label": "S/R 24.4",
+                "hits": 8,
+                "is_confluence": true,
+                "distance_pct": 42.84,
+                "reject_pct": 36.4,
+                "break_pct": 27.3,
+                "stall_pct": 36.4,
+                "n_tests": 11
+            },
+            {
+                "price": 25.166666666666668,
+                "type": "resistance",
+                "confidence": 72,
+                "tolerance": 0.37,
+                "label": "S/R 25.2",
+                "hits": 6,
+                "is_confluence": true,
+                "distance_pct": 47.17,
+                "reject_pct": 41.7,
+                "break_pct": 41.7,
+                "stall_pct": 16.7,
+                "n_tests": 12
+            },
+            {
+                "price": 27.35,
+                "type": "resistance",
+                "confidence": 24,
+                "tolerance": 0.37,
+                "label": "S/R 27.4",
+                "hits": 2,
+                "is_confluence": false,
+                "distance_pct": 59.94,
+                "reject_pct": 85.7,
+                "break_pct": 14.3,
+                "stall_pct": 0.0,
+                "n_tests": 7
+            }
+        ],
+        "matches": [
+            {
+                "date": "2022-03-25",
+                "idx": 183,
+                "similarity": 0.7489,
+                "future_3": -0.48,
+                "future_5": 1.93,
+                "future_10": 12.86,
+                "future_20": -5.31,
+                "base_price": 25.09,
+                "weight": 0.002846,
+                "tier": 4,
+                "tier_label": "Fallback"
+            },
+            {
+                "date": "2022-09-05",
+                "idx": 294,
+                "similarity": 0.7291,
+                "future_3": -6.54,
+                "future_5": -6.07,
+                "future_10": -16.59,
+                "future_20": -23.83,
+                "base_price": 17.62,
+                "weight": 0.002611,
+                "tier": 4,
+                "tier_label": "Fallback"
+            },
+            {
+                "date": "2023-02-07",
+                "idx": 399,
+                "similarity": 0.7216,
+                "future_3": -2.44,
+                "future_5": -3.14,
+                "future_10": 5.57,
+                "future_20": -1.05,
+                "base_price": 11.82,
+                "weight": 0.00269,
+                "tier": 4,
+                "tier_label": "Fallback"
+            }
+        ],
+        "distribution": {
+            "future_3": {
+                "label": "3 phiên",
+                "n": 3,
+                "mean": -3.07,
+                "median": -4.31,
+                "std": 2.52,
+                "pct_up": 0.0,
+                "pct_down": 100.0,
+                "pct_sideways": 0.0,
+                "mean_up": 0.0,
+                "mean_down": -3.07,
+                "bracket_huge_up": 0.0,
+                "bracket_up": 0.0,
+                "bracket_sideways": 68.0,
+                "bracket_down": 32.0,
+                "bracket_huge_down": 0.0,
+                "p10": -6.54,
+                "p25": -6.54,
+                "p75": -1.88,
+                "p90": -1.04,
+                "best": -0.48,
+                "worst": -6.54,
+                "values": [
+                    -0.48,
+                    -6.54,
+                    -2.44
+                ],
+                "tier_summary": {
+                    "dominant_tier": 4,
+                    "confidence_label": "Không đủ tin cậy",
+                    "tier_1_count": 0,
+                    "tier_2_count": 0,
+                    "tier_3_count": 0,
+                    "tier_4_count": 3,
+                    "avg_similarity": 0.7332,
+                    "should_trust": false,
+                    "warning": "Mức độ tin cậy thấp: Cần ít nhất 10 phiên tương đồng (>75%) và 2 phiên độ tương đồng cao (>80%).",
+                    "temporal_diversity": {
+                        "num_clusters": 3,
+                        "span_sessions": 216,
+                        "diversity_score": 1.0,
+                        "warning": null
+                    }
+                }
+            },
+            "future_5": {
+                "label": "5 phiên",
+                "n": 3,
+                "mean": -2.31,
+                "median": -4.48,
+                "std": 3.32,
+                "pct_up": 34.9,
+                "pct_down": 65.1,
+                "pct_sideways": 0.0,
+                "mean_up": 1.93,
+                "mean_down": -4.58,
+                "bracket_huge_up": 0.0,
+                "bracket_up": 0.0,
+                "bracket_sideways": 34.9,
+                "bracket_down": 65.1,
+                "bracket_huge_down": 0.0,
+                "p10": -6.07,
+                "p25": -6.07,
+                "p75": -1.7,
+                "p90": 0.48,
+                "best": 1.93,
+                "worst": -6.07,
+                "values": [
+                    1.93,
+                    -6.07,
+                    -3.14
+                ],
+                "tier_summary": {
+                    "dominant_tier": 4,
+                    "confidence_label": "Không đủ tin cậy",
+                    "tier_1_count": 0,
+                    "tier_2_count": 0,
+                    "tier_3_count": 0,
+                    "tier_4_count": 3,
+                    "avg_similarity": 0.7332,
+                    "should_trust": false,
+                    "warning": "Mức độ tin cậy thấp: Cần ít nhất 10 phiên tương đồng (>75%) và 2 phiên độ tương đồng cao (>80%).",
+                    "temporal_diversity": {
+                        "num_clusters": 3,
+                        "span_sessions": 216,
+                        "diversity_score": 1.0,
+                        "warning": null
+                    }
+                }
+            },
+            "future_10": {
+                "label": "10 phiên",
+                "n": 3,
+                "mean": 1.01,
+                "median": -4.54,
+                "std": 12.46,
+                "pct_up": 68.0,
+                "pct_down": 32.0,
+                "pct_sideways": 0.0,
+                "mean_up": 9.32,
+                "mean_down": -16.59,
+                "bracket_huge_up": 34.9,
+                "bracket_up": 33.0,
+                "bracket_sideways": 0.0,
+                "bracket_down": 0.0,
+                "bracket_huge_down": 32.0,
+                "p10": -16.59,
+                "p25": -16.59,
+                "p75": 7.64,
+                "p90": 10.77,
+                "best": 12.86,
+                "worst": -16.59,
+                "values": [
+                    12.86,
+                    -16.59,
+                    5.57
+                ],
+                "tier_summary": {
+                    "dominant_tier": 4,
+                    "confidence_label": "Không đủ tin cậy",
+                    "tier_1_count": 0,
+                    "tier_2_count": 0,
+                    "tier_3_count": 0,
+                    "tier_4_count": 3,
+                    "avg_similarity": 0.7332,
+                    "should_trust": false,
+                    "warning": "Mức độ tin cậy thấp: Cần ít nhất 10 phiên tương đồng (>75%) và 2 phiên độ tương đồng cao (>80%).",
+                    "temporal_diversity": {
+                        "num_clusters": 3,
+                        "span_sessions": 216,
+                        "diversity_score": 1.0,
+                        "warning": null
+                    }
+                }
+            },
+            "future_20": {
+                "label": "20 phiên",
+                "n": 3,
+                "mean": -9.84,
+                "median": -14.31,
+                "std": 9.77,
+                "pct_up": 0.0,
+                "pct_down": 100.0,
+                "pct_sideways": 0.0,
+                "mean_up": 0.0,
+                "mean_down": -9.84,
+                "bracket_huge_up": 0.0,
+                "bracket_up": 0.0,
+                "bracket_sideways": 33.0,
+                "bracket_down": 34.9,
+                "bracket_huge_down": 32.0,
+                "p10": -23.83,
+                "p25": -23.83,
+                "p75": -4.28,
+                "p90": -2.34,
+                "best": -1.05,
+                "worst": -23.83,
+                "values": [
+                    -5.31,
+                    -23.83,
+                    -1.05
+                ],
+                "tier_summary": {
+                    "dominant_tier": 4,
+                    "confidence_label": "Không đủ tin cậy",
+                    "tier_1_count": 0,
+                    "tier_2_count": 0,
+                    "tier_3_count": 0,
+                    "tier_4_count": 3,
+                    "avg_similarity": 0.7332,
+                    "should_trust": false,
+                    "warning": "Mức độ tin cậy thấp: Cần ít nhất 10 phiên tương đồng (>75%) và 2 phiên độ tương đồng cao (>80%).",
+                    "temporal_diversity": {
+                        "num_clusters": 3,
+                        "span_sessions": 216,
+                        "diversity_score": 1.0,
+                        "warning": null
+                    }
+                }
+            }
+        },
+        "scenario_tree": {
+            "current_price": 17.1,
+            "main_path": {
+                "probability": 65.1,
+                "direction": "Điều chỉnh về",
+                "target": "MA20",
+                "target_price": 17.05,
+                "branches": [
+                    {
+                        "condition": "Nếu GIỮ vùng MA20",
+                        "probability": 23.0,
+                        "direction": "Bật lại lên",
+                        "target": "Tenkan",
+                        "target_price": 17.62
+                    },
+                    {
+                        "condition": "Nếu PHÁ vùng MA20",
+                        "probability": 19.1,
+                        "direction": "Rơi tiếp",
+                        "target": "Kijun65",
+                        "target_price": 16.27
+                    }
+                ]
+            },
+            "alt_path": {
+                "probability": 34.9,
+                "direction": "Tăng hướng lên",
+                "target": "Tenkan",
+                "target_price": 17.62,
+                "branches": [
+                    {
+                        "condition": "Nếu VƯỢT vùng Tenkan",
+                        "probability": 6.6,
+                        "direction": "Tăng tiếp",
+                        "target": "vùng S/R 18.4",
+                        "target_price": 18.41
+                    },
+                    {
+                        "condition": "Nếu BỊ CHẶN tại Tenkan",
+                        "probability": 13.3,
+                        "direction": "Điều chỉnh về",
+                        "target": "MA20",
+                        "target_price": 17.05
+                    }
+                ]
+            },
+            "n_matches": 3,
+            "consensus": {
+                "consensus_score": -24.3,
+                "direction": "strong_bear",
+                "direction_label": "Giảm mạnh",
+                "confidence_label": "Độ tin cậy cao",
+                "is_bullish": false,
+                "short_long_conflict": true,
+                "conflict_warning": "Tín hiệu ngắn hạn và trung hạn mâu thuẫn nhau — thận trọng",
+                "net_3": -100.0,
+                "net_5": -30.2,
+                "net_10": 36.0
+            }
+        },
+        "targets": {
+            "current_price": 17.1,
+            "atr": 0.74,
+            "atr_up_1x5": 18.21,
+            "atr_up_2x5": 18.95,
+            "atr_down_1x5": 15.99,
+            "atr_down_2x5": 15.25,
+            "measured_move_up": 18.75,
+            "measured_move_down": 15.6,
+            "confidence": "Cao"
+        },
+        "match_quality": {
+            "dominant_tier": 4,
+            "confidence_label": "Không đủ tin cậy",
+            "tier_1_count": 0,
+            "tier_2_count": 0,
+            "tier_3_count": 0,
+            "tier_4_count": 3,
+            "avg_similarity": 0.7332,
+            "should_trust": false,
+            "warning": "Không đủ số lượng phiên tương đồng cứng, hạ tiêu chí cứng và lấy 3 phiên giống nhất. | Mức độ tin cậy thấp: Cần ít nhất 7 phiên tương đồng (>75%) và 2 phiên độ tương đồng cao (>80%)."
+        },
+        "temporal_diversity": {
+            "num_clusters": 3,
+            "span_sessions": 216,
+            "diversity_score": 1.0,
+            "warning": null
+        },
+        "forecast_series": [
+            {
+                "date": "2026-01-28",
+                "price": 18.6,
+                "ev10": 17.75742,
+                "ev20": 17.3352
+            },
+            {
+                "date": "2026-01-29",
+                "price": 18.45,
+                "ev10": 17.34669,
+                "ev20": 16.45002
+            },
+            {
+                "date": "2026-01-30",
+                "price": 18.5,
+                "ev10": 17.3974,
+                "ev20": 16.650000000000002
+            },
+            {
+                "date": "2026-02-02",
+                "price": 18.1,
+                "ev10": 16.72983,
+                "ev20": 15.781390000000002
+            },
+            {
+                "date": "2026-02-03",
+                "price": 18.5,
+                "ev10": 16.97375,
+                "ev20": 16.0617
+            },
+            {
+                "date": "2026-02-04",
+                "price": 18.55,
+                "ev10": 16.696855,
+                "ev20": 15.435455000000001
+            },
+            {
+                "date": "2026-02-05",
+                "price": 18.2,
+                "ev10": 15.959579999999999,
+                "ev20": 14.281539999999998
+            },
+            {
+                "date": "2026-02-06",
+                "price": 17.65,
+                "ev10": 16.080914999999997,
+                "ev20": 15.025444999999998
+            },
+            {
+                "date": "2026-02-09",
+                "price": 17.65,
+                "ev10": 17.570574999999998,
+                "ev20": 17.334065
+            },
+            {
+                "date": "2026-02-10",
+                "price": 17.75,
+                "ev10": 17.52635,
+                "ev20": 17.318675
+            },
+            {
+                "date": "2026-02-11",
+                "price": 18.4,
+                "ev10": 18.024639999999998,
+                "ev20": 17.494719999999997
+            },
+            {
+                "date": "2026-02-12",
+                "price": 18.3,
+                "ev10": 17.79858,
+                "ev20": 17.41428
+            },
+            {
+                "date": "2026-02-13",
+                "price": 18.6,
+                "ev10": 18.367500000000003,
+                "ev20": 17.7072
+            },
+            {
+                "date": "2026-02-23",
+                "price": 18.85,
+                "ev10": 18.05453,
+                "ev20": 17.50034
+            },
+            {
+                "date": "2026-02-24",
+                "price": 19.0,
+                "ev10": 16.058799999999998,
+                "ev20": 13.6933
+            },
+            {
+                "date": "2026-02-25",
+                "price": 18.9,
+                "ev10": 16.08201,
+                "ev20": 16.17084
+            },
+            {
+                "date": "2026-02-26",
+                "price": 18.8,
+                "ev10": 16.44436,
+                "ev20": 16.70568
+            },
+            {
+                "date": "2026-02-27",
+                "price": 18.7,
+                "ev10": 15.66312,
+                "ev20": 15.27229
+            },
+            {
+                "date": "2026-03-02",
+                "price": 18.1,
+                "ev10": 19.093690000000002,
+                "ev20": 17.77601
+            },
+            {
+                "date": "2026-03-03",
+                "price": 18.35,
+                "ev10": 18.92986,
+                "ev20": 17.771975
+            },
+            {
+                "date": "2026-03-04",
+                "price": 18.8,
+                "ev10": 18.54432,
+                "ev20": 18.049879999999998
+            },
+            {
+                "date": "2026-03-05",
+                "price": 18.9,
+                "ev10": 18.918899999999997,
+                "ev20": 19.931939999999997
+            },
+            {
+                "date": "2026-03-06",
+                "price": 18.15,
+                "ev10": 18.692685,
+                "ev20": 17.725289999999998
+            },
+            {
+                "date": "2026-03-09",
+                "price": 16.9,
+                "ev10": 16.972669999999997,
+                "ev20": 16.612699999999997
+            },
+            {
+                "date": "2026-03-10",
+                "price": 16.55,
+                "ev10": 16.346435,
+                "ev20": 15.992265000000002
+            },
+            {
+                "date": "2026-03-11",
+                "price": 16.9,
+                "ev10": 16.64312,
+                "ev20": 16.151329999999998
+            },
+            {
+                "date": "2026-03-12",
+                "price": 16.55,
+                "ev10": 16.29844,
+                "ev20": 15.79532
+            },
+            {
+                "date": "2026-03-13",
+                "price": 16.25,
+                "ev10": 16.1785,
+                "ev20": 15.741375
+            },
+            {
+                "date": "2026-03-16",
+                "price": 16.2,
+                "ev10": 16.00074,
+                "ev20": 15.56334
+            },
+            {
+                "date": "2026-03-17",
+                "price": 16.45,
+                "ev10": 16.145675,
+                "ev20": 15.849575
+            },
+            {
+                "date": "2026-03-18",
+                "price": 16.15,
+                "ev10": 15.734945,
+                "ev20": 15.28436
+            },
+            {
+                "date": "2026-03-19",
+                "price": 15.6,
+                "ev10": 15.46272,
+                "ev20": 15.171
+            },
+            {
+                "date": "2026-03-20",
+                "price": 15.35,
+                "ev10": 15.222595,
+                "ev20": 14.953969999999998
+            },
+            {
+                "date": "2026-03-23",
+                "price": 14.3,
+                "ev10": 14.45444,
+                "ev20": 14.348620000000002
+            },
+            {
+                "date": "2026-03-24",
+                "price": 15.05,
+                "ev10": 14.983780000000001,
+                "ev20": 14.84231
+            },
+            {
+                "date": "2026-03-25",
+                "price": 15.5,
+                "ev10": 15.2303,
+                "ev20": 15.03035
+            },
+            {
+                "date": "2026-03-26",
+                "price": 15.5,
+                "ev10": 15.010200000000001,
+                "ev20": 15.114049999999999
+            },
+            {
+                "date": "2026-03-27",
+                "price": 15.85,
+                "ev10": 15.30476,
+                "ev20": 15.35548
+            },
+            {
+                "date": "2026-03-30",
+                "price": 15.5,
+                "ev10": 14.965250000000001,
+                "ev20": 15.08615
+            },
+            {
+                "date": "2026-03-31",
+                "price": 15.8,
+                "ev10": 15.3892,
+                "ev20": 15.826860000000002
+            },
+            {
+                "date": "2026-04-01",
+                "price": 16.25,
+                "ev10": 16.09075,
+                "ev20": 16.65625
+            },
+            {
+                "date": "2026-04-02",
+                "price": 15.9,
+                "ev10": 16.03356,
+                "ev20": 16.2975
+            },
+            {
+                "date": "2026-04-03",
+                "price": 15.65,
+                "ev10": 15.654695,
+                "ev20": 16.096025
+            },
+            {
+                "date": "2026-04-06",
+                "price": 15.65,
+                "ev10": 15.640609999999999,
+                "ev20": 16.27287
+            },
+            {
+                "date": "2026-04-07",
+                "price": 16.05,
+                "ev10": 16.12704,
+                "ev20": 16.431990000000003
+            },
+            {
+                "date": "2026-04-08",
+                "price": 17.15,
+                "ev10": 17.87373,
+                "ev20": 17.916604999999997
+            },
+            {
+                "date": "2026-04-09",
+                "price": 16.85,
+                "ev10": 17.09264,
+                "ev20": 17.50378
+            },
+            {
+                "date": "2026-04-10",
+                "price": 16.75,
+                "ev10": 16.999575,
+                "ev20": 17.69805
+            },
+            {
+                "date": "2026-04-13",
+                "price": 16.65,
+                "ev10": 16.76988,
+                "ev20": 17.670644999999997
+            },
+            {
+                "date": "2026-04-14",
+                "price": 16.85,
+                "ev10": 16.96121,
+                "ev20": 18.101955000000004
+            },
+            {
+                "date": "2026-04-15",
+                "price": 16.8,
+                "ev10": 17.12088,
+                "ev20": 18.080160000000003
+            },
+            {
+                "date": "2026-04-16",
+                "price": 16.55,
+                "ev10": 16.74529,
+                "ev20": 17.551275
+            },
+            {
+                "date": "2026-04-17",
+                "price": 16.55,
+                "ev10": 16.753565000000002,
+                "ev20": 17.491695
+            },
+            {
+                "date": "2026-04-20",
+                "price": 16.7,
+                "ev10": 16.877019999999998,
+                "ev20": 17.70367
+            },
+            {
+                "date": "2026-04-21",
+                "price": 16.65,
+                "ev10": 17.277705,
+                "ev20": 17.7156
+            },
+            {
+                "date": "2026-04-22",
+                "price": 16.55,
+                "ev10": 17.74491,
+                "ev20": 17.885585
+            },
+            {
+                "date": "2026-04-23",
+                "price": 16.25,
+                "ev10": 17.08525,
+                "ev20": 17.056
+            },
+            {
+                "date": "2026-04-24",
+                "price": 16.2,
+                "ev10": 17.1639,
+                "ev20": 17.172
+            },
+            {
+                "date": "2026-04-28",
+                "price": 16.05,
+                "ev10": 16.886205,
+                "ev20": 16.88781
+            },
+            {
+                "date": "2026-04-29",
+                "price": 16.1,
+                "ev10": 16.98067,
+                "ev20": 17.025750000000002
+            },
+            {
+                "date": "2026-05-04",
+                "price": 16.2,
+                "ev10": 17.282159999999998,
+                "ev20": 17.36316
+            },
+            {
+                "date": "2026-05-05",
+                "price": 16.0,
+                "ev10": 16.6688,
+                "ev20": 16.7136
+            },
+            {
+                "date": "2026-05-06",
+                "price": 16.65,
+                "ev10": 17.873775,
+                "ev20": 17.52246
+            },
+            {
+                "date": "2026-05-07",
+                "price": 16.65,
+                "ev10": 17.201114999999998,
+                "ev20": 16.88976
+            },
+            {
+                "date": "2026-05-08",
+                "price": 16.45,
+                "ev10": 16.642465,
+                "ev20": 16.221345
+            },
+            {
+                "date": "2026-05-11",
+                "price": 16.45,
+                "ev10": 17.096484999999998,
+                "ev20": 16.918825
+            },
+            {
+                "date": "2026-05-12",
+                "price": 16.4,
+                "ev10": 18.497559999999996,
+                "ev20": 18.454919999999998
+            },
+            {
+                "date": "2026-05-13",
+                "price": 16.3,
+                "ev10": 17.06284,
+                "ev20": 17.007420000000003
+            },
+            {
+                "date": "2026-05-14",
+                "price": 16.4,
+                "ev10": 17.305279999999996,
+                "ev20": 16.765719999999998
+            },
+            {
+                "date": "2026-05-15",
+                "price": 16.45,
+                "ev10": 18.022619999999996,
+                "ev20": 18.175604999999997
+            },
+            {
+                "date": "2026-05-18",
+                "price": 16.65,
+                "ev10": 17.807175,
+                "ev20": 17.747235
+            },
+            {
+                "date": "2026-05-19",
+                "price": 16.95,
+                "ev10": 17.734785,
+                "ev20": 18.18735
+            },
+            {
+                "date": "2026-05-20",
+                "price": 16.45,
+                "ev10": 15.34127,
+                "ev20": 15.528799999999999
+            },
+            {
+                "date": "2026-05-21",
+                "price": 16.35,
+                "ev10": 15.230025000000001,
+                "ev20": 15.452385000000001
+            },
+            {
+                "date": "2026-05-22",
+                "price": 17.45,
+                "ev10": 16.568775,
+                "ev20": 16.195345
+            },
+            {
+                "date": "2026-05-25",
+                "price": 17.6,
+                "ev10": 16.820320000000002,
+                "ev20": 17.3976
+            },
+            {
+                "date": "2026-05-26",
+                "price": 18.1,
+                "ev10": 17.94434,
+                "ev20": 17.9009
+            },
+            {
+                "date": "2026-05-27",
+                "price": 17.75,
+                "ev10": 17.950575,
+                "ev20": 18.248775000000002
+            },
+            {
+                "date": "2026-05-28",
+                "price": 17.8,
+                "ev10": 17.88188,
+                "ev20": 18.501320000000003
+            },
+            {
+                "date": "2026-05-29",
+                "price": 16.85,
+                "ev10": 16.942675,
+                "ev20": 15.426175
+            },
+            {
+                "date": "2026-06-01",
+                "price": 17.55,
+                "ev10": 18.597735000000004,
+                "ev20": 16.997175000000002
+            },
+            {
+                "date": "2026-06-02",
+                "price": 17.15,
+                "ev10": 15.716259999999998,
+                "ev20": 14.46774
+            },
+            {
+                "date": "2026-06-03",
+                "price": 17.95,
+                "ev10": 17.596384999999998,
+                "ev20": 17.35765
+            },
+            {
+                "date": "2026-06-04",
+                "price": 17.8,
+                "ev10": 18.18804,
+                "ev20": 17.819580000000002
+            },
+            {
+                "date": "2026-06-05",
+                "price": 17.6,
+                "ev10": 17.809440000000002,
+                "ev20": 18.25472
+            },
+            {
+                "date": "2026-06-08",
+                "price": 16.85,
+                "ev10": 16.265305,
+                "ev20": 15.346980000000002
+            },
+            {
+                "date": "2026-06-09",
+                "price": 17.3,
+                "ev10": 16.81214,
+                "ev20": 16.876150000000003
+            },
+            {
+                "date": "2026-06-10",
+                "price": 17.35,
+                "ev10": 16.560575,
+                "ev20": 15.313110000000002
+            },
+            {
+                "date": "2026-06-11",
+                "price": 17.2,
+                "ev10": 16.389879999999998,
+                "ev20": 14.48412
+            },
+            {
+                "date": "2026-06-12",
+                "price": 17.1,
+                "ev10": 17.27271,
+                "ev20": 15.41736
+            }
+        ],
+        "error": null
+    },
+    "GMD": {
+        "ticker": "GMD",
+        "price": 76.0,
+        "date": "2026-06-12",
+        "n_history": 6002,
+        "state_vector": {
+            "rsi": 0.5515544090753258,
+            "rsi_zone": 0.5,
+            "rsi_slope": 0.0963679740376037,
+            "rsi_accel": 0.19273594812831404,
+            "macd_hist": 0.11706819361816853,
+            "macd_hist_slope": 0.01738459281182919,
+            "macd_vs_signal": 0.06478081860293912,
+            "macd_cross": 0.0,
+            "banker_norm": 0.2812357879436405,
+            "hot_money_norm": 0.889602973419185,
+            "banker_vs_ma": -0.0015462796798505706,
+            "price_vs_cloud": 0.0,
+            "dist_cloud_top": -0.16074545454545444,
+            "dist_kijun": -0.004067193675890662,
+            "dist_tenkan": 0.14387351778656096,
+            "price_vs_tenkan": 1.0,
+            "price_vs_kijun": -1.0,
+            "tk_cross": 0.0,
+            "chikou_pos": -1.0,
+            "cloud_thickness_pct": 0.45419736842105196,
+            "rel_vol": 0.1951372886145372,
+            "vol_spike": 0.0,
+            "vol_dry": 1.0,
+            "atr_slope_sign": -0.218355731225296,
+            "ha_color": 1.0,
+            "hk_trend": 1.0,
+            "t2_sma_score": 0.84,
+            "t2_st_score": 0.2,
+            "oct_color": -0.5,
+            "oct_a1_sign": 1.0,
+            "oct_expanding": -1.0,
+            "adx_norm": 0.26671281128353336,
+            "adx_color": 0.0,
+            "adx_vs_diplus": -0.16654061047954763,
+            "adx_vs_diminus": -0.10776640103608912,
+            "di_dominance": 0.07276263420694805,
+            "dist_kijun65": 0.21568300395256843,
+            "dist_ma10": 0.09517786561264817,
+            "dist_ma20": 0.11548229249011832,
+            "dist_ma50": 0.20421030830039508,
+            "ma_10_vs_20": 1.0,
+            "ma_20_vs_50": 1.0,
+            "ma_50_vs_100": 1.0,
+            "ma_100_vs_200": 1.0,
+            "price_slope_1d": 0.14756258234519315,
+            "price_slope_2d": 0.0,
+            "macd_slope": 0.12907568715992068,
+            "ma_price_zone": 1.0,
+            "ma_slope_short": 0.0,
+            "ma_slope_mid": 0.0,
+            "ma_slope_long": 0.0,
+            "ma_support_dist_change": 1.0,
+            "ma_resist_dist_change": 0.0,
+            "adx_momentum": 1.0,
+            "di_gap_change": 0.587742094434585,
+            "adx_breakout": 0.0,
+            "cloud_dist_change": 1.0,
+            "tk_diverge": -0.7397035573122581,
+            "tk_cross_signal": -1.0,
+            "rsi_phase": 1.0,
+            "rsi_diverge": 1.0,
+            "macd_expanding": 1.0,
+            "macd_flip": 1.0,
+            "banker_trend": -1.0,
+            "price_streak": 0.3333333333333333,
+            "momentum_accel": 1.0,
+            "trend_exhaustion": 0.0
+        },
+        "zones": [
+            {
+                "price": 51.63346666666666,
+                "type": "support",
+                "confidence": 72,
+                "tolerance": 0.9,
+                "label": "S/R 51.6",
+                "hits": 6,
+                "is_confluence": true,
+                "distance_pct": -32.06,
+                "bounce_pct": 14.3,
+                "break_pct": 14.3,
+                "false_break_pct": 71.4,
+                "n_tests": 7
+            },
+            {
+                "price": 54.34418000000001,
+                "type": "support",
+                "confidence": 100,
+                "tolerance": 0.9,
+                "label": "S/R 54.3",
+                "hits": 10,
+                "is_confluence": true,
+                "distance_pct": -28.49,
+                "bounce_pct": 58.3,
+                "break_pct": 8.3,
+                "false_break_pct": 33.3,
+                "n_tests": 12
+            },
+            {
+                "price": 57.140142857142855,
+                "type": "support",
+                "confidence": 100,
+                "tolerance": 0.9,
+                "label": "S/R 57.1",
+                "hits": 14,
+                "is_confluence": true,
+                "distance_pct": -24.82,
+                "bounce_pct": 53.8,
+                "break_pct": 7.7,
+                "false_break_pct": 38.5,
+                "n_tests": 13
+            },
+            {
+                "price": 59.0338,
+                "type": "support",
+                "confidence": 96,
+                "tolerance": 0.9,
+                "label": "S/R 59.0",
+                "hits": 8,
+                "is_confluence": true,
+                "distance_pct": -22.32,
+                "bounce_pct": 58.3,
+                "break_pct": 16.7,
+                "false_break_pct": 25.0,
+                "n_tests": 12
+            },
+            {
+                "price": 60.999457142857146,
+                "type": "support",
+                "confidence": 100,
+                "tolerance": 0.9,
+                "label": "S/R 61.0",
+                "hits": 14,
+                "is_confluence": true,
+                "distance_pct": -19.74,
+                "bounce_pct": 50.0,
+                "break_pct": 5.6,
+                "false_break_pct": 44.4,
+                "n_tests": 18
+            },
+            {
+                "price": 62.765344444444445,
+                "type": "support",
+                "confidence": 100,
+                "tolerance": 0.9,
+                "label": "S/R 62.8",
+                "hits": 18,
+                "is_confluence": true,
+                "distance_pct": -17.41,
+                "bounce_pct": 42.9,
+                "break_pct": 21.4,
+                "false_break_pct": 35.7,
+                "n_tests": 14
+            },
+            {
+                "price": 64.1322,
+                "type": "support",
+                "confidence": 24,
+                "tolerance": 0.9,
+                "label": "S/R 64.1",
+                "hits": 2,
+                "is_confluence": false,
+                "distance_pct": -15.62,
+                "bounce_pct": 38.5,
+                "break_pct": 23.1,
+                "false_break_pct": 38.5,
+                "n_tests": 13
+            },
+            {
+                "price": 67.34404683333332,
+                "type": "support",
+                "confidence": 100,
+                "tolerance": 0.9,
+                "label": "MA200",
+                "hits": 19,
+                "is_confluence": true,
+                "distance_pct": -11.39,
+                "bounce_pct": 40.0,
+                "break_pct": 30.0,
+                "false_break_pct": 30.0,
+                "n_tests": 10
+            },
+            {
+                "price": 68.9967857142857,
+                "type": "support",
+                "confidence": 100,
+                "tolerance": 0.9,
+                "label": "S/R 69.0",
+                "hits": 14,
+                "is_confluence": true,
+                "distance_pct": -9.21,
+                "bounce_pct": 66.7,
+                "break_pct": 16.7,
+                "false_break_pct": 16.7,
+                "n_tests": 6
+            },
+            {
+                "price": 70.98490000000001,
+                "type": "support",
+                "confidence": 96,
+                "tolerance": 0.9,
+                "label": "S/R 71.0",
+                "hits": 8,
+                "is_confluence": true,
+                "distance_pct": -6.6,
+                "bounce_pct": 71.4,
+                "break_pct": 28.6,
+                "false_break_pct": 0.0,
+                "n_tests": 7
+            },
+            {
+                "price": 73.3281311,
+                "type": "support",
+                "confidence": 100,
+                "tolerance": 0.9,
+                "label": "MA50",
+                "hits": 21,
+                "is_confluence": true,
+                "distance_pct": -3.52,
+                "bounce_pct": 50.0,
+                "break_pct": 33.3,
+                "false_break_pct": 16.7,
+                "n_tests": 6
+            },
+            {
+                "price": 75.236617,
+                "type": "support",
+                "confidence": 96,
+                "tolerance": 0.9,
+                "label": "Kijun",
+                "hits": 8,
+                "is_confluence": true,
+                "distance_pct": -1.0,
+                "bounce_pct": 0.0,
+                "break_pct": 50.0,
+                "false_break_pct": 50.0,
+                "n_tests": 4
+            },
+            {
+                "price": 77.1978125,
+                "type": "resistance",
+                "confidence": 96,
+                "tolerance": 0.9,
+                "label": "Cloud Top",
+                "hits": 8,
+                "is_confluence": true,
+                "distance_pct": 1.58,
+                "reject_pct": 66.7,
+                "break_pct": 33.3,
+                "stall_pct": 0.0,
+                "n_tests": 6
+            },
+            {
+                "price": 79.392,
+                "type": "resistance",
+                "confidence": 48,
+                "tolerance": 0.9,
+                "label": "S/R 79.4",
+                "hits": 4,
+                "is_confluence": true,
+                "distance_pct": 4.46,
+                "reject_pct": 33.3,
+                "break_pct": 0.0,
+                "stall_pct": 66.7,
+                "n_tests": 3
+            },
+            {
+                "price": 86.9761,
+                "type": "resistance",
+                "confidence": 24,
+                "tolerance": 0.9,
+                "label": "S/R 87.0",
+                "hits": 2,
+                "is_confluence": false,
+                "distance_pct": 14.44,
+                "reject_pct": 100.0,
+                "break_pct": 0.0,
+                "stall_pct": 0.0,
+                "n_tests": 1
+            }
+        ],
+        "matches": [
+            {
+                "date": "2024-07-12",
+                "idx": 5526,
+                "similarity": 0.7569,
+                "future_3": -3.57,
+                "future_5": -6.19,
+                "future_10": -5.95,
+                "future_20": -8.21,
+                "base_price": 67.29,
+                "weight": 0.005467,
+                "tier": 4,
+                "tier_label": "Fallback"
+            },
+            {
+                "date": "2021-10-14",
+                "idx": 4842,
+                "similarity": 0.7426,
+                "future_3": 0.59,
+                "future_5": -2.15,
+                "future_10": 2.15,
+                "future_20": 4.49,
+                "base_price": 38.8,
+                "weight": 0.002393,
+                "tier": 4,
+                "tier_label": "Fallback"
+            },
+            {
+                "date": "2016-02-04",
+                "idx": 3422,
+                "similarity": 0.7368,
+                "future_3": 0.99,
+                "future_5": 0.25,
+                "future_10": -3.72,
+                "future_20": -0.25,
+                "base_price": 13.88,
+                "weight": 0.000546,
+                "tier": 4,
+                "tier_label": "Fallback"
+            }
+        ],
+        "distribution": {
+            "future_3": {
+                "label": "3 phiên",
+                "n": 3,
+                "mean": -2.09,
+                "median": -3.57,
+                "std": 2.02,
+                "pct_up": 35.0,
+                "pct_down": 65.0,
+                "pct_sideways": 0.0,
+                "mean_up": 0.66,
+                "mean_down": -3.57,
+                "bracket_huge_up": 0.0,
+                "bracket_up": 0.0,
+                "bracket_sideways": 35.0,
+                "bracket_down": 65.0,
+                "bracket_huge_down": 0.0,
+                "p10": -3.57,
+                "p25": -3.57,
+                "p75": -2.11,
+                "p90": 0.08,
+                "best": 0.99,
+                "worst": -3.57,
+                "values": [
+                    -3.57,
+                    0.59,
+                    0.99
+                ],
+                "tier_summary": {
+                    "dominant_tier": 4,
+                    "confidence_label": "Không đủ tin cậy",
+                    "tier_1_count": 0,
+                    "tier_2_count": 0,
+                    "tier_3_count": 0,
+                    "tier_4_count": 3,
+                    "avg_similarity": 0.7454,
+                    "should_trust": false,
+                    "warning": "Mức độ tin cậy thấp: Cần ít nhất 10 phiên tương đồng (>75%) và 2 phiên độ tương đồng cao (>80%).",
+                    "temporal_diversity": {
+                        "num_clusters": 3,
+                        "span_sessions": 2104,
+                        "diversity_score": 1.0,
+                        "warning": null
+                    }
+                }
+            },
+            "future_5": {
+                "label": "5 phiên",
+                "n": 3,
+                "mean": -4.62,
+                "median": -6.19,
+                "std": 2.21,
+                "pct_up": 6.5,
+                "pct_down": 93.5,
+                "pct_sideways": 0.0,
+                "mean_up": 0.25,
+                "mean_down": -4.96,
+                "bracket_huge_up": 0.0,
+                "bracket_up": 0.0,
+                "bracket_sideways": 35.0,
+                "bracket_down": 65.0,
+                "bracket_huge_down": 0.0,
+                "p10": -6.19,
+                "p25": -6.19,
+                "p75": -4.78,
+                "p90": -2.65,
+                "best": 0.25,
+                "worst": -6.19,
+                "values": [
+                    -6.19,
+                    -2.15,
+                    0.25
+                ],
+                "tier_summary": {
+                    "dominant_tier": 4,
+                    "confidence_label": "Không đủ tin cậy",
+                    "tier_1_count": 0,
+                    "tier_2_count": 0,
+                    "tier_3_count": 0,
+                    "tier_4_count": 3,
+                    "avg_similarity": 0.7454,
+                    "should_trust": false,
+                    "warning": "Mức độ tin cậy thấp: Cần ít nhất 10 phiên tương đồng (>75%) và 2 phiên độ tương đồng cao (>80%).",
+                    "temporal_diversity": {
+                        "num_clusters": 3,
+                        "span_sessions": 2104,
+                        "diversity_score": 1.0,
+                        "warning": null
+                    }
+                }
+            },
+            "future_10": {
+                "label": "10 phiên",
+                "n": 3,
+                "mean": -3.5,
+                "median": -5.95,
+                "std": 3.6,
+                "pct_up": 28.5,
+                "pct_down": 71.5,
+                "pct_sideways": 0.0,
+                "mean_up": 2.15,
+                "mean_down": -5.75,
+                "bracket_huge_up": 0.0,
+                "bracket_up": 0.0,
+                "bracket_sideways": 28.5,
+                "bracket_down": 71.5,
+                "bracket_huge_down": 0.0,
+                "p10": -5.95,
+                "p25": -5.95,
+                "p75": -3.0,
+                "p90": 0.09,
+                "best": 2.15,
+                "worst": -5.95,
+                "values": [
+                    -5.95,
+                    2.15,
+                    -3.72
+                ],
+                "tier_summary": {
+                    "dominant_tier": 4,
+                    "confidence_label": "Không đủ tin cậy",
+                    "tier_1_count": 0,
+                    "tier_2_count": 0,
+                    "tier_3_count": 0,
+                    "tier_4_count": 3,
+                    "avg_similarity": 0.7454,
+                    "should_trust": false,
+                    "warning": "Mức độ tin cậy thấp: Cần ít nhất 10 phiên tương đồng (>75%) và 2 phiên độ tương đồng cao (>80%).",
+                    "temporal_diversity": {
+                        "num_clusters": 3,
+                        "span_sessions": 2104,
+                        "diversity_score": 1.0,
+                        "warning": null
+                    }
+                }
+            },
+            "future_20": {
+                "label": "20 phiên",
+                "n": 3,
+                "mean": -4.08,
+                "median": -8.21,
+                "std": 5.74,
+                "pct_up": 28.5,
+                "pct_down": 71.5,
+                "pct_sideways": 0.0,
+                "mean_up": 4.49,
+                "mean_down": -7.49,
+                "bracket_huge_up": 0.0,
+                "bracket_up": 28.5,
+                "bracket_sideways": 6.5,
+                "bracket_down": 65.0,
+                "bracket_huge_down": 0.0,
+                "p10": -8.21,
+                "p25": -8.21,
+                "p75": 0.33,
+                "p90": 2.82,
+                "best": 4.49,
+                "worst": -8.21,
+                "values": [
+                    -8.21,
+                    4.49,
+                    -0.25
+                ],
+                "tier_summary": {
+                    "dominant_tier": 4,
+                    "confidence_label": "Không đủ tin cậy",
+                    "tier_1_count": 0,
+                    "tier_2_count": 0,
+                    "tier_3_count": 0,
+                    "tier_4_count": 3,
+                    "avg_similarity": 0.7454,
+                    "should_trust": false,
+                    "warning": "Mức độ tin cậy thấp: Cần ít nhất 10 phiên tương đồng (>75%) và 2 phiên độ tương đồng cao (>80%).",
+                    "temporal_diversity": {
+                        "num_clusters": 3,
+                        "span_sessions": 2104,
+                        "diversity_score": 1.0,
+                        "warning": null
+                    }
+                }
+            }
+        },
+        "scenario_tree": {
+            "current_price": 76.0,
+            "main_path": {
+                "probability": 93.5,
+                "direction": "Điều chỉnh về",
+                "target": "Kijun",
+                "target_price": 75.24,
+                "branches": [
+                    {
+                        "condition": "Nếu GIỮ vùng Kijun",
+                        "probability": 0.0,
+                        "direction": "Bật lại lên",
+                        "target": "Cloud Top",
+                        "target_price": 77.2
+                    },
+                    {
+                        "condition": "Nếu PHÁ vùng Kijun",
+                        "probability": 46.8,
+                        "direction": "Rơi tiếp",
+                        "target": "MA50",
+                        "target_price": 73.33
+                    }
+                ]
+            },
+            "alt_path": {
+                "probability": 6.5,
+                "direction": "Tăng hướng lên",
+                "target": "Cloud Top",
+                "target_price": 77.2,
+                "branches": [
+                    {
+                        "condition": "Nếu VƯỢT vùng Cloud Top",
+                        "probability": 2.2,
+                        "direction": "Tăng tiếp",
+                        "target": "vùng S/R 79.4",
+                        "target_price": 79.39
+                    },
+                    {
+                        "condition": "Nếu BỊ CHẶN tại Cloud Top",
+                        "probability": 4.3,
+                        "direction": "Điều chỉnh về",
+                        "target": "Kijun",
+                        "target_price": 75.24
+                    }
+                ]
+            },
+            "n_matches": 3,
+            "consensus": {
+                "consensus_score": -62.4,
+                "direction": "strong_bear",
+                "direction_label": "Giảm mạnh",
+                "confidence_label": "Độ tin cậy cao",
+                "is_bullish": false,
+                "short_long_conflict": false,
+                "conflict_warning": null,
+                "net_3": -30.0,
+                "net_5": -87.0,
+                "net_10": -43.0
+            }
+        },
+        "targets": {
+            "current_price": 76.0,
+            "atr": 1.81,
+            "atr_up_1x5": 78.71,
+            "atr_up_2x5": 80.52,
+            "atr_down_1x5": 73.29,
+            "atr_down_2x5": 71.48,
+            "measured_move_up": 79.8,
+            "measured_move_down": 72.0,
+            "confidence": "Cao"
+        },
+        "match_quality": {
+            "dominant_tier": 4,
+            "confidence_label": "Không đủ tin cậy",
+            "tier_1_count": 0,
+            "tier_2_count": 0,
+            "tier_3_count": 0,
+            "tier_4_count": 3,
+            "avg_similarity": 0.7454,
+            "should_trust": false,
+            "warning": "Không đủ số lượng phiên tương đồng cứng, hạ tiêu chí cứng và lấy 3 phiên giống nhất. | Mức độ tin cậy thấp: Cần ít nhất 7 phiên tương đồng (>75%) và 2 phiên độ tương đồng cao (>80%)."
+        },
+        "temporal_diversity": {
+            "num_clusters": 3,
+            "span_sessions": 2104,
+            "diversity_score": 1.0,
+            "warning": null
+        },
+        "forecast_series": [
+            {
+                "date": "2026-01-28",
+                "price": 63.9444,
+                "ev10": 63.49039476,
+                "ev20": 67.21835328
+            },
+            {
+                "date": "2026-01-29",
+                "price": 65.9852,
+                "ev10": 65.33194652,
+                "ev20": 66.26233784
+            },
+            {
+                "date": "2026-01-30",
+                "price": 66.5683,
+                "ev10": 67.45365839,
+                "ev20": 67.53354035
+            },
+            {
+                "date": "2026-02-02",
+                "price": 66.2768,
+                "ev10": 66.73410992,
+                "ev20": 66.73410992
+            },
+            {
+                "date": "2026-02-03",
+                "price": 70.8442,
+                "ev10": 70.73084928,
+                "ev20": 71.9422851
+            },
+            {
+                "date": "2026-02-04",
+                "price": 71.2329,
+                "ev10": 70.28550243000001,
+                "ev20": 70.76276286
+            },
+            {
+                "date": "2026-02-05",
+                "price": 69.095,
+                "ev10": 68.998267,
+                "ev20": 69.2539185
+            },
+            {
+                "date": "2026-02-06",
+                "price": 69.4837,
+                "ev10": 68.90003692,
+                "ev20": 71.30417294
+            },
+            {
+                "date": "2026-02-09",
+                "price": 69.2893,
+                "ev10": 68.77655918,
+                "ev20": 70.61965456
+            },
+            {
+                "date": "2026-02-10",
+                "price": 68.9978,
+                "ev10": 69.88097183999999,
+                "ev20": 69.7912747
+            },
+            {
+                "date": "2026-02-11",
+                "price": 69.2893,
+                "ev10": 67.86886935,
+                "ev20": 68.30539193999999
+            },
+            {
+                "date": "2026-02-12",
+                "price": 72.3991,
+                "ev10": 71.08867629000001,
+                "ev20": 72.15294306000001
+            },
+            {
+                "date": "2026-02-13",
+                "price": 72.885,
+                "ev10": 72.345651,
+                "ev20": 72.7902495
+            },
+            {
+                "date": "2026-02-23",
+                "price": 73.3709,
+                "ev10": 72.26299941,
+                "ev20": 73.37823709
+            },
+            {
+                "date": "2026-02-24",
+                "price": 77.5496,
+                "ev10": 77.13083216,
+                "ev20": 78.06918232
+            },
+            {
+                "date": "2026-02-25",
+                "price": 77.744,
+                "ev10": 76.694456,
+                "ev20": 77.54964000000001
+            },
+            {
+                "date": "2026-02-26",
+                "price": 79.1045,
+                "ev10": 77.30882785,
+                "ev20": 79.2310672
+            },
+            {
+                "date": "2026-02-27",
+                "price": 82.0199,
+                "ev10": 82.2659597,
+                "ev20": 83.75051988999999
+            },
+            {
+                "date": "2026-03-02",
+                "price": 78.7158,
+                "ev10": 79.30616850000001,
+                "ev20": 80.12481282
+            },
+            {
+                "date": "2026-03-03",
+                "price": 79.2017,
+                "ev10": 80.37388516,
+                "ev20": 82.02128052
+            },
+            {
+                "date": "2026-03-04",
+                "price": 76.7722,
+                "ev10": 78.18480848,
+                "ev20": 76.6186556
+            },
+            {
+                "date": "2026-03-05",
+                "price": 75.1201,
+                "ev10": 75.14263602999999,
+                "ev20": 75.06751592999998
+            },
+            {
+                "date": "2026-03-06",
+                "price": 75.8004,
+                "ev10": 75.70943952,
+                "ev20": 75.79281996
+            },
+            {
+                "date": "2026-03-09",
+                "price": 70.5527,
+                "ev10": 69.90361516,
+                "ev20": 73.12081828
+            },
+            {
+                "date": "2026-03-10",
+                "price": 69.4837,
+                "ev10": 70.70661312,
+                "ev20": 72.67300183
+            },
+            {
+                "date": "2026-03-11",
+                "price": 74.3427,
+                "ev10": 74.87796744,
+                "ev20": 76.84804899
+            },
+            {
+                "date": "2026-03-12",
+                "price": 74.6342,
+                "ev10": 74.61180974000001,
+                "ev20": 75.20141992
+            },
+            {
+                "date": "2026-03-13",
+                "price": 73.7596,
+                "ev10": 69.12012116000001,
+                "ev20": 68.72181932000001
+            },
+            {
+                "date": "2026-03-16",
+                "price": 71.9132,
+                "ev10": 69.88524776,
+                "ev20": 67.2747986
+            },
+            {
+                "date": "2026-03-17",
+                "price": 73.8568,
+                "ev10": 68.65728128,
+                "ev20": 71.28658336000001
+            },
+            {
+                "date": "2026-03-18",
+                "price": 77.1609,
+                "ev10": 77.88621246000001,
+                "ev20": 76.41243927
+            },
+            {
+                "date": "2026-03-19",
+                "price": 74.3427,
+                "ev10": 76.38712425,
+                "ev20": 71.13852963
+            },
+            {
+                "date": "2026-03-20",
+                "price": 75.023,
+                "ev10": 74.872954,
+                "ev20": 72.9523652
+            },
+            {
+                "date": "2026-03-23",
+                "price": 69.9696,
+                "ev10": 69.53578848000001,
+                "ev20": 70.72527167999999
+            },
+            {
+                "date": "2026-03-24",
+                "price": 71.816,
+                "ev10": 73.1589592,
+                "ev20": 77.130384
+            },
+            {
+                "date": "2026-03-25",
+                "price": 75.023,
+                "ev10": 78.248989,
+                "ev20": 79.17177189999998
+            },
+            {
+                "date": "2026-03-26",
+                "price": 75.606,
+                "ev10": 77.7078468,
+                "ev20": 80.1121176
+            },
+            {
+                "date": "2026-03-27",
+                "price": 76.2863,
+                "ev10": 76.70587465,
+                "ev20": 79.1851794
+            },
+            {
+                "date": "2026-03-30",
+                "price": 76.2863,
+                "ev10": 75.85909672,
+                "ev20": 78.84189105
+            },
+            {
+                "date": "2026-03-31",
+                "price": 77.2581,
+                "ev10": 76.74047073,
+                "ev20": 78.59466513000001
+            },
+            {
+                "date": "2026-04-01",
+                "price": 75.2173,
+                "ev10": 74.9164308,
+                "ev20": 76.11990759999999
+            },
+            {
+                "date": "2026-04-02",
+                "price": 71.9132,
+                "ev10": 71.31632044,
+                "ev20": 73.66069076000001
+            },
+            {
+                "date": "2026-04-03",
+                "price": 68.7063,
+                "ev10": 67.75128243,
+                "ev20": 68.76813566999999
+            },
+            {
+                "date": "2026-04-06",
+                "price": 69.1922,
+                "ev10": 71.41326962,
+                "ev20": 72.61029468000001
+            },
+            {
+                "date": "2026-04-07",
+                "price": 69.8724,
+                "ev10": 73.07255592,
+                "ev20": 70.97638392
+            },
+            {
+                "date": "2026-04-08",
+                "price": 72.3991,
+                "ev10": 73.57920533000001,
+                "ev20": 76.82992492
+            },
+            {
+                "date": "2026-04-09",
+                "price": 71.5245,
+                "ev10": 78.40515690000001,
+                "ev20": 82.9541151
+            },
+            {
+                "date": "2026-04-10",
+                "price": 70.5527,
+                "ev10": 71.23706119,
+                "ev20": 75.9852579
+            },
+            {
+                "date": "2026-04-13",
+                "price": 71.2329,
+                "ev10": 71.12605065000001,
+                "ev20": 73.14194171999999
+            },
+            {
+                "date": "2026-04-14",
+                "price": 72.3019,
+                "ev10": 75.10721372,
+                "ev20": 82.2072603
+            },
+            {
+                "date": "2026-04-15",
+                "price": 72.2047,
+                "ev10": 79.20855590000001,
+                "ev20": 81.45412207
+            },
+            {
+                "date": "2026-04-16",
+                "price": 71.5245,
+                "ev10": 81.2947467,
+                "ev20": 80.65817865
+            },
+            {
+                "date": "2026-04-17",
+                "price": 72.4963,
+                "ev10": 81.51483972000001,
+                "ev20": 81.65983232
+            },
+            {
+                "date": "2026-04-20",
+                "price": 72.1076,
+                "ev10": 74.71068436,
+                "ev20": 78.33769664
+            },
+            {
+                "date": "2026-04-21",
+                "price": 71.9132,
+                "ev10": 68.66991468,
+                "ev20": 74.91917176000001
+            },
+            {
+                "date": "2026-04-22",
+                "price": 71.4273,
+                "ev10": 70.91302344,
+                "ev20": 65.12026941
+            },
+            {
+                "date": "2026-04-23",
+                "price": 72.1076,
+                "ev10": 69.50451564000001,
+                "ev20": 67.56482120000001
+            },
+            {
+                "date": "2026-04-24",
+                "price": 72.885,
+                "ev10": 75.683784,
+                "ev20": 75.989901
+            },
+            {
+                "date": "2026-04-28",
+                "price": 72.885,
+                "ev10": 81.033543,
+                "ev20": 83.0378805
+            },
+            {
+                "date": "2026-04-29",
+                "price": 73.1765,
+                "ev10": 82.3528331,
+                "ev20": 81.7966917
+            },
+            {
+                "date": "2026-05-04",
+                "price": 72.9822,
+                "ev10": 75.14247312,
+                "ev20": 74.9527194
+            },
+            {
+                "date": "2026-05-05",
+                "price": 75.4117,
+                "ev10": 84.10666900999999,
+                "ev20": 81.58791823
+            },
+            {
+                "date": "2026-05-06",
+                "price": 76.1891,
+                "ev10": 78.84048067999998,
+                "ev20": 77.80430892000001
+            },
+            {
+                "date": "2026-05-07",
+                "price": 77.2581,
+                "ev10": 79.05821373,
+                "ev20": 77.8761648
+            },
+            {
+                "date": "2026-05-08",
+                "price": 78.4243,
+                "ev10": 79.37323403,
+                "ev20": 78.51840916
+            },
+            {
+                "date": "2026-05-11",
+                "price": 77.4525,
+                "ev10": 77.731329,
+                "ev20": 76.244241
+            },
+            {
+                "date": "2026-05-12",
+                "price": 79.2989,
+                "ev10": 81.32895184,
+                "ev20": 80.70249053
+            },
+            {
+                "date": "2026-05-13",
+                "price": 79.2989,
+                "ev10": 79.8539923,
+                "ev20": 80.18704768
+            },
+            {
+                "date": "2026-05-14",
+                "price": 79.0073,
+                "ev10": 79.15741387,
+                "ev20": 79.92378468000001
+            },
+            {
+                "date": "2026-05-15",
+                "price": 77.6468,
+                "ev10": 78.41550332,
+                "ev20": 79.25408875999999
+            },
+            {
+                "date": "2026-05-18",
+                "price": 77.4525,
+                "ev10": 78.71497575,
+                "ev20": 79.04802149999999
+            },
+            {
+                "date": "2026-05-19",
+                "price": 76.675,
+                "ev10": 77.64877249999999,
+                "ev20": 77.886465
+            },
+            {
+                "date": "2026-05-20",
+                "price": 75.7032,
+                "ev10": 76.25583336,
+                "ev20": 77.84560056
+            },
+            {
+                "date": "2026-05-21",
+                "price": 74.5,
+                "ev10": 76.38485000000001,
+                "ev20": 79.0296
+            },
+            {
+                "date": "2026-05-22",
+                "price": 73.6,
+                "ev10": 75.04992,
+                "ev20": 79.01695999999998
+            },
+            {
+                "date": "2026-05-25",
+                "price": 74.6,
+                "ev10": 75.28632,
+                "ev20": 77.02449999999999
+            },
+            {
+                "date": "2026-05-26",
+                "price": 75.5,
+                "ev10": 73.65780000000001,
+                "ev20": 75.5302
+            },
+            {
+                "date": "2026-05-27",
+                "price": 74.9,
+                "ev10": 73.01252000000001,
+                "ev20": 71.63436
+            },
+            {
+                "date": "2026-05-28",
+                "price": 72.5,
+                "ev10": 71.0355,
+                "ev20": 69.08525
+            },
+            {
+                "date": "2026-05-29",
+                "price": 72.3,
+                "ev10": 70.63709999999999,
+                "ev20": 73.57248
+            },
+            {
+                "date": "2026-06-01",
+                "price": 73.3,
+                "ev10": 72.55234,
+                "ev20": 74.70002999999998
+            },
+            {
+                "date": "2026-06-02",
+                "price": 73.3,
+                "ev10": 73.90839,
+                "ev20": 78.82681999999998
+            },
+            {
+                "date": "2026-06-03",
+                "price": 73.3,
+                "ev10": 75.30109,
+                "ev20": 76.97233
+            },
+            {
+                "date": "2026-06-04",
+                "price": 76.1,
+                "ev10": 75.9478,
+                "ev20": 81.41938999999999
+            },
+            {
+                "date": "2026-06-05",
+                "price": 76.2,
+                "ev10": 80.13192000000001,
+                "ev20": 75.40752
+            },
+            {
+                "date": "2026-06-08",
+                "price": 76.0,
+                "ev10": 73.3856,
+                "ev20": 75.354
+            },
+            {
+                "date": "2026-06-09",
+                "price": 76.0,
+                "ev10": 72.9068,
+                "ev20": 78.21159999999999
+            },
+            {
+                "date": "2026-06-10",
+                "price": 75.6,
+                "ev10": 70.29288,
+                "ev20": 69.15888
+            },
+            {
+                "date": "2026-06-11",
+                "price": 75.6,
+                "ev10": 72.02412,
+                "ev20": 70.73136
+            },
+            {
+                "date": "2026-06-12",
+                "price": 76.0,
+                "ev10": 73.34,
+                "ev20": 72.89920000000001
+            }
+        ],
+        "error": null
+    }
+}

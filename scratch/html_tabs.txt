@@ -1,0 +1,37 @@
+﻿647:         .filter-tabs-wrapper {
+654:         .filter-tabs-wrapper::-webkit-scrollbar {
+658:         .filter-tabs {
+2286:         .portfolio-table-container {
+2291:         .portfolio-table {
+2297:         .portfolio-table th {
+2304:         .portfolio-table td {
+2310:         .portfolio-table tbody tr:last-child td {
+2313:         .portfolio-table tbody tr:hover {
+2660:             <div class="logo-section" onclick="selectMenuTab('market-tab', '≡ƒôè', 'Thß╗ï tr╞░ß╗¥ng (VNINDEX)'); window.scrollTo({top: 0, behavior: 'smooth'});" style="cursor: pointer; use
+2682:             <div id="menuContent" class="menu-content">
+2683:                 <button class="menu-item active" data-tab="market-tab" onclick="selectMenuTab('market-tab', '≡ƒôè', 'Thß╗ï tr╞░ß╗¥ng (VNINDEX)')">≡ƒôè Thß╗ï tr╞░ß╗¥ng (VNINDEX)</button>
+2684:                 <button class="menu-item" data-tab="lookup-tab" onclick="selectMenuTab('lookup-tab', '≡ƒöì', 'Tra cß╗⌐u Cß╗ò phiß║┐u')">≡ƒöì Tra cß╗⌐u Cß╗ò phiß║┐u</button>
+2685:                 <button class="menu-item" data-tab="filter-tab" onclick="selectMenuTab('filter-tab', '≡ƒÄ»', 'Lß╗ìc Cß╗ò phiß║┐u')">≡ƒÄ» Lß╗ìc Cß╗ò phiß║┐u</button>
+2686:                 <button class="menu-item" data-tab="portfolio-tab" onclick="selectMenuTab('portfolio-tab', '≡ƒÆ╝', '─É├ính gi├í Danh mß╗Ñc')">≡ƒÆ╝ ─É├ính gi├í Danh mß╗Ñc</button>
+2687:                 <button class="menu-item" data-tab="aicpro-tab" onclick="selectMenuTab('aicpro-tab', 'ΓÜí', 'AIC Pro')">ΓÜí AIC Pro</button>
+2688:                 <button class="menu-item" data-tab="contact-tab" onclick="selectMenuTab('contact-tab', 'Γä╣∩╕Å', 'Information')">Γä╣∩╕Å Information</button>
+2695:         <div class="tab-content active" id="market-tab">
+2835:         <div class="tab-content" id="lookup-tab">
+2850:         <div class="tab-content" id="filter-tab">
+3008:         <div class="tab-content" id="portfolio-tab">
+3096:                         <div class="portfolio-table-container">
+3097:                             <table class="portfolio-table" id="portfolio-table">
+3110:                                 <tbody id="portfolio-table-body"></tbody>
+3127:         <div class="tab-content" id="contact-tab">
+3218:         <div class="tab-content" id="aicpro-tab">
+3495:             selectMenuTab('market-tab', '≡ƒôè', 'Thß╗ï tr╞░ß╗¥ng (VNINDEX)');
+3514:             if (pendingTabId === 'lookup-tab') requiredLevel = 1;
+3515:             else if (pendingTabId === 'filter-tab' || pendingTabId === 'portfolio-tab') requiredLevel = 2;
+3534:             if (tabId === 'lookup-tab') requiredLevel = 1;
+3535:             else if (tabId === 'filter-tab' || tabId === 'portfolio-tab') requiredLevel = 2;
+3549:             if (tabId === 'market-tab') {
+3566:             const content = document.getElementById('menuContent');
+3571:             const content = document.getElementById('menuContent');
+5152:             const menuContent = document.getElementById('menuContent');
+5163:                 if (menuContent) menuContent.classList.remove('show');
+7461:                     document.getElementById('portfolio-table-body').innerHTML = tableRowsHtml.join('');

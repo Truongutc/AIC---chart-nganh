@@ -1,0 +1,17 @@
+[flake8]
+max-line-length = 100
+extend-ignore = E203, W503, E501, E402
+exclude =
+    .git,
+    __pycache__,
+    venv,
+    build,
+    dist,
+    Output,
+    tmp,
+    tmp_debug_storage,
+    scratch,
+    *.spec
+per-file-ignores =
+    AICcode.py:E302,E303,E501,C901
+    tests/*:E501,F401

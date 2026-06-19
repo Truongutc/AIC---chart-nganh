@@ -1,0 +1,37 @@
+{
+    "include": [
+        "tinvest",
+        "tests",
+        "AICcode.py",
+        "run_headless_update.py",
+        "backtest_*.py",
+        "debug_*.py",
+        "verify_*.py"
+    ],
+    "exclude": [
+        "**/node_modules",
+        "**/__pycache__",
+        "**/venv",
+        "build",
+        "dist",
+        "Output",
+        "tmp",
+        "tmp_debug_storage",
+        "scratch",
+        ".git"
+    ],
+    "pythonVersion": "3.11",
+    "pythonPlatform": "Windows",
+    "typeCheckingMode": "basic",
+    "reportMissingImports": "warning",
+    "reportMissingModuleSource": "warning",
+    "reportOptionalMemberAccess": "warning",
+    "reportUnusedImport": "information",
+    "reportUnusedVariable": "information",
+    "venvPath": ".",
+    "venv": "venv",
+    "extraPaths": [
+        ".",
+        "tinvest"
+    ]
+}

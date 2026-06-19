@@ -1,0 +1,63 @@
+=== HPG DIAGNOSTIC LOG ===
+
+--- Reading HPG from CSV ---
+CSV total rows: 4608
+CSV May 2026 rows:
+Date: 2026-05-04 | Open: 27.75 | High: 27.95 | Low: 27.4 | Close: 27.6 | Vol: 32374300
+Date: 2026-05-05 | Open: 27.65 | High: 27.7 | Low: 27.2 | Close: 27.3 | Vol: 30692800
+Date: 2026-05-06 | Open: 27.4 | High: 27.8 | Low: 27.3 | Close: 27.6 | Vol: 27672000
+Date: 2026-05-07 | Open: 27.8 | High: 27.9 | Low: 27.6 | Close: 27.75 | Vol: 20348100
+Date: 2026-05-08 | Open: 27.75 | High: 27.9 | Low: 27.55 | Close: 27.85 | Vol: 20678200
+Date: 2026-05-11 | Open: 27.5 | High: 27.5 | Low: 27.0 | Close: 27.0 | Vol: 23658100
+Date: 2026-05-12 | Open: 27.0 | High: 27.2 | Low: 26.85 | Close: 26.9 | Vol: 19170900
+Date: 2026-05-13 | Open: 26.95 | High: 27.25 | Low: 26.8 | Close: 27.1 | Vol: 21544700
+Date: 2026-05-14 | Open: 27.3 | High: 27.4 | Low: 27.05 | Close: 27.05 | Vol: 14047100
+Date: 2026-05-15 | Open: 27.05 | High: 27.1 | Low: 26.45 | Close: 26.55 | Vol: 75838200
+Date: 2026-05-18 | Open: 26.5 | High: 26.7 | Low: 26.25 | Close: 26.45 | Vol: 27485500
+Date: 2026-05-19 | Open: 26.5 | High: 26.65 | Low: 26.25 | Close: 26.25 | Vol: 25111900
+Date: 2026-05-20 | Open: 26.3 | High: 26.4 | Low: 25.75 | Close: 26.2 | Vol: 40983800
+Date: 2026-05-21 | Open: 26.35 | High: 26.7 | Low: 26.3 | Close: 26.55 | Vol: 30562500
+Date: 2026-05-22 | Open: 26.6 | High: 26.65 | Low: 26.35 | Close: 26.45 | Vol: 4697400
+
+--- Reading HPG from Parquet ---
+Parquet total rows: 4609
+Parquet May 2026 rows:
+Date: 2026-05-04 | Open: 27.75 | High: 27.95 | Low: 27.4 | Close: 27.6 | Vol: 32374300 | Source: CSV
+Date: 2026-05-05 | Open: 27.65 | High: 27.7 | Low: 27.2 | Close: 27.3 | Vol: 30692800 | Source: CSV
+Date: 2026-05-06 | Open: 27.4 | High: 27.8 | Low: 27.3 | Close: 27.6 | Vol: 27672000 | Source: CSV
+Date: 2026-05-07 | Open: 27.8 | High: 27.9 | Low: 27.6 | Close: 27.75 | Vol: 20348100 | Source: CSV
+Date: 2026-05-08 | Open: 27.75 | High: 27.9 | Low: 27.55 | Close: 27.85 | Vol: 20678200 | Source: CSV
+Date: 2026-05-11 | Open: 27.5 | High: 27.5 | Low: 27.0 | Close: 27.0 | Vol: 23658100 | Source: CSV
+Date: 2026-05-12 | Open: 27.0 | High: 27.2 | Low: 26.85 | Close: 26.9 | Vol: 19170900 | Source: CSV
+Date: 2026-05-13 | Open: 26.95 | High: 27.25 | Low: 26.8 | Close: 27.1 | Vol: 21544700 | Source: CSV
+Date: 2026-05-14 | Open: 27.3 | High: 27.4 | Low: 27.05 | Close: 27.05 | Vol: 14047100 | Source: CSV
+Date: 2026-05-15 | Open: 27.05 | High: 27.1 | Low: 26.45 | Close: 26.55 | Vol: 75838200 | Source: CSV
+Date: 2026-05-18 | Open: 26.5 | High: 26.7 | Low: 26.25 | Close: 26.45 | Vol: 27485500 | Source: CSV
+Date: 2026-05-19 | Open: 26.5 | High: 26.65 | Low: 26.25 | Close: 26.25 | Vol: 25111900 | Source: CSV
+Date: 2026-05-20 | Open: 26.3 | High: 26.4 | Low: 25.75 | Close: 26.2 | Vol: 40983800 | Source: CSV
+Date: 2026-05-21 | Open: 26.35 | High: 26.7 | Low: 26.3 | Close: 26.55 | Vol: 30562500 | Source: CSV
+Date: 2026-05-22 | Open: 26.6 | High: 26.65 | Low: 26.35 | Close: 26.45 | Vol: 4697400 | Source: CSV
+Date: 2026-05-25 | Open: 24.25 | High: 24.35 | Low: 24.1 | Close: 24.1 | Vol: 26989100 | Source: API
+
+--- Reading HPG from JSON ---
+JSON total rows: 4612
+JSON May 2026 rows:
+Date: 2026-05-04 | Open: 24.7724 | High: 24.951 | Low: 24.46 | Close: 24.6395 | Vol: 32374300
+Date: 2026-05-05 | Open: 27.65 | High: 27.7 | Low: 27.2 | Close: 27.3 | Vol: 30692800
+Date: 2026-05-06 | Open: 27.4 | High: 27.8 | Low: 27.3 | Close: 27.6 | Vol: 27672000
+Date: 2026-05-07 | Open: 24.8171 | High: 24.9063 | Low: 24.6385 | Close: 24.7734 | Vol: 20348100
+Date: 2026-05-08 | Open: 27.75 | High: 27.9 | Low: 27.55 | Close: 27.85 | Vol: 20678200
+Date: 2026-05-11 | Open: 27.5 | High: 27.5 | Low: 27.0 | Close: 27.0 | Vol: 23658100
+Date: 2026-05-12 | Open: 27.0 | High: 27.2 | Low: 26.85 | Close: 26.9 | Vol: 19170900
+Date: 2026-05-13 | Open: 26.95 | High: 27.25 | Low: 26.8 | Close: 27.1 | Vol: 21544700
+Date: 2026-05-14 | Open: 27.3 | High: 27.4 | Low: 27.05 | Close: 27.05 | Vol: 14047100
+Date: 2026-05-15 | Open: 24.5885 | High: 24.6339 | Low: 24.0431 | Close: 24.1366 | Vol: 75838200
+Date: 2026-05-18 | Open: 24.0912 | High: 24.273 | Low: 23.8639 | Close: 24.0457 | Vol: 27485500
+Date: 2026-05-19 | Open: 26.5 | High: 26.65 | Low: 26.25 | Close: 26.25 | Vol: 25111900
+Date: 2026-05-20 | Open: 26.3 | High: 26.4 | Low: 25.75 | Close: 26.2 | Vol: 40983800
+Date: 2026-05-21 | Open: 23.9522 | High: 24.2703 | Low: 23.9067 | Close: 24.1366 | Vol: 30562500
+Date: 2026-05-22 | Open: 24.1821 | High: 24.2275 | Low: 23.9548 | Close: 23.9548 | Vol: 25794000
+Date: 2026-05-25 | Open: 24.25 | High: 24.35 | Low: 24.1 | Close: 24.1 | Vol: 26989100
+Date: 2026-05-26 | Open: 24.4 | High: 24.5 | Low: 24.15 | Close: 24.15 | Vol: 23114500
+Date: 2026-05-27 | Open: 24.15 | High: 24.25 | Low: 24.0 | Close: 24.0 | Vol: 15668300
+Date: 2026-05-28 | Open: 24.15 | High: 24.25 | Low: 24.0 | Close: 24.0 | Vol: 15668300

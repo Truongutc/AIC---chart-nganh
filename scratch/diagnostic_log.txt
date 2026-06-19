@@ -1,0 +1,25 @@
+Loading data...
+Loaded 1560 files.
+VNINDEX key: VNINDEX, HNX/HAINDEX key: HNX-INDEX
+VNINDEX data head:
+        Date    Open    High     Low   Close  Volume source                 updated_at
+0 2000-07-28  100.00  100.00  100.00  100.00    4200    CSV 2026-05-16 08:51:18.402835
+1 2000-07-31  101.55  101.55  101.55  101.55   10300    CSV 2026-05-16 08:51:18.402835
+VNINDEX columns and types:
+Date          datetime64[us]
+Open                 float64
+High                 float64
+Low                  float64
+Close                float64
+Volume                 int64
+source                   str
+updated_at    datetime64[us]
+dtype: object
+VNINDEX date type: <class 'pandas.Timestamp'>
+
+Calculating breadth...
+Breadth result: {'total_scanned': 1468, 'advances': 148, 'declines': 333, 'unaltered': 987, 'breadth_label': 'XẤU', 'breakout_leaders': 8, 'strong_stocks_pct': 34.5, 'strong_stocks_ma20_pct': 32.9}
+
+Analyzing VNINDEX...
+Regime analysis completed successfully!
+Regime: {'date': '2026-05-21', 'regime': 'SIDEWAY', 'ftd_active': False, 'ftd_quality': None, 'ftd_date': 'N/A', 'ra_day': 0, 'ra_low': None, 'distribution_count': 4, 'distribution_dates': ['2026-04-29', '2026-05-11', '2026-05-15', '2026-05-19'], 'action': 'THEO DÕI – Chờ thị trường rõ xu hướng.', 'decline_from_peak_pct': 1.03, 'rsi_bias': 'BEARISH', 'macd_bias': 'DOWN', 'price': 1913.23}

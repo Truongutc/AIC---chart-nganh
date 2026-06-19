@@ -1,0 +1,105 @@
+name: Import New Data
+
+on:
+  workflow_dispatch:
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Restore Cached Stock Data
+        uses: actions/cache@v3
+        with:
+          path: |
+            data_storage/
+            config.json
+          key: stock-data-import-${{ github.run_id }}
+          restore-keys: |
+            stock-data-
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install gdown
+
+      - name: Fetch Data from Google Drive
+        run: |
+          mkdir -p gdrive_data
+          if gdown --folder https://drive.google.com/drive/folders/1zxsHmgb1LAhD0I8hR9BJnsj5IVwDSbli -O gdrive_data/; then
+            echo "✅ Google Drive folder fetch completed."
+          else
+            echo "⚠️ Lỗi tải hoặc link folder bị khóa."
+          fi
+
+      - name: Prepare Input Data
+        run: |
+          csv_files=$(find gdrive_data -name "*.csv" 2>/dev/null)
+          if [ -d "gdrive_data" ] && [ -n "$csv_files" ]; then
+            echo "✅ Phát hiện file CSV trong thư mục Google Drive. Đang chép sang import_data/"
+            mkdir -p import_data
+            rm -f import_data/*.csv
+            find gdrive_data -name "*.csv" -exec cp {} import_data/ \;
+            echo "📂 Danh sách file CSV đã chép:"
+            ls -l import_data/
+          else
+            echo "ℹ️ Không có dữ liệu từ Google Drive (hoặc Drive trống). Sẽ sử dụng dữ liệu mặc định từ Git."
+          fi
+
+      - name: Run Import Script
+        run: |
+          if [ -d "import_data" ] && [ "$(ls -A import_data/*.csv 2>/dev/null)" ]; then
+              echo "=== PHÁT HIỆN THƯ MỤC import_data/ CHỨA FILE CSV. BẮT ĐẦU NẠP DỮ LIỆU BAN ĐẦU ==="
+              python run_headless_update.py --import-csv import_data/
+          elif [ -f "import_data.csv" ]; then
+              echo "=== PHÁT HIỆN FILE import_data.csv. BẮT ĐẦU NẠP DỮ LIỆU BAN ĐẦU ==="
+              python run_headless_update.py --import-csv import_data.csv
+          else
+              echo "❌ Không tìm thấy thư mục import_data/ hoặc file import_data.csv để nạp!"
+              exit 1
+          fi
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Stage only the Output/ directory
+          git add Output/
+          
+          if ! git diff --cached --quiet; then
+            echo "📂 Đang sao lưu thư mục Output..."
+            mv Output Output_backup
+            
+            echo "🔄 Đang cập nhật nhánh main mới nhất từ GitHub..."
+            git reset --hard HEAD
+            git pull origin main
+            
+            echo "📂 Đang phục hồi thư mục Output..."
+            rm -rf Output
+            mv Output_backup Output
+            
+            echo "💾 Đang commit dữ liệu mới..."
+            git add Output/
+            git commit -m "Import stock data from CSV: $(date +'%Y-%m-%d %H:%M:%S')"
+            
+            echo "🚀 Đẩy dữ liệu lên GitHub..."
+            git push origin main
+          else
+            echo "No changes in stock data. Skipping push."
+          fi
