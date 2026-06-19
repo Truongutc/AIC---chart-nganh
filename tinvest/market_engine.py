@@ -461,7 +461,7 @@ def analyze_market_index(df_index: pd.DataFrame, breadth_pct_ma20: float = 50.0,
                     is_early_recovery = True
             except: pass
 
-        if c_last <= ma50_last or is_early_recovery:
+        if (c_last <= ma50_last or is_early_recovery) and (decline_triggered_10 or is_early_recovery):
             # If early recovery, don't jump to 'Under Pressure' even if dist count is higher
             if c_last > ma20_last or c_last > kijun_last:
                 regime = "STABLE_RECOVERY"
@@ -473,19 +473,32 @@ def analyze_market_index(df_index: pd.DataFrame, breadth_pct_ma20: float = 50.0,
                 regime = "WEAK_RECOVERY"
                 action = "FTD YẾU – Giá còn nằm quá sâu dưới các MA."
         else:
-            # Price > MA50 and NOT early recovery
-            if dist_count >= 4 or (c_last < ma20_last and dist_count >= 2):
-                regime = "UPTREND_UNDER_PRESSURE"
-                action = "HẠ TỶ TRỌNG – Áp lực phân phối lớn."
-            elif c_last > ma20_last and dist_count < 3 and rsi_last > 45:
-                regime = "UPTREND"
-                action = "TRADE MẠNH – Tập trung vào cổ phiếu Leader."
-            elif decline_triggered_8:
-                regime = "WEAK_UPTREND"
-                action = "TĂNG TỶ TRỌNG – Vừa lấy lại MA50."
+
+            # Price > MA50 or (c_last <= ma50_last but decline_triggered_10 is False and not early recovery)
+            if c_last <= ma50_last:
+                if is_weakening:
+                    regime = "MARKET_WEAKENING"
+                    action = "THU TIỀN – Thị trường suy yếu nguy hiểm."
+                elif sideway_cond:
+                    regime = "SIDEWAY"
+                    action = "SWING TRADE – Giao dịch tại biên."
+                else:
+                    regime = "UPTREND_UNDER_PRESSURE"
+                    action = "HẠ TỶ TRỌNG – Áp lực phân phối lớn."
             else:
-                regime = "UPTREND"
-                action = "TRADE MẠNH – Bám sát danh mục."
+                # Price > MA50 and NOT early recovery
+                if dist_count >= 4 or (c_last < ma20_last and dist_count >= 2):
+                    regime = "UPTREND_UNDER_PRESSURE"
+                    action = "HẠ TỶ TRỌNG – Áp lực phân phối lớn."
+                elif c_last > ma20_last and dist_count < 3 and rsi_last > 45:
+                    regime = "UPTREND"
+                    action = "TRADE MẠNH – Tập trung vào cổ phiếu Leader."
+                elif decline_triggered_8:
+                    regime = "WEAK_UPTREND"
+                    action = "TĂNG TỶ TRỌNG – Vừa lấy lại MA50."
+                else:
+                    regime = "UPTREND"
+                    action = "TRADE MẠNH – Bám sát danh mục."
 
     elif sideway_cond:
         regime = "SIDEWAY"
