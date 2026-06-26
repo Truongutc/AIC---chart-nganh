@@ -437,10 +437,18 @@ def _calculate_exits_and_sr(df: pd.DataFrame, inds: dict, entry_info: dict, tick
     if s1 > 0 and s2 > 0 and s2 > s1:
         s1, s2 = s2, s1
 
+    # Tính toán TP1 và TP2 logic theo khoảng cách R1
+    if r1 > p * 1.05:
+        tp1 = r1 * 0.98
+        tp2 = r2 * 0.98 if (r2 * 0.98) > (tp1 * 1.05) else r3 * 0.98
+    else:
+        tp1 = r2 * 0.98
+        tp2 = r3 * 0.98
+
     return {
         "s1": float(s1) if s1 else 0.0, "s2": float(s2) if s2 else 0.0, 
         "r1": float(r1), "r2": float(r2), "r3": float(r3),
-        "tp1": float(tp), "tp2": float(r3 if r3 > p else tp * 1.05),
+        "tp1": float(tp1), "tp2": float(tp2),
         "trailing_stop": float(ts),
         "cutloss_partial": float(sl1),
         "cutloss_full": float(sl2),
