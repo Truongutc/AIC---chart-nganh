@@ -550,6 +550,33 @@ def check_octopus_green_cross(df):
     return crossed
 
 
+def check_mcdx_banker_cross_5(df):
+    if 'MCDX_Banker' not in df.columns or len(df) < 4:
+        return False
+    if df['MCDX_Banker'].iloc[-1] <= df['MCDX_Banker'].iloc[-2]:
+        return False
+    for i in range(1, 4):
+        if df['MCDX_Banker'].iloc[-i] > 5 and df['MCDX_Banker'].iloc[-i-1] <= 5:
+            return True
+    return False
+
+def check_mcdx_banker_cross_10(df):
+    if 'MCDX_Banker' not in df.columns or len(df) < 4:
+        return False
+    if df['MCDX_Banker'].iloc[-1] <= df['MCDX_Banker'].iloc[-2]:
+        return False
+    for i in range(1, 4):
+        if df['MCDX_Banker'].iloc[-i] > 10 and df['MCDX_Banker'].iloc[-i-1] <= 10:
+            return True
+    return False
+
+def check_mcdx_ma_increasing(df):
+    if 'MCDX_Banker_MA' not in df.columns or len(df) < 3:
+        return False
+    return (df['MCDX_Banker_MA'].iloc[-1] > df['MCDX_Banker_MA'].iloc[-2] and 
+            df['MCDX_Banker_MA'].iloc[-2] > df['MCDX_Banker_MA'].iloc[-3])
+
+
 def get_whatif_ev(df):
     if hasattr(df, 'attrs') and '_whatif_ev' in df.attrs:
         return df.attrs['_whatif_ev']
@@ -714,6 +741,18 @@ CUSTOM_RULES = {
     "MA3_EV10_GT_5": {
         "label": "MA3(EV10) > 5% — Kỳ vọng tương đồng trung bình 3 phiên > 5%",
         "func": lambda df: get_whatif_ev_ma3(df) > 5.0
+    },
+    "MCDX_CROSS_5": {
+        "label": "MCDX Đỏ (Banker) tăng và cắt lên 5 (trong 3 phiên)",
+        "func": check_mcdx_banker_cross_5
+    },
+    "MCDX_CROSS_10": {
+        "label": "MCDX Đỏ (Banker) tăng và cắt lên 10 (trong 3 phiên)",
+        "func": check_mcdx_banker_cross_10
+    },
+    "MCDX_MA_UP": {
+        "label": "MCDX MA (Đường trắng) tăng liên tiếp (T > T-1 > T-2)",
+        "func": check_mcdx_ma_increasing
     }
 }
 

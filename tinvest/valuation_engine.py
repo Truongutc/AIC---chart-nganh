@@ -372,6 +372,7 @@ def _calculate_exits_and_sr(df: pd.DataFrame, inds: dict, entry_info: dict, tick
         inds.get("ma10"),
         inds.get("ma20"),
         nearest_peak_above,
+        second_peak_above,
         inds.get("cloud_top"),
         inds.get("k65"),
         inds.get("ma50"),
@@ -384,8 +385,16 @@ def _calculate_exits_and_sr(df: pd.DataFrame, inds: dict, entry_info: dict, tick
     sorted_res = sorted(list(set(res_candidates)))
     
     r1 = sorted_res[0] if len(sorted_res) > 0 else p * 1.05
-    r2 = sorted_res[1] if len(sorted_res) > 1 else r1 * 1.03
-    r3 = sorted_res[2] if len(sorted_res) > 2 else r2 * 1.03
+    
+    if not is_index:
+        r2_cands = [x for x in sorted_res if x > r1 * 1.03]
+        r2 = r2_cands[0] if len(r2_cands) > 0 else r1 * 1.03
+        
+        r3_cands = [x for x in sorted_res if x > r2 * 1.03]
+        r3 = r3_cands[0] if len(r3_cands) > 0 else r2 * 1.03
+    else:
+        r2 = sorted_res[1] if len(sorted_res) > 1 else r1 * 1.03
+        r3 = sorted_res[2] if len(sorted_res) > 2 else r2 * 1.03
     
     # Enforce R2 <= R3
     if r2 > r3:
