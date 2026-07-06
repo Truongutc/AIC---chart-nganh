@@ -82,10 +82,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
         }
 
         .logo-section {
             transition: opacity 0.2s ease;
+            flex-shrink: 0;
         }
         .logo-section:hover {
             opacity: 0.85;
@@ -101,6 +103,95 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            white-space: nowrap;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .fa-pro-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.05);
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .fa-pro-badge:hover {
+            background: rgba(139, 92, 246, 0.15);
+            border-color: var(--accent-purple);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+        }
+        .fa-pro-logo {
+            height: 20px;
+            width: 20px;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+        .fa-pro-badge span {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 0.75rem;
+            background: linear-gradient(135deg, #a78bfa 0%, #2dd4bf 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            white-space: nowrap;
+        }
+
+        .logo-img {
+            height: 36px;
+            width: 36px;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+
+        /* Compact header on narrow phones so logo + FA Pro badge + status column all fit */
+        @media (max-width: 480px) {
+            header {
+                padding: 12px 14px;
+            }
+            .header-container {
+                gap: 6px;
+            }
+            .logo-section {
+                gap: 6px !important;
+            }
+            .logo-img {
+                height: 28px;
+                width: 28px;
+            }
+            .logo-section h1 {
+                font-size: 1rem;
+                gap: 5px;
+            }
+            .logo-section h1 span {
+                font-size: 0.55rem;
+                padding: 1px 3px;
+            }
+            .header-right {
+                gap: 6px;
+            }
+            .fa-pro-badge {
+                padding: 3px 7px;
+                gap: 4px;
+            }
+            .fa-pro-logo {
+                height: 17px;
+                width: 17px;
+            }
+            .fa-pro-badge span {
+                font-size: 0.66rem;
+            }
+            .update-badge {
+                font-size: 0.6rem;
+            }
         }
 
         .logo-section h1 span {
@@ -116,11 +207,18 @@
         }
 
         .update-badge {
-            font-size: 0.75rem;
+            font-size: 0.68rem;
             color: var(--text-secondary);
             display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+        }
+
+        .badge-row {
+            display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
         }
 
         .update-dot {
@@ -2918,17 +3016,27 @@
     <header>
         <div class="header-container">
             <div class="logo-section" onclick="selectMenuTab('market-tab', '📊', 'Thị trường (VNINDEX)'); window.scrollTo({top: 0, behavior: 'smooth'});" style="cursor: pointer; user-select: none; display: flex; align-items: center; gap: 10px;">
-                <img src="app_icon.png" alt="AIC PRO Logo" style="height: 36px; width: 36px; object-fit: contain; border-radius: 6px;">
+                <img src="app_icon.png" alt="AIC PRO Logo" class="logo-img">
                 <h1>AIC = AI + cơm!</h1>
             </div>
-            <div class="update-badge">
-                <span id="updateTimeText">Đang tải...</span>
-                <span style="margin-left: 10px; margin-right: 10px; opacity: 0.25;">|</span>
-                <span id="urlStatusDot" class="status-dot-indicator red" title="Trạng thái cURL Vietstock"></span>
-                <span id="urlStatusText">Bypass URL: Đang kiểm tra...</span>
-                <span style="margin-left: 10px; margin-right: 10px; opacity: 0.25;">|</span>
-                <span id="vietstockStatusDot" class="status-dot-indicator red" title="Số lượng mã cập nhật thành công"></span>
-                <span id="vietstockStatusText">Dữ liệu: Đang kiểm tra...</span>
+            <div class="header-right">
+                <a href="https://aic-pro-fa.vercel.app/" target="_blank" rel="noopener" class="fa-pro-badge" title="Đọc phân tích FA (Phân tích cơ bản)">
+                    <img src="app_icon.png" alt="FA Pro" class="fa-pro-logo">
+                    <span>FA Pro</span>
+                </a>
+                <div class="update-badge">
+                    <div class="badge-row">
+                        <span id="urlStatusDot" class="status-dot-indicator red" title="Trạng thái cURL Vietstock"></span>
+                        <span id="urlStatusText">Đang kiểm tra...</span>
+                    </div>
+                    <div class="badge-row">
+                        <span id="vietstockStatusDot" class="status-dot-indicator red" title="Số lượng mã cập nhật thành công"></span>
+                        <span id="vietstockStatusText">Đang kiểm tra...</span>
+                    </div>
+                    <div class="badge-row">
+                        <span id="updateTimeText">Đang tải...</span>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -5001,7 +5109,7 @@
                 rawData = await response.json();
                 
                 // Set update time
-                document.getElementById('updateTimeText').innerText = `Cập nhật: ${rawData.last_update}`;
+                document.getElementById('updateTimeText').innerText = rawData.last_update.slice(0, 16);
                 
                 // Set Vietstock / data status: show stock count instead of BYPASSED
                 const vsStatus = rawData.vietstock_status || "UNKNOWN";
@@ -5014,15 +5122,15 @@
                     if (vsStatus === "VALID" || vsStatus === "LIMITED_BYPASSED") {
                         urlDot.className = "status-dot-indicator green";
                         urlText.style.color = "var(--accent-green)";
-                        urlText.innerText = "Bypass URL: OK";
+                        urlText.innerText = "Bypass";
                     } else if (vsStatus === "LIMITED") {
                         urlDot.className = "status-dot-indicator yellow";
                         urlText.style.color = "var(--accent-orange)";
-                        urlText.innerText = "Bypass URL: Bị giới hạn";
+                        urlText.innerText = "Bypass";
                     } else {
                         urlDot.className = "status-dot-indicator red";
                         urlText.style.color = "var(--accent-red)";
-                        urlText.innerText = `Bypass URL: Lỗi (${vsStatus})`;
+                        urlText.innerText = "Bypass";
                     }
                     urlDot.title = `Trạng thái Vietstock: ${vsStatus}`;
                 }
@@ -5042,11 +5150,11 @@
                             vsDot.className = "status-dot-indicator red";
                             vsText.style.color = "var(--accent-red)";
                         }
-                        vsText.innerText = `Dữ liệu: ${stockCount} mã`;
+                        vsText.innerText = `${stockCount}`;
                     } else {
                         vsDot.className = "status-dot-indicator red";
                         vsText.style.color = "var(--accent-red)";
-                        vsText.innerText = "Dữ liệu: Không có";
+                        vsText.innerText = "Không có";
                     }
                     vsDot.title = `Số lượng mã cập nhật: ${stockCount ?? 'Không có'}`;
                 }
