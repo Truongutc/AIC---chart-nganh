@@ -5244,7 +5244,7 @@
                             </div>
                             <div class="stock-price-box">
                                 <span style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 2px;">Giá hiện tại</span>
-                                <span class="stock-price">${formatPrice(t.Price)}</span>
+                                <span class="stock-price">${formatPrice(t.Price, true)}</span>
                                 <span class="stock-vol">Vol: ${formatVolume(t.Volume)}</span>
                             </div>
                         </div>
@@ -5252,45 +5252,45 @@
                         <div class="detail-metric-list">
                             <div class="detail-metric-row">
                                 <span>Kháng cự 2 (R2):</span>
-                                <strong class="text-green">${t.Resistance2 ? formatPrice(t.Resistance2) : 'N/A'}</strong>
+                                <strong class="text-green">${t.Resistance2 ? formatPrice(t.Resistance2, true) : 'N/A'}</strong>
                             </div>
                             <div class="detail-metric-row">
                                 <span>Kháng cự 1 (R1):</span>
-                                <strong class="text-green">${t.Resistance1 ? formatPrice(t.Resistance1) : 'N/A'}</strong>
+                                <strong class="text-green">${t.Resistance1 ? formatPrice(t.Resistance1, true) : 'N/A'}</strong>
                             </div>
                             <div class="detail-metric-row">
                                 <span>Điểm mua gợi ý:</span>
-                                <strong>${actionUpper.includes('NO') || actionUpper.includes('ĐỨNG NGOÀI') ? 'KHÔNG' : formatPrice(t.Entry)}</strong>
+                                <strong>${actionUpper.includes('NO') || actionUpper.includes('ĐỨNG NGOÀI') ? 'KHÔNG' : formatPrice(t.Entry, true)}</strong>
                             </div>
                             <div class="detail-metric-row">
                                 <span>Hỗ trợ 1 (S1):</span>
-                                <strong class="text-red">${t.Support1 ? formatPrice(t.Support1) : 'N/A'}</strong>
+                                <strong class="text-red">${t.Support1 ? formatPrice(t.Support1, true) : 'N/A'}</strong>
                             </div>
                             <div class="detail-metric-row">
                                 <span>Hỗ trợ 2 (S2):</span>
-                                <strong class="text-red">${t.Support2 ? formatPrice(t.Support2) : 'N/A'}</strong>
+                                <strong class="text-red">${t.Support2 ? formatPrice(t.Support2, true) : 'N/A'}</strong>
                             </div>
                             <div class="detail-metric-row">
                                 <span>Mục tiêu chốt lời (Target 1):</span>
-                                <strong class="text-green">${formatPrice(t.Target)}</strong>
+                                <strong class="text-green">${formatPrice(t.Target, true)}</strong>
                             </div>
                             ${t.Target2 ? `
                             <div class="detail-metric-row">
                                 <span>Mục tiêu chốt lời (Target 2):</span>
-                                <strong class="text-green">${formatPrice(t.Target2)}</strong>
+                                <strong class="text-green">${formatPrice(t.Target2, true)}</strong>
                             </div>
                             ` : ''}
                             <div class="detail-metric-row">
                                 <span>Cắt lỗ (Bán một phần):</span>
-                                <strong class="text-red">${formatPrice(t.StopLoss)}</strong>
+                                <strong class="text-red">${formatPrice(t.StopLoss, true)}</strong>
                             </div>
                             <div class="detail-metric-row">
                                 <span>Cắt lỗ (Toàn bộ):</span>
-                                <strong class="text-red">${formatPrice(t.CutlossFull)}</strong>
+                                <strong class="text-red">${formatPrice(t.CutlossFull, true)}</strong>
                             </div>
                             <div class="detail-metric-row">
                                 <span>Chặn lãi (Trailing Stop):</span>
-                                <strong class="text-orange">${formatPrice(t.TrailingStop)}</strong>
+                                <strong class="text-orange">${formatPrice(t.TrailingStop, true)}</strong>
                             </div>
                             <div class="detail-metric-row">
                                 <span>Tỷ lệ Reward/Risk (Lợi nhuận/Rủi ro):</span>
@@ -5369,7 +5369,7 @@
                                 </div>
                                 <div class="detail-metric-row">
                                     <span>Điểm mua gia tăng:</span>
-                                    <strong>${formatPrice(t.TopupPrice)}</strong>
+                                    <strong>${formatPrice(t.TopupPrice, true)}</strong>
                                 </div>
                                 <div class="detail-metric-row">
                                     <span>Khuyến nghị gia tăng:</span>
@@ -5576,7 +5576,7 @@
                             ticks: {
                                 color: '#6b7280',
                                 font: { size: 8 },
-                                callback: val => formatPrice(val)
+                                callback: val => formatPrice(val, true)
                             }
                         },
                         yVol: {
@@ -6900,7 +6900,7 @@
                             <div class="eval-title">🎯 Đánh giá Vùng Tích Lũy & Định Giá (Heatmap)</div>
                             <div class="eval-row"><span>Chất lượng Nền tích lũy:</span> <strong>${stockData.AccumulationQuality} ${getEvalBadge(stockData.AccumulationQuality)}</strong></div>
                             <div class="eval-row"><span>Biên tích lũy nền:</span> <strong>${stockData.AccumulationRangePct?.toFixed(1)}% (Độ an toàn: ${stockData.SafetyRating}/5 sao)</strong></div>
-                            <div class="eval-row"><span>Vùng gợi ý:</span> <strong>Mua quanh: ${formatPrice(stockData.Entry)} | Mục tiêu: ${formatPrice(stockData.Target)} | Cắt lỗ: ${formatPrice(stockData.StopLoss)}</strong></div>
+                            <div class="eval-row"><span>Vùng gợi ý:</span> <strong>Mua quanh: ${formatPrice(stockData.Entry, true)} | Mục tiêu: ${formatPrice(stockData.Target, true)} | Cắt lỗ: ${formatPrice(stockData.StopLoss, true)}</strong></div>
                         `;
                     } else if (type === 'techreport') {
                         html = '';

@@ -426,7 +426,9 @@ def compute_and_export_dashboard(storage, affected_tickers, vietstock_status=Non
         ma_trend = data.get("ma_trend") or {}
         val = data.get("valuation") or {}
 
-        current_p = float(df['Close'].iloc[-1]) * 1000
+        # Không nhân 1000 nữa: Close ở đây luôn là chỉ số ngành/thị trường
+        # (đã ở đúng thang điểm), không phải giá cổ phiếu tính bằng nghìn đồng.
+        current_p = float(df['Close'].iloc[-1])
         ep = val.get("price", 0)
         tp = val.get("tp1", 0)
         tp2 = val.get("tp2", 0)
@@ -517,7 +519,7 @@ def compute_and_export_dashboard(storage, affected_tickers, vietstock_status=Non
         recent_df = df.tail(30)
         history = {
             "dates": [pd.to_datetime(d).strftime("%Y-%m-%d") if not pd.isna(d) else "N/A" for d in recent_df['Date']],
-            "closes": [float(c) * 1000 for c in recent_df['Close']],
+            "closes": [float(c) for c in recent_df['Close']],
             "volumes": [int(v) for v in recent_df['Volume']]
         }
 
@@ -551,21 +553,21 @@ def compute_and_export_dashboard(storage, affected_tickers, vietstock_status=Non
         prev_mcdx_banker = float(df['MCDX_Banker'].iloc[-2]) if len(df) > 1 and 'MCDX_Banker' in df.columns else mcdx_banker
         adx = float(df['ADX'].iloc[-1]) if 'ADX' in df.columns else 20
         ha_color = str(df['HA_Color'].iloc[-1]) if 'HA_Color' in df.columns else 'Green'
-        ma20 = float(df['MA20'].iloc[-1]) if 'MA20' in df.columns else current_p / 1000
+        ma20 = float(df['MA20'].iloc[-1]) if 'MA20' in df.columns else current_p
         vol = float(df['Volume'].iloc[-1]) if 'Volume' in df.columns else 0
         vol_avg = float(df['AvgVolume20'].iloc[-1]) if 'AvgVolume20' in df.columns else vol
 
         mcdx_weak = (mcdx_banker < prev_mcdx_banker) and (mcdx_banker < 15)
         adx_low = adx < 20
         heikin_red = (ha_color.lower() == 'red')
-        price_below_ma20 = (current_p / 1000) < ma20
+        price_below_ma20 = current_p < ma20
         tech_weak = mcdx_weak or adx_low or heikin_red or price_below_ma20
 
         sideways_near_res = False
-        p_res_vnd = float(val.get('r1', 0)) * 1000
+        p_res_vnd = float(val.get('r1', 0))
         if len(df) >= 4 and p_res_vnd > 0:
-            recent_highs = df['High'].iloc[-4:].max() * 1000
-            recent_lows = df['Low'].iloc[-4:].min() * 1000
+            recent_highs = df['High'].iloc[-4:].max()
+            recent_lows = df['Low'].iloc[-4:].min()
             recent_vols = df['Volume'].iloc[-4:].mean()
             if recent_highs >= p_res_vnd * 0.98 and (recent_highs - recent_lows)/recent_lows < 0.05 and recent_vols > vol_avg:
                 sideways_near_res = True
@@ -607,11 +609,11 @@ def compute_and_export_dashboard(storage, affected_tickers, vietstock_status=Non
             "Price": safe_int(current_p),
             "Volume": safe_int(current_vol),
             "AvgVolume10": safe_int(avg_vol_raw),
-            "Entry": int(ep * 1000) if ep > 0 else None,
-            "Target": int(tp * 1000) if tp > 0 else None,
-            "Target2": int(tp2 * 1000) if tp2 > 0 else None,
+            "Entry": int(ep) if ep > 0 else None,
+            "Target": int(tp) if tp > 0 else None,
+            "Target2": int(tp2) if tp2 > 0 else None,
             "ReportText": report_text,
-            "StopLoss": int(sl * 1000) if sl > 0 else None,
+            "StopLoss": int(sl) if sl > 0 else None,
             "RR": f"{round(rr_ratio, 1)}/1" if rr_ratio > 0 else "N/A",
             "RiskScore": int(val_score),
             "RiskPct": float(risk_pct),
@@ -619,22 +621,22 @@ def compute_and_export_dashboard(storage, affected_tickers, vietstock_status=Non
             "Categories": matched_categories,
             "Rules": matched_rules,
 
-            "CutlossFull": int(val.get("cutloss_full", 0) * 1000) if val.get("cutloss_full", 0) > 0 else None,
-            "TrailingStop": int(val.get("trailing_stop", 0) * 1000) if val.get("trailing_stop", 0) > 0 else None,
+            "CutlossFull": int(val.get("cutloss_full", 0)) if val.get("cutloss_full", 0) > 0 else None,
+            "TrailingStop": int(val.get("trailing_stop", 0)) if val.get("trailing_stop", 0) > 0 else None,
             "OpportunityScore": int(val.get("opp_score", 0)),
             "OpportunityDesc": str(val.get("opp_desc", "N/A")),
             "SafetyRating": int(val.get("topup_safety", 0)),
-            "TopupPrice": int(val.get("topup_price", 0) * 1000) if val.get("topup_price", 0) > 0 else None,
+            "TopupPrice": int(val.get("topup_price", 0)) if val.get("topup_price", 0) > 0 else None,
             "TopupDesc": str(val.get("topup_desc", "N/A")),
             "AccumulationQuality": str(accum.get("base_quality", "NONE")),
             "AccumulationNotes": accum.get("notes", []),
             "AccumulationRangePct": float(accum.get("range_pct", 0.0)),
             "ReadyToBreak": bool(accum.get("ready_to_break", False)),
 
-            "Support1": int(val.get("s1", 0) * 1000) if val.get("s1", 0) > 0 else None,
-            "Support2": int(val.get("s2", 0) * 1000) if val.get("s2", 0) > 0 else None,
-            "Resistance1": int(val.get("r1", 0) * 1000) if val.get("r1", 0) > 0 else None,
-            "Resistance2": int(val.get("r2", 0) * 1000) if val.get("r2", 0) > 0 else None,
+            "Support1": int(val.get("s1", 0)) if val.get("s1", 0) > 0 else None,
+            "Support2": int(val.get("s2", 0)) if val.get("s2", 0) > 0 else None,
+            "Resistance1": int(val.get("r1", 0)) if val.get("r1", 0) > 0 else None,
+            "Resistance2": int(val.get("r2", 0)) if val.get("r2", 0) > 0 else None,
             "TrendStatus": str(ma_trend.get("trend_status", "Sideway")),
             "TechWeak": bool(tech_weak),
             "SidewaysNearRes": bool(sideways_near_res),

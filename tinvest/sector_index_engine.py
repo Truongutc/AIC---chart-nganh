@@ -36,15 +36,29 @@ def load_sector_groups():
         return json.load(f)
 
 
-def resolve_group_tickers(group_def, active_registry):
+def resolve_group_tickers(group_def, active_registry, storage=None):
     if group_def.get("dynamic") == "ALL_EXCEPT":
         exclude = set(group_def.get("exclude", []))
-        # Loại các chỉ số/registry đặc biệt (VNINDEX, HNX-INDEX...) và mã không
-        # phải cổ phiếu thường (3 ký tự chữ+số) khỏi rổ tính trung bình.
-        candidates = {
-            t for t in (active_registry or [])
-            if len(t) == 3 and t.isalnum()
-        }
+
+        # Dùng TOÀN BỘ mã từng có dữ liệu giá (kể cả mã đã hủy niêm yết), không
+        # chỉ mã đang niêm yết hôm nay — nếu chỉ lấy active_registry (registry
+        # hiện tại) thì các mã đã hủy niêm yết trong quá khứ sẽ bị loại khỏi
+        # TOÀN BỘ lịch sử tính toán (kể cả những năm chúng còn giao dịch), gây
+        # sai lệch kiểu "survivorship bias". Mỗi mã tự nhiên chỉ đóng góp vào
+        # trung bình ở đúng những ngày nó có dữ liệu giá thật (theo đúng số
+        # lượng cổ phiếu tồn tại ở từng thời điểm).
+        universe = set()
+        if storage is not None:
+            try:
+                for fname in os.listdir(storage.prices_dir):
+                    if fname.endswith(".parquet"):
+                        universe.add(fname[:-8].upper())
+            except Exception:
+                pass
+        if not universe:
+            universe = set(active_registry or [])
+
+        candidates = {t for t in universe if len(t) == 3 and t.isalnum()}
         return sorted(candidates - exclude)
     return list(group_def.get("tickers", []))
 
@@ -54,7 +68,7 @@ def compute_sector_index_df(group_def, storage, active_registry):
     Trả về DataFrame Date/Open/High/Low/Close/Volume cho chỉ số ngành (đã cộng
     dồn về kỳ gốc 100 điểm), hoặc None nếu không có mã nào có dữ liệu.
     """
-    tickers = resolve_group_tickers(group_def, active_registry)
+    tickers = resolve_group_tickers(group_def, active_registry, storage=storage)
     if not tickers:
         return None
 
