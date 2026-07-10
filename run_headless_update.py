@@ -71,50 +71,19 @@ def run_sync_and_update():
             logger.error("❌ Không thể làm mới token bằng Selenium.")
             # We still proceed with the existing credentials/bypass small paging as a fallback
     
-    # 3. Detect Missing Dates (SSoT)
-    last_date = storage.get_last_date()
-    logger.info(f"[*] Ngày cuối cùng có dữ liệu trong storage: {last_date}")
-    
-    missing_dates = client.get_missing_dates(last_date)
-    
-    # Integrity check: Last 3 trading days
-    check_dates = []
-    current = last_date or datetime.now()
-    while len(check_dates) < 3 and current is not None:
-        if current.weekday() < 5:
-            check_dates.append(current.strftime("%Y-%m-%d"))
-        current -= timedelta(days=1)
-        
-    if check_dates:
-        logger.info(f"[*] Đang quét tính toàn vẹn 3 ngày gần nhất: {', '.join(check_dates)}...")
-        ticker_counts = storage.get_ticker_counts_for_dates(check_dates)
-        
-        # Smart integrity check based on active registry size to avoid deleting index-only imports
-        registry_size = len(storage.get_active_registry() or [])
-        if registry_size >= 1200:
-            min_required = min(1200, int(registry_size * 0.85))
-            bad_dates = [d for d, count in ticker_counts.items() if count > 0 and count < min_required]
-        else:
-            bad_dates = []
-            
-        if bad_dates:
-            logger.warning(f"⚠️ Phát hiện {len(bad_dates)} ngày bị thiếu mã (yêu cầu >= {min_required} mã): {', '.join(bad_dates)}")
-            logger.info("[*] Đang xóa dữ liệu lỗi để tải lại...")
-            storage.delete_specific_dates(bad_dates)
-            missing_dates = sorted(list(set(missing_dates) | set(bad_dates)))
-
-    # Force update current trading day
+    # 3. Chỉ lấy ĐÚNG 1 phiên gần nhất (không dò/tải bù nhiều ngày giá cũ qua
+    # API — chậm vì phải phân trang từng ngày). Update Stock Data giờ chỉ có
+    # 2 việc: (a) đồng bộ giá phiên mới nhất, (b) lấy vốn hóa mới nhất để
+    # tính số CP lưu hành cho chỉ số ngành. Backfill giá lịch sử/nhiều ngày
+    # thiếu là việc của "Import New Data" (CSV, nhanh hơn nhiều qua API).
     now = datetime.now()
     effective_today = now.date()
     if now.weekday() == 5: effective_today -= timedelta(days=1)
     elif now.weekday() == 6: effective_today -= timedelta(days=2)
     eff_today_str = effective_today.strftime("%Y-%m-%d")
-    
-    if eff_today_str not in missing_dates:
-        missing_dates.append(eff_today_str)
-        missing_dates = sorted(missing_dates)
-        
-    logger.info(f"[*] Danh sách các ngày cần tải dữ liệu: {', '.join(missing_dates)}")
+    missing_dates = [eff_today_str]
+
+    logger.info(f"[*] Phiên cần cập nhật: {eff_today_str}")
     
     affected_tickers = set()
     
