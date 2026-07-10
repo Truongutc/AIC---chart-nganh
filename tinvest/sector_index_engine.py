@@ -40,6 +40,21 @@ def resolve_group_tickers(group_def, active_registry, storage=None):
     if group_def.get("dynamic") == "ALL_EXCEPT":
         exclude = set(group_def.get("exclude", []))
 
+        # Loại toàn bộ MÃ NGÀNH (khoá trong sector_groups.json) khỏi vũ trụ
+        # ứng viên. compute_all_sector_indices() ghi chỉ số ngành đã tính ra
+        # ĐÚNG thư mục data_storage/prices/ như cổ phiếu thật (qua
+        # storage.sync_prices(group_code, ...)) — nếu 1 mã ngành trùng đúng 3
+        # ký tự chữ+số (VD "BDS", "KCN") thì vòng scan bên dưới sẽ hiểu nhầm
+        # file đó là 1 mã cổ phiếu thật và đưa NGƯỢC LẠI chỉ số ngành đã cộng
+        # dồn (thang điểm ~500-2600, không phải giá cổ phiếu) vào chính phép
+        # tính trung bình — gây biến động cực lớn, bất thường (phát hiện
+        # 2026-07-10: BDS.parquet khiến VNINDEX_NONVIN nhảy +193% trong 1
+        # phiên vì bị tính lẫn như 1 cổ phiếu).
+        try:
+            exclude |= set(load_sector_groups().keys())
+        except Exception:
+            pass
+
         # Dùng TOÀN BỘ mã từng có dữ liệu giá (kể cả mã đã hủy niêm yết), không
         # chỉ mã đang niêm yết hôm nay — nếu chỉ lấy active_registry (registry
         # hiện tại) thì các mã đã hủy niêm yết trong quá khứ sẽ bị loại khỏi
@@ -63,6 +78,62 @@ def resolve_group_tickers(group_def, active_registry, storage=None):
     return list(group_def.get("tickers", []))
 
 
+def _load_trading_calendar(storage):
+    """
+    Lịch giao dịch thật (không có phiên cuối tuần/lễ) — lấy từ toàn bộ ngày
+    VNINDEX có dữ liệu, vì VNINDEX luôn có đủ mọi phiên giao dịch thật của thị
+    trường. Dùng làm mốc để:
+      (a) loại bỏ các dòng dữ liệu rơi vào ngày KHÔNG phải phiên giao dịch
+          (lỗi nhập liệu — VD 1 mã ghi nhầm giá vào thứ Bảy);
+      (b) lấp các phiên gián đoạn NGẮN HẠN của 1 mã (bị đình chỉ giao dịch vài
+          phiên nhưng CHƯA hủy niêm yết, hoặc lỗ hổng dữ liệu) bằng giá đóng
+          cửa gần nhất của CHÍNH mã đó, để số mã tham gia tính trung bình mỗi
+          ngày không bị chao đảo vì lý do KHÔNG phải niêm yết/hủy niêm yết
+          thật sự.
+    """
+    try:
+        vni_df = storage.load_ticker_data('VNINDEX')
+        if vni_df is not None and not vni_df.empty:
+            return pd.to_datetime(vni_df['Date']).sort_values().unique()
+    except Exception as e:
+        logger.warning(f"⚠️ Không lấy được lịch giao dịch VNINDEX: {e}")
+    return None
+
+
+def _chain_linked_close_ratio(combined, dates):
+    """
+    Tỷ lệ biến động Close ngày-qua-ngày, chỉ tính trên các mã CHUNG có mặt ở
+    CẢ ngày t và ngày t-1 (chain-linking) — không lấy trung bình Close của
+    TOÀN BỘ thành viên ngày t so với TOÀN BỘ thành viên ngày t-1 như trước.
+
+    Lý do: nếu 1 mã hoàn toàn mới lên sàn hoặc hủy niêm yết đúng vào ngày t,
+    việc so trung bình "tập hợp mới" với "tập hợp cũ" trực tiếp sẽ tạo ra
+    1 mức nhảy ảo do thay đổi thành viên (không phải biến động giá thật) —
+    VD mã VPL (giá ~87) gia nhập nhóm chỉ có VIC (giá ~2.4) làm chỉ số nhảy
+    +1510% trong 1 phiên dù không mã nào thực sự biến động giá mạnh vậy.
+    Chain-linking cô lập đúng phần biến động giá thật: chỉ so sánh Close của
+    những mã có mặt ở CẢ 2 ngày, nên thành viên mới/cũ không làm chỉ số nhảy
+    — chỉ ảnh hưởng đến HÌNH DẠNG nến (Open/High/Low) của đúng ngày đó qua
+    bước 2b (vẫn dùng trung bình toàn bộ thành viên hiện tại), không ảnh
+    hưởng đến MỨC (level) của chuỗi Close đã cộng dồn.
+    """
+    wide = combined.pivot_table(index='Date', columns='Ticker', values='Close', aggfunc='last')
+    wide = wide.reindex(dates)
+    mat = wide.to_numpy(dtype=float)
+    valid = ~pd.isna(mat)
+
+    n = len(dates)
+    ratio = pd.Series(1.0, index=range(n))
+    for t in range(1, n):
+        common = valid[t] & valid[t - 1]
+        if common.any():
+            prev_mean = mat[t - 1][common].mean()
+            curr_mean = mat[t][common].mean()
+            if prev_mean not in (0.0,) and not pd.isna(prev_mean) and not pd.isna(curr_mean):
+                ratio.iloc[t] = curr_mean / prev_mean
+    return ratio
+
+
 def compute_sector_index_df(group_def, storage, active_registry):
     """
     Trả về DataFrame Date/Open/High/Low/Close/Volume cho chỉ số ngành (đã cộng
@@ -72,13 +143,41 @@ def compute_sector_index_df(group_def, storage, active_registry):
     if not tickers:
         return None
 
+    trading_calendar = _load_trading_calendar(storage)
+
     frames = []
     for ticker in tickers:
         df = storage.load_ticker_data(ticker)
         if df is None or df.empty:
             continue
         cols = [c for c in ['Date', 'Open', 'High', 'Low', 'Close', 'Volume'] if c in df.columns]
-        frames.append(df[cols])
+        df = df[cols].copy()
+        df['Ticker'] = ticker
+        df['Date'] = pd.to_datetime(df['Date'])
+        df = df.sort_values('Date').drop_duplicates(subset='Date', keep='last')
+
+        if trading_calendar is not None:
+            # (a) Bỏ các phiên không nằm trong lịch giao dịch thật
+            df = df[df['Date'].isin(trading_calendar)]
+            if df.empty:
+                continue
+
+            # (b) Lấp phiên gián đoạn ngắn hạn TRONG ĐÚNG vòng đời thật của mã
+            # (từ phiên đầu tiên đến phiên cuối cùng nó có dữ liệu) — không
+            # suy đoán ra ngoài vòng đời thật (không kéo trước ngày niêm yết
+            # đầu tiên / sau ngày có dữ liệu cuối cùng, tức hủy niêm yết).
+            first_date, last_date = df['Date'].min(), df['Date'].max()
+            lifetime_dates = trading_calendar[
+                (trading_calendar >= first_date) & (trading_calendar <= last_date)
+            ]
+            df = df.set_index('Date').reindex(lifetime_dates)
+            df.index.name = 'Date'
+            df[['Open', 'High', 'Low', 'Close']] = df[['Open', 'High', 'Low', 'Close']].ffill()
+            df['Volume'] = df['Volume'].fillna(0.0)
+            df['Ticker'] = ticker
+            df = df.reset_index()
+
+        frames.append(df)
 
     if not frames:
         return None
@@ -116,8 +215,10 @@ def compute_sector_index_df(group_def, storage, active_registry):
         logger.warning(f"⚠️ Không lấy được Close VNINDEX làm kỳ gốc, dùng 100 mặc định: {e}")
 
     # Bước 2a: cộng dồn Close về kỳ gốc (base_value) theo tỷ lệ biến động
-    # ngày-qua-ngày của chỉ số phụ.
-    close_ratio = aux['Close'] / aux['Close'].shift(1)
+    # ngày-qua-ngày — dùng chain-linking (chỉ so các mã CHUNG giữa 2 ngày) để
+    # mã mới lên sàn/hủy niêm yết không tạo ra mức nhảy ảo (xem
+    # _chain_linked_close_ratio).
+    close_ratio = _chain_linked_close_ratio(combined, aux['Date'])
     close_ratio = close_ratio.replace([float('inf'), float('-inf')], 1.0).fillna(1.0)
     index_close = base_value * close_ratio.cumprod()
 
