@@ -1,0 +1,178 @@
+{
+  "BANK": {
+    "name": "Ngân hàng",
+    "icon": "🏦",
+    "tickers": ["VCB", "BID", "CTG", "MBB", "TCB", "ACB", "STB", "HDB", "SHB", "LPB", "VIB", "MSB", "TPB", "EIB", "OCB", "SSB", "NAB", "ABB", "BAB", "BVB", "KLB", "NVB", "PGB", "SGB", "VAB", "VBB"]
+  },
+  "CHUNGKHOAN": {
+    "name": "Chứng khoán",
+    "icon": "📈",
+    "tickers": ["SSI", "VCI", "HCM", "VIX", "SHS", "MBS", "VND", "FTS", "BSI", "CTS", "AGR", "BVS", "TVS", "VDS", "ORS", "APS", "AAS", "EVS", "WSS", "VIG", "IVS", "DSC", "SBS", "CSI", "HBS", "PSI", "PHS"]
+  },
+  "BAOHIEM": {
+    "name": "Bảo hiểm",
+    "icon": "🛡️",
+    "tickers": ["BVH", "BMI", "MIG", "BIC", "PGI", "PTI", "ABI", "PRE", "VNR", "AIC", "BHI"]
+  },
+  "PHANBON": {
+    "name": "Phân bón",
+    "icon": "🌱",
+    "tickers": ["DCM", "DPM", "DDV", "LAS", "BFC", "SFG", "PSW", "PSE", "PMB"]
+  },
+  "HOACHAT": {
+    "name": "Hóa chất",
+    "icon": "🧪",
+    "tickers": ["DGC", "CSV", "PLC"]
+  },
+  "THEP": {
+    "name": "Thép & Vật liệu",
+    "icon": "🔩",
+    "tickers": ["HPG", "HSG", "NKG", "SMC", "TVN", "TLH", "POM", "VIS", "VGS", "TIS"]
+  },
+  "XIMANG": {
+    "name": "Xi măng",
+    "icon": "🏗️",
+    "tickers": ["HT1", "BCC", "BTS", "HOM", "SCJ", "TXM", "YBC", "CLH"]
+  },
+  "DAXAYDUNG": {
+    "name": "Đá xây dựng",
+    "icon": "🪨",
+    "tickers": ["KSB", "DHA", "C32", "NNC", "BMC", "VLB"]
+  },
+  "THAN": {
+    "name": "Than",
+    "icon": "⛏️",
+    "tickers": ["TC6", "TVD", "THT", "NBC", "MDC", "TDN", "HLC", "TMB"]
+  },
+  "DAUKHI": {
+    "name": "Dầu khí",
+    "icon": "🛢️",
+    "tickers": ["GAS", "PLX", "BSR", "PVS", "PVD", "PVC", "PVB", "PVT", "PVP", "PVO", "OIL", "PSH", "CNG", "PGC"]
+  },
+  "DIEN": {
+    "name": "Điện",
+    "icon": "⚡",
+    "tickers": ["POW", "REE", "NT2", "PPC", "QTP", "GEG", "VSH", "TMP", "SHP", "CHP", "SJD", "TTA", "TV2", "BTP"]
+  },
+  "NUOCSACH": {
+    "name": "Nước sạch",
+    "icon": "💧",
+    "tickers": ["BWE", "TDM", "NBW", "BTW", "CLW", "DNW", "GDW", "NAW"]
+  },
+  "BDS": {
+    "name": "Bất động sản",
+    "icon": "🏢",
+    "tickers": ["NVL", "KDH", "NLG", "PDR", "DXG", "DIG", "HDG", "KBC", "IDC", "SZC", "VPI", "SCR", "CEO", "HDC", "AGG", "HQC", "HPX", "LDG", "QCG", "DRH", "CII", "CRE", "TCH", "NTL"]
+  },
+  "KCN": {
+    "name": "Khu công nghiệp",
+    "icon": "🏭",
+    "tickers": ["BCM", "KBC", "IDC", "SZC", "SIP", "NTC", "D2D", "LHG", "TIP", "SNZ"]
+  },
+  "XAYDUNG": {
+    "name": "Xây dựng",
+    "icon": "🏘️",
+    "tickers": ["CTD", "HBC", "VCG", "FCN", "HHV", "LCG", "C4G", "DPG", "PC1", "SCG", "HTN", "CDC"]
+  },
+  "LOGISTICS": {
+    "name": "Logistics",
+    "icon": "🚚",
+    "tickers": ["HAH", "TMS", "MVN", "VTP"]
+  },
+  "CANGBIEN": {
+    "name": "Cảng biển",
+    "icon": "⚓",
+    "tickers": ["PHP", "PDN", "SGP", "DVP", "CDN", "GMD", "VSC"]
+  },
+  "HANGKHONG": {
+    "name": "Hàng không",
+    "icon": "✈️",
+    "tickers": ["HVN", "VJC", "ACV", "AST", "SAS", "NCT", "SGN"]
+  },
+  "THUYSAN": {
+    "name": "Thủy sản",
+    "icon": "🐟",
+    "tickers": ["VHC", "ANV", "FMC", "IDI", "CMX", "ACL", "MPC", "ABT"]
+  },
+  "NONGNGHIEP": {
+    "name": "Nông nghiệp",
+    "icon": "🌾",
+    "tickers": ["DBC", "BAF", "HAG", "HNG", "LTG", "PAN", "NSC", "TAR", "AFX"]
+  },
+  "THUCPHAM": {
+    "name": "Thực phẩm",
+    "icon": "🍚",
+    "tickers": ["VNM", "MSN", "MCH", "QNS", "SBT", "KDC", "VOC", "BBC", "MML"]
+  },
+  "BANLE": {
+    "name": "Bán lẻ",
+    "icon": "🛒",
+    "tickers": ["MWG", "FRT", "DGW", "PET", "PSD", "PNJ"]
+  },
+  "DUOCPHAM": {
+    "name": "Dược phẩm",
+    "icon": "💊",
+    "tickers": ["DHG", "IMP", "DBD", "TRA", "DHT", "DCL", "DVN", "MKP", "LDP", "PMC"]
+  },
+  "DETMAY": {
+    "name": "Dệt may",
+    "icon": "🧵",
+    "tickers": ["TCM", "MSH", "STK", "GIL", "VGT", "TNG", "ADS", "M10"]
+  },
+  "GONOITHAT": {
+    "name": "Gỗ & Nội thất",
+    "icon": "🪑",
+    "tickers": ["PTB", "SAV", "TTF", "GDT"]
+  },
+  "CAOSU": {
+    "name": "Cao su",
+    "icon": "🌳",
+    "tickers": ["GVR", "PHR", "DPR", "DRI", "TRC", "RTB"]
+  },
+  "NHUA": {
+    "name": "Nhựa",
+    "icon": "🧴",
+    "tickers": ["BMP", "NTP", "AAA", "APH", "RDP", "TPC"]
+  },
+  "CONGNGHE": {
+    "name": "Công nghệ",
+    "icon": "💻",
+    "tickers": ["FPT", "CMG", "ELC", "ITD", "SAM", "SMT"]
+  },
+  "VIENTHONG": {
+    "name": "Viễn thông",
+    "icon": "📡",
+    "tickers": ["CTR", "VGI", "FOX", "MFS"]
+  },
+  "KHAIKHOANG": {
+    "name": "Khai khoáng",
+    "icon": "⛰️",
+    "tickers": ["KSV", "BMC", "MTA", "MIC", "THT", "TVD", "NBC", "HGM"]
+  },
+  "VANTAI": {
+    "name": "Vận tải",
+    "icon": "🚢",
+    "tickers": ["VTO", "VIP", "VOS", "GSP", "PVT", "HAH"]
+  },
+  "THIETBIDIEN": {
+    "name": "Thiết bị điện",
+    "icon": "🔌",
+    "tickers": ["GEE", "RAL", "PAC", "EMC"]
+  },
+  "HOVIN": {
+    "name": "Họ VIN",
+    "icon": "🏙️",
+    "tickers": ["VHM", "VIC", "VRE", "VPL"]
+  },
+  "HOMUOT": {
+    "name": "Họ Mượt",
+    "icon": "🔷",
+    "tickers": ["GEX", "GEE", "VSC", "GEL", "VIX", "EIB"]
+  },
+  "VNINDEX_NONVIN": {
+    "name": "VNINDEX (không VIN)",
+    "icon": "📊",
+    "dynamic": "ALL_EXCEPT",
+    "exclude": ["VIC", "VHM", "VRE", "VPL"]
+  }
+}

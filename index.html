@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AIC = AI + cơm! - Hệ thống Phân tích Chứng khoán</title>
+    <title>Dữ liệu ngành - Phân tích kỹ thuật chỉ số ngành</title>
     
     <!-- Favicon & Mobile Screen Icons -->
     <link rel="icon" type="image/png" href="app_icon.png">
@@ -145,6 +145,35 @@
             white-space: nowrap;
         }
 
+        .home-link-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.05);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .home-link-btn:hover {
+            background: rgba(20, 184, 166, 0.15);
+            border-color: var(--accent-teal);
+            box-shadow: 0 4px 12px rgba(20, 184, 166, 0.2);
+        }
+        .home-link-btn .home-link-icon {
+            font-size: 1rem;
+            line-height: 1;
+        }
+        .home-link-btn span {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+
         .logo-img {
             height: 36px;
             width: 36px;
@@ -191,6 +220,16 @@
             }
             .update-badge {
                 font-size: 0.6rem;
+            }
+            .home-link-btn {
+                padding: 5px 8px;
+                gap: 4px;
+            }
+            .home-link-btn .home-link-icon {
+                font-size: 0.9rem;
+            }
+            .home-link-btn span {
+                font-size: 0.66rem;
             }
         }
 
@@ -546,6 +585,98 @@
             .market-cards-container {
                 grid-template-columns: 1fr;
             }
+        }
+
+        /* Home / Sector selection */
+        .home-hero {
+            text-align: center;
+        }
+        .home-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin: 0 0 6px 0;
+            background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-teal) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .home-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin: 0 0 16px 0;
+        }
+        .home-sector-select {
+            width: 100%;
+            max-width: 420px;
+            margin: 14px auto 0 auto;
+            display: block;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+        .home-sector-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: 16px;
+        }
+        .home-sector-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: border-color 0.15s ease, background 0.15s ease;
+        }
+        .home-sector-card:hover {
+            border-color: var(--accent-purple);
+            background: rgba(139, 92, 246, 0.06);
+        }
+        .home-sector-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .home-sector-icon {
+            font-size: 1.2rem;
+        }
+        .home-sector-name {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+        .home-sector-count {
+            margin-left: auto;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.06);
+            padding: 2px 10px;
+            border-radius: 999px;
+        }
+        .home-ticker-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .home-ticker-chip {
+            font-family: monospace;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            color: var(--accent-blue);
+            cursor: pointer;
+        }
+        .home-ticker-chip:hover {
+            border-color: var(--accent-blue);
+            background: rgba(59, 130, 246, 0.1);
         }
 
         .market-summary-card {
@@ -990,6 +1121,17 @@
         /* Detailed Stock Dashboard Layout */
         .stock-dashboard {
             margin-top: 8px;
+        }
+
+        .sector-detail-header {
+            margin-bottom: 12px;
+        }
+        .sector-detail-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
         }
 
         .dashboard-grid {
@@ -3015,14 +3157,14 @@
 
     <header>
         <div class="header-container">
-            <div class="logo-section" onclick="selectMenuTab('market-tab', '📊', 'Thị trường (VNINDEX)'); window.scrollTo({top: 0, behavior: 'smooth'});" style="cursor: pointer; user-select: none; display: flex; align-items: center; gap: 10px;">
+            <div class="logo-section" onclick="goHome(); window.scrollTo({top: 0, behavior: 'smooth'});" style="cursor: pointer; user-select: none; display: flex; align-items: center; gap: 10px;">
                 <img src="app_icon.png" alt="AIC PRO Logo" class="logo-img">
-                <h1>AIC = AI + cơm!</h1>
+                <h1>Dữ liệu ngành</h1>
             </div>
             <div class="header-right">
-                <a href="https://aic-pro-fa.vercel.app/" target="_blank" rel="noopener" class="fa-pro-badge" title="Đọc phân tích FA (Phân tích cơ bản)">
-                    <img src="app_icon.png" alt="FA Pro" class="fa-pro-logo">
-                    <span>FA Pro</span>
+                <a href="https://aic-proweb.vercel.app/" class="home-link-btn" title="Về trang chủ AIC Pro Web">
+                    <span class="home-link-icon">🏠</span>
+                    <span>HOME</span>
                 </a>
                 <div class="update-badge">
                     <div class="badge-row">
@@ -3045,892 +3187,37 @@
     <nav class="tab-navigation">
         <div class="menu-dropdown">
             <button id="menuBtn" class="menu-btn" onclick="toggleMenuDropdown(event)">
-                <span id="currentTabIcon">📊</span> <span id="currentTabLabel">Thị trường (VNINDEX)</span> <span style="font-size: 0.75rem; margin-left: 4px; opacity: 0.7;">▼</span>
+                <span id="currentTabIcon">🏠</span> <span id="currentTabLabel">Trang chủ</span> <span style="font-size: 0.75rem; margin-left: 4px; opacity: 0.7;">▼</span>
             </button>
             <div id="menuContent" class="menu-content">
-                <button class="menu-item active" data-tab="market-tab" onclick="selectMenuTab('market-tab', '📊', 'Thị trường (VNINDEX)')">📊 Thị trường (VNINDEX)</button>
-                <button class="menu-item" data-tab="lookup-tab" onclick="selectMenuTab('lookup-tab', '🔍', 'Tra cứu Cổ phiếu')">🔍 Tra cứu Cổ phiếu</button>
-                <button class="menu-item" data-tab="whatif-tab" onclick="selectMenuTab('whatif-tab', '🔮', 'What-If')">🔮 What-If</button>
-                <button class="menu-item" data-tab="filter-tab" onclick="selectMenuTab('filter-tab', '🎯', 'Lọc Cổ phiếu')">🎯 Lọc Cổ phiếu</button>
-                <button class="menu-item" data-tab="portfolio-tab" onclick="selectMenuTab('portfolio-tab', '💼', 'Đánh giá Danh mục')">💼 Đánh giá Danh mục</button>
-                <button class="menu-item" data-tab="aicpro-tab" onclick="selectMenuTab('aicpro-tab', '⚡', 'AIC Pro')">⚡ AIC Pro</button>
-                <button class="menu-item" data-tab="contact-tab" onclick="selectMenuTab('contact-tab', 'ℹ️', 'Information')">ℹ️ Information</button>
+                <button class="menu-item active" data-tab="home-tab" onclick="selectMenuTab('home-tab', '🏠', 'Trang chủ')">🏠 Trang chủ</button>
+                <button class="menu-item" data-tab="market-tab" onclick="selectMenuTab('market-tab', '📊', 'Phân tích kỹ thuật ngành')">📊 Phân tích kỹ thuật ngành</button>
             </div>
         </div>
     </nav>
 
     <main>
+        <!-- Trang chủ: chọn ngành -->
+        <div class="tab-content active" id="home-tab">
+            <section class="card home-hero">
+                <h2 class="home-title">Dữ liệu ngành</h2>
+                <p class="home-subtitle">Chọn ngành để xem phân tích kỹ thuật chỉ số ngành chuyên sâu.</p>
+                <select id="homeSectorSelect" class="home-sector-select" onchange="goToSector(this.value)">
+                    <option value="">-- Chọn nhanh một ngành --</option>
+                </select>
+            </section>
+            <div id="homeSectorList" class="home-sector-list">
+                <!-- Danh sách ngành được render động từ sector_groups.json -->
+            </div>
+        </div>
+
         <!-- Tab 1: Đánh giá thị trường -->
-        <div class="tab-content active" id="market-tab">
-            <div class="market-cards-container">
-                <div class="card market-summary-card" id="vnindex-summary-card" onclick="selectMarketIndex('VNINDEX')">
-                    <!-- VNINDEX evaluation loaded dynamically -->
-                </div>
-            </div>
-            
-            <section class="card">
-                <div class="card-title">
-                    <span>Độ Rộng Thị Trường (MA Lines vs VNINDEX)</span>
-                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                        <div class="ma-toggles">
-                            <button id="toggle-normal-vnindex" class="btn-sm active" onclick="toggleBreadthVNINDEX()">VNINDEX</button>
-                            <button id="toggle-normal-ma10" class="btn-sm active" onclick="toggleBreadthMA('MA10')">MA10</button>
-                            <button id="toggle-normal-ma20" class="btn-sm active" onclick="toggleBreadthMA('MA20')">MA20</button>
-                            <button id="toggle-normal-ma50" class="btn-sm active" onclick="toggleBreadthMA('MA50')">MA50</button>
-                        </div>
-                        <div class="chart-controls">
-                            <button class="btn-sm" onclick="setBreadthChartRange(30)">30N</button>
-                            <button class="btn-sm active" onclick="setBreadthChartRange(90)">90N</button>
-                            <button class="btn-sm" onclick="setBreadthChartRange(180)">180N</button>
-                            <button class="btn-sm" onclick="setBreadthChartRange(9999)">Tất cả</button>
-                        </div>
-                        <button class="btn-sm" onclick="expandBreadthChart()">⛶ Mở rộng</button>
-                    </div>
-                </div>
-                <div class="breadth-chart-container" id="breadthChartContainer"></div>
-            </section>
-
-            <section class="card">
-                <div class="card-title">
-                    <span>Độ Rộng Ichi (Ichimoku vs VNINDEX)</span>
-                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                        <div class="ma-toggles">
-                            <button id="toggle-ichi-vnindex" class="btn-sm active" onclick="toggleIchiVNINDEX()">VNINDEX</button>
-                            <button id="toggle-ichi-cloud" class="btn-sm active" onclick="toggleIchiLine('CLOUD')">Trên mây</button>
-                            <button id="toggle-ichi-tenkan" class="btn-sm active" onclick="toggleIchiLine('TENKAN')">Trên Tenkan</button>
-                            <button id="toggle-ichi-kijun" class="btn-sm active" onclick="toggleIchiLine('KIJUN')">Trên Kijun</button>
-                        </div>
-                        <div class="chart-controls" id="ichiChartControls">
-                            <button class="btn-sm" onclick="setIchiChartRange(30)">30N</button>
-                            <button class="btn-sm active" onclick="setIchiChartRange(90)">90N</button>
-                            <button class="btn-sm" onclick="setIchiChartRange(180)">180N</button>
-                            <button class="btn-sm" onclick="setIchiChartRange(9999)">Tất cả</button>
-                        </div>
-                        <button class="btn-sm" onclick="expandIchiChart()">⛶ Mở rộng</button>
-                    </div>
-                </div>
-                <div class="breadth-chart-container" id="ichiChartContainer"></div>
-            </section>
-
-            <!-- VNINDEX Detailed Analysis Section -->
-            <div class="vnindex-detail-section" id="vnindexDetailSection">
-                <!-- Summary Header -->
-                <section class="card">
-                    <div class="vnindex-summary-header" id="vnindexSummaryHeader">
-                        <!-- Loaded dynamically -->
-                    </div>
-                </section>
-
-                <!-- Diagnostics Grid -->
-                <div class="vnindex-analysis-grid" id="vnindexDiagGrid">
-                    <!-- Loaded dynamically -->
-                </div>
-
-                <!-- AI Detailed Strategy Report Card -->
-                
-
-                <!-- 4-Panel Interactive Chart Grid -->
-                <section class="card interactive-chart-section">
-                    <div class="chart-panel-header">
-                        <span class="chart-panel-title" id="marketChartTitle">📈 Biểu đồ Phân tích VNINDEX</span>
-                        <span class="chart-hint"><span>🖱️ Cuộn để zoom · Kéo để pan · Nhấn ⛶ để toàn màn hình</span></span>
-                    </div>
-                    <div class="chart-grid-4" id="marketChartGrid">
-                        <div class="chart-cell">
-                            <div class="chart-cell-header">
-                                <span class="chart-cell-label">🌿 GreenPink + Octopus</span>
-                                <button class="chart-expand-btn" onclick="expandChart('market','gp')">⛶ Mở rộng</button>
-                            </div>
-                            <div class="chart-cell-body" id="market-mount-gp"></div>
-                            <div class="chart-cell-evaluation" id="market-eval-gp"></div>
-                            <div class="chart-cell-footer">
-                                💡 <strong>Ý nghĩa:</strong> Hệ thống GreenPink kết hợp với Octopus giúp xác định động lượng dòng tiền lớn (Banker/Hot Money) và các điểm đảo chiều sớm của xu hướng giá thông qua hai đường xFast/xSlow.
-                            </div>
-                        </div>
-                        <div class="chart-cell">
-                            <div class="chart-cell-header">
-                                <span class="chart-cell-label">🕯️ Heikin-Ashi + 2Trend</span>
-                                <button class="chart-expand-btn" onclick="expandChart('market','heikin')">⛶ Mở rộng</button>
-                            </div>
-                            <div class="chart-cell-body" id="market-mount-heikin"></div>
-                            <div class="chart-cell-evaluation" id="market-eval-heikin"></div>
-                            <div class="chart-cell-footer">
-                                💡 <strong>Ý nghĩa:</strong> Sử dụng nến Heikin-Ashi để làm mịn xu hướng giá kết hợp dải Hull MA và chỉ báo NW Stop, giúp loại bỏ nhiễu ngắn hạn và xác định điểm mua/bán (Buy/Sell) mạnh mẽ.
-                            </div>
-                        </div>
-                        <div class="chart-cell">
-                            <div class="chart-cell-header">
-                                <span class="chart-cell-label">🔥 Bản đồ nhiệt</span>
-                                <button class="chart-expand-btn" onclick="expandChart('market','heatmap')">⛶ Mở rộng</button>
-                            </div>
-                            <div class="chart-cell-body" id="market-mount-heatmap"></div>
-                            <div class="chart-cell-evaluation" id="market-eval-heatmap"></div>
-                            <div class="chart-cell-footer">
-                                💡 <strong>Ý nghĩa:</strong> Bản đồ nhiệt (Heatmap Bands) theo dõi các vùng cung cầu và phân phối giá của cổ phiếu, kết hợp Money Flow giúp phát hiện dòng tiền âm thầm gom hàng hoặc rút lui.
-                            </div>
-                        </div>
-                        <div class="chart-cell">
-                            <div class="chart-cell-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-                                <div style="display:flex; align-items:center; gap:8px;">
-                                    <span class="chart-cell-label">📊 Báo cáo Kỹ thuật</span>
-                                    <div class="chart-toggles-container">
-                                        <label><input type="checkbox" class="tech-toggle-Kumo" checked onchange="toggleTechLine('Kumo', this.checked)"> Kumo</label>
-                                        <label><input type="checkbox" class="tech-toggle-Tenkan" checked onchange="toggleTechLine('Tenkan', this.checked)"> Tenkan</label>
-                                        <label><input type="checkbox" class="tech-toggle-Kijun" checked onchange="toggleTechLine('Kijun', this.checked)"> Kijun</label>
-                                        <label><input type="checkbox" class="tech-toggle-Kijun65" checked onchange="toggleTechLine('Kijun65', this.checked)"> Kijun65</label>
-                                        <label><input type="checkbox" class="tech-toggle-MA10" checked onchange="toggleTechLine('MA10', this.checked)"> MA10</label>
-                                        <label><input type="checkbox" class="tech-toggle-MA20" checked onchange="toggleTechLine('MA20', this.checked)"> MA20</label>
-                                        <label><input type="checkbox" class="tech-toggle-MA50" checked onchange="toggleTechLine('MA50', this.checked)"> MA50</label>
-                                    </div>
-                                </div>
-                                <button class="chart-expand-btn" onclick="expandChart('market','techreport')">⛶ Mở rộng</button>
-                            </div>
-                            <div class="chart-cell-body" id="market-mount-techreport"></div>
-                            <div class="chart-cell-evaluation" id="market-eval-techreport"></div>
-                            <div class="chart-cell-footer">
-                                💡 <strong>Ý nghĩa:</strong> Tổng hợp các chỉ báo xu hướng và động lượng kinh điển bao gồm Ichimoku Cloud, hệ thống MA Lines (MA10/20/50), dòng tiền MCDX, sức mạnh xu hướng ADX và chỉ báo MACD.
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
+        <div class="tab-content" id="market-tab">
+            <div id="sectorDetailHeader" class="sector-detail-header"></div>
+            <div id="stockDetailsDashboard" class="stock-dashboard"></div>
         </div>
 
 
-        <!-- Tab 2: Tra cứu Cổ phiếu đơn lẻ -->
-        <div class="tab-content" id="lookup-tab">
-            <section class="search-filter-section" style="margin-bottom: 8px;">
-                <div class="search-bar">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" id="lookupSearchInput" class="search-input" placeholder="Tìm kiếm mã cổ phiếu cần tra cứu (VD: FPT, HPG, SSI...)" oninput="handleLookupSearch()">
-                    <div class="suggestions-dropdown" id="lookupSuggestions"></div>
-                </div>
-            </section>
-            
-            <div id="stockDetailsDashboard" class="stock-dashboard" style="display: none;">
-                <!-- Selected stock analysis cards loaded dynamically -->
-            </div>
-        </div>
-
-        <!-- Tab 3: Lọc cổ phiếu (Grid) -->
-        <div class="tab-content" id="filter-tab">
-            <section class="card">
-                <div class="filter-header-title">CHỌN CÁC TIÊU CHÍ LỌC (LOGICAL AND)</div>
-                <div class="filter-columns">
-                    <!-- Column 1: Tín hiệu chính -->
-                    <div class="filter-column">
-                        <div class="filter-column-title">1. Tín hiệu Giao dịch chính</div>
-                        <div class="checkbox-list">
-                            <label class="filter-checkbox-row" id="row-EARLY">
-                                <input type="checkbox" value="EARLY" onchange="toggleFilterCheckbox('EARLY')">
-                                <span>Mua Sớm (EARLY)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-ADD_1">
-                                <input type="checkbox" value="ADD_1" onchange="toggleFilterCheckbox('ADD_1')">
-                                <span>Gia Tăng 1 (ADD_1)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-ADD_2">
-                                <input type="checkbox" value="ADD_2" onchange="toggleFilterCheckbox('ADD_2')">
-                                <span>Gia Tăng 2 (ADD_2)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-STRONG">
-                                <input type="checkbox" value="STRONG" onchange="toggleFilterCheckbox('STRONG')">
-                                <span>Mua Mạnh (STRONG)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-ACCUMULATION">
-                                <input type="checkbox" value="ACCUMULATION" onchange="toggleFilterCheckbox('ACCUMULATION')">
-                                <span>Tích Lũy (ACCUMULATION)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-BREAKOUT_ACCUMULATION">
-                                <input type="checkbox" value="BREAKOUT_ACCUMULATION" onchange="toggleFilterCheckbox('BREAKOUT_ACCUMULATION')">
-                                <span>Phá Vỡ Tích Lũy (BREAKOUT)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-PERFECT_MA">
-                                <input type="checkbox" value="PERFECT_MA" onchange="toggleFilterCheckbox('PERFECT_MA')">
-                                <span>Perfect MA (PERFECT_MA)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-HEIKIN_BUY">
-                                <input type="checkbox" value="HEIKIN_BUY" onchange="toggleFilterCheckbox('HEIKIN_BUY')">
-                                <span>Heikin (HEIKIN_BUY)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-UPCLOUD">
-                                <input type="checkbox" value="UPCLOUD" onchange="toggleFilterCheckbox('UPCLOUD')">
-                                <span>UPCLOUD</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-WHITE_ADX">
-                                <input type="checkbox" value="WHITE_ADX" onchange="toggleFilterCheckbox('WHITE_ADX')">
-                                <span>Trend ADX (WHITE_ADX)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-MARK_MINERVINI">
-                                <input type="checkbox" value="MARK_MINERVINI" onchange="toggleFilterCheckbox('MARK_MINERVINI')">
-                                <span>Mark Minervini (MINERVINI)</span>
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <!-- Column 2: Tiêu chí kỹ thuật bổ trợ -->
-                    <div class="filter-column">
-                        <div class="filter-column-title">2. Tiêu chí Kỹ thuật bổ trợ</div>
-                        <div class="checkbox-list">
-                            <label class="filter-checkbox-row" id="row-OCTOPUS_GREEN_CROSS">
-                                <input type="checkbox" value="OCTOPUS_GREEN_CROSS" onchange="toggleFilterCheckbox('OCTOPUS_GREEN_CROSS')">
-                                <span>Octopus Green Cross (Giao cắt & chuyển xanh loe rộng)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-RSI_BULLISH_DIVERGENCE">
-                                <input type="checkbox" value="RSI_BULLISH_DIVERGENCE" onchange="toggleFilterCheckbox('RSI_BULLISH_DIVERGENCE')">
-                                <span>RSI Phân kỳ tăng giá (Bullish Divergence)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-MACD_BULLISH_DIVERGENCE">
-                                <input type="checkbox" value="MACD_BULLISH_DIVERGENCE" onchange="toggleFilterCheckbox('MACD_BULLISH_DIVERGENCE')">
-                                <span>MACD Phân kỳ tăng giá (Bullish Divergence)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-MACD_HIST_BULLISH_DIVERGENCE">
-                                <input type="checkbox" value="MACD_HIST_BULLISH_DIVERGENCE" onchange="toggleFilterCheckbox('MACD_HIST_BULLISH_DIVERGENCE')">
-                                <span>MACD Histogram Phân kỳ tăng giá (Bullish Divergence)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-PRICE_GT_10">
-                                <input type="checkbox" value="PRICE_GT_10" onchange="toggleFilterCheckbox('PRICE_GT_10')">
-                                <span>Thị giá > 10 (Giá > 10,000đ)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-RS14_GT_50">
-                                <input type="checkbox" value="RS14_GT_50" onchange="toggleFilterCheckbox('RS14_GT_50')">
-                                <span>RS 14 Tuần > 50</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-RS52_GT_50">
-                                <input type="checkbox" value="RS52_GT_50" onchange="toggleFilterCheckbox('RS52_GT_50')">
-                                <span>RS 52 Tuần > 50</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-PRICE_CROSS_MA20">
-                                <input type="checkbox" value="PRICE_CROSS_MA20" onchange="toggleFilterCheckbox('PRICE_CROSS_MA20')">
-                                <span>Giá cắt lên MA20 (Hôm qua < MA20, nay > MA20)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-PRICE_CROSS_MA50">
-                                <input type="checkbox" value="PRICE_CROSS_MA50" onchange="toggleFilterCheckbox('PRICE_CROSS_MA50')">
-                                <span>Giá cắt lên MA50 (Hôm qua < MA50, nay > MA50)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-RSI_EXIT_OVERSOLD">
-                                <input type="checkbox" value="RSI_EXIT_OVERSOLD" onchange="toggleFilterCheckbox('RSI_EXIT_OVERSOLD')">
-                                <span>RSI14 thoát quá bán (Cắt lên 30)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-RSI_CROSS_70">
-                                <input type="checkbox" value="RSI_CROSS_70" onchange="toggleFilterCheckbox('RSI_CROSS_70')">
-                                <span>RSI14 cắt lên trên 70</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-RSI_GT_50">
-                                <input type="checkbox" value="RSI_GT_50" onchange="toggleFilterCheckbox('RSI_GT_50')">
-                                <span>RSI14 > 50</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-PRICE_ABOVE_MA20">
-                                <input type="checkbox" value="PRICE_ABOVE_MA20" onchange="toggleFilterCheckbox('PRICE_ABOVE_MA20')">
-                                <span>Giá nằm trên MA20</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-PRICE_ABOVE_MA50">
-                                <input type="checkbox" value="PRICE_ABOVE_MA50" onchange="toggleFilterCheckbox('PRICE_ABOVE_MA50')">
-                                <span>Giá nằm trên MA50</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-MA20_GT_MA50">
-                                <input type="checkbox" value="MA20_GT_MA50" onchange="toggleFilterCheckbox('MA20_GT_MA50')">
-                                <span>MA20 > MA50</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-MCDX_RED">
-                                <input type="checkbox" value="MCDX_RED" onchange="toggleFilterCheckbox('MCDX_RED')">
-                                <span>MCDX có màu đỏ (Banker > 0)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-PRICE_ABOVE_KIJUN">
-                                <input type="checkbox" value="PRICE_ABOVE_KIJUN" onchange="toggleFilterCheckbox('PRICE_ABOVE_KIJUN')">
-                                <span>Giá nằm trên Kijun</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-PRICE_ABOVE_TENKAN">
-                                <input type="checkbox" value="PRICE_ABOVE_TENKAN" onchange="toggleFilterCheckbox('PRICE_ABOVE_TENKAN')">
-                                <span>Giá nằm trên Tenkan</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-MACD_CROSS_SIGNAL">
-                                <input type="checkbox" value="MACD_CROSS_SIGNAL" onchange="toggleFilterCheckbox('MACD_CROSS_SIGNAL')">
-                                <span>MACD cắt lên đường Tín hiệu (Signal)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-VOL_AVG10_GT_100K">
-                                <input type="checkbox" value="VOL_AVG10_GT_100K" onchange="toggleFilterCheckbox('VOL_AVG10_GT_100K')">
-                                <span>KLGD trung bình 10 phiên > 100,000 CP</span>
-                            </label>
-
-                            <label class="filter-checkbox-row" id="row-MCDX_CROSS_5">
-                                <input type="checkbox" value="MCDX_CROSS_5" onchange="toggleFilterCheckbox('MCDX_CROSS_5')">
-                                <span>MCDX Đỏ (Banker) tăng và cắt lên 5 (trong 3 phiên)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-MCDX_CROSS_10">
-                                <input type="checkbox" value="MCDX_CROSS_10" onchange="toggleFilterCheckbox('MCDX_CROSS_10')">
-                                <span>MCDX Đỏ (Banker) tăng và cắt lên 10 (trong 3 phiên)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-MCDX_MA_UP">
-                                <input type="checkbox" value="MCDX_MA_UP" onchange="toggleFilterCheckbox('MCDX_MA_UP')">
-                                <span>MCDX MA (Đường trắng) tăng liên tiếp (T > T-1 > T-2)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-MA3_EV10_GT_5">
-                                <input type="checkbox" value="MA3_EV10_GT_5" onchange="toggleFilterCheckbox('MA3_EV10_GT_5')">
-                                <span>🔮 MA3(EV10) > 5% — Kỳ vọng trung bình 3 phiên</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-ACTION_YES_GREEN">
-                                <input type="checkbox" value="ACTION_YES_GREEN" onchange="toggleFilterCheckbox('ACTION_YES_GREEN')">
-                                <span style="color: #10b981;">🟢 Tag Xanh: YES (Có thể cân nhắc)</span>
-                            </label>
-                            <label class="filter-checkbox-row" id="row-ACTION_YES_PURPLE">
-                                <input type="checkbox" value="ACTION_YES_PURPLE" onchange="toggleFilterCheckbox('ACTION_YES_PURPLE')">
-                                <span style="color: #c084fc;">🟣 Tag Tím: YES (Rất nên tham gia)</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="filter-results-summary" id="filterResultsCount">
-                    Chọn tiêu chí ở trên, kết quả sẽ tự động cập nhật.
-                </div>
-            </section>
-
-            <!-- Grid Results -->
-            <section>
-                <div class="grid-container" id="tickersGrid">
-                    <!-- Ticker cards dynamically loaded -->
-                </div>
-                <button class="load-more-btn" id="loadMoreBtn" style="display: none;" onclick="loadMore()">Xem thêm cổ phiếu</button>
-            </section>
-        </div>
-
-        <!-- Tab 4: Đánh giá Danh mục -->
-        <div class="tab-content" id="portfolio-tab">
-            <div class="portfolio-grid">
-                <!-- Left column: Portfolio input parameters -->
-                <div class="card portfolio-inputs-card">
-                    <h3 class="card-title">💼 Nhập Thông số Danh mục</h3>
-                    
-                    <!-- Portfolio Parameters -->
-                    <div class="portfolio-params-group">
-                        <div class="port-input-field">
-                            <label for="port-nav">Tiền mặt đang có (VND)</label>
-                            <input type="text" id="port-nav" value="0" oninput="formatNumberInput(this)" placeholder="Ví dụ: 100,000,000">
-                        </div>
-                        <div class="port-input-field">
-                            <label for="port-w-target">Tỷ trọng CP tối đa (%)</label>
-                            <input type="number" id="port-w-target" value="100" min="0" max="100">
-                        </div>
-                        <div class="port-input-field">
-                            <label for="port-cutloss">Tỷ lệ cutloss mặc định (%)</label>
-                            <input type="number" id="port-cutloss" value="7" min="0" max="100">
-                        </div>
-                        <div class="port-input-field">
-                            <label for="port-n-tickers">Số mã tối ưu</label>
-                            <input type="number" id="port-n-tickers" value="3" min="1" max="10">
-                        </div>
-                    </div>
-                    
-                    <div class="divider-h" style="margin: 8px 0 0 0;"></div>
-                    
-                    <!-- Individual Stocks Input -->
-                    <h4 style="font-family: 'Outfit', sans-serif; font-size: 0.9rem; margin-top: 8px; color: var(--text-secondary);">Cổ phiếu đang nắm giữ (Tối đa 10 mã)</h4>
-                    <div class="portfolio-stocks-header">
-                        <span>Mã CP</span>
-                        <span>Số lượng</span>
-                        <span>Giá vốn TB (K/VND)</span>
-                    </div>
-                    <div class="portfolio-stocks-list" id="portfolio-stocks-list">
-                        <!-- Loaded dynamically -->
-                    </div>
-                    
-                    <div class="portfolio-actions">
-                        <button class="portfolio-submit-btn" onclick="runPortfolioEvaluation()">🚀 Khởi chạy Đánh giá</button>
-                    </div>
-                </div>
-                
-                <!-- Right column: Evaluation Results -->
-                <div class="card portfolio-results-card">
-                    <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
-                        <span>📊 Kết Quả Đánh Giá</span>
-                        <button class="btn-sm" id="port-copy-btn" onclick="copyPortfolioReportText()" style="display:none; padding:6px 12px; font-size:0.75rem;">📋 Sao chép báo cáo</button>
-                    </div>
-                    
-                    <div id="portfolio-results-loading" style="display:none; text-align:center; padding:100px 0; color:var(--text-secondary);">
-                        <div class="loading-spinner" style="display:inline-block; width:36px; height:36px; border:3px solid rgba(255,255,255,0.06); border-radius:50%; border-top-color:var(--accent-purple); animation:spin 1s ease-in-out infinite;"></div>
-                        <div style="margin-top:16px; font-family:'Outfit'; font-size:0.95rem;">Hệ thống AI đang phân tích danh mục rủi ro...</div>
-                    </div>
-                    
-                    <div id="portfolio-results-placeholder" style="text-align:center; padding:100px 20px; color:var(--text-secondary);">
-                        <span style="font-size: 3.5rem; display:block; margin-bottom:16px;">📈</span>
-                        <div style="font-family:'Outfit'; font-size:1.1rem; font-weight:600; color:var(--text-primary); margin-bottom:8px;">Chưa có dữ liệu đánh giá</div>
-                        Vui lòng điền thông tin danh mục ở bên trái và bấm <strong>Khởi chạy Đánh giá</strong>.
-                    </div>
-                    
-                    <!-- Dashboard formatted results -->
-                    <div id="portfolio-results-container" style="display:none; flex-direction:column; gap:20px;">
-                        <!-- Summary Cards -->
-                        <div class="portfolio-summary-cards">
-                            <div class="summary-card" style="border-left: 3px solid var(--accent-purple);">
-                                <span class="summary-card-lbl">Tổng tài sản (NAV)</span>
-                                <span class="summary-card-val text-primary" id="port-val-nav">0 VND</span>
-                            </div>
-                            <div class="summary-card" style="border-left: 3px solid var(--accent-blue);">
-                                <span class="summary-card-lbl">Tiền mặt / Cổ phiếu</span>
-                                <span class="summary-card-val" id="port-val-allocation" style="color:var(--accent-blue);">0% / 0%</span>
-                            </div>
-                            <div class="summary-card" id="port-card-profit">
-                                <span class="summary-card-lbl">Lợi nhuận trạng thái</span>
-                                <span class="summary-card-val" id="port-val-profit">0 VND</span>
-                            </div>
-                            <div class="summary-card" id="port-card-risk">
-                                <span class="summary-card-lbl">Rủi ro tiềm ẩn (Hit SL)</span>
-                                <span class="summary-card-val" id="port-val-risk">0 VND (0%)</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Warnings Section -->
-                        <div class="portfolio-alerts" id="portfolio-alerts-div"></div>
-                        
-                        <!-- Stocks Analysis Table -->
-                        <div class="portfolio-table-container">
-                            <table class="portfolio-table" id="portfolio-table">
-                                <thead>
-                                    <tr>
-                                        <th>Mã CP</th>
-                                        <th>Lãi/Lỗ %</th>
-                                        <th>Trạng Thái</th>
-                                        <th>Khuyến Nghị</th>
-                                        <th>KL Hiện Tại</th>
-                                        <th>KL Khuyên</th>
-                                        <th>Giá Hành Động</th>
-                                        <th>Lý Do Kỹ Thuật</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="portfolio-table-body"></tbody>
-                            </table>
-                        </div>
-                        
-                        <!-- Plaintext area -->
-                        <div class="portfolio-plaintext-section">
-                            <h4 style="font-family: 'Outfit', sans-serif; font-size: 0.9rem; margin-bottom: 8px; color: var(--text-secondary); display:flex; align-items:center; gap:6px;">
-                                📝 <span>Báo cáo chi tiết (Dạng văn bản)</span>
-                            </h4>
-                            <pre id="portfolio-plaintext-report" class="portfolio-report-pre"></pre>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tab 5: Information -->
-        <div class="tab-content" id="contact-tab">
-            <div class="info-grid">
-                <!-- Left Column: Contact info -->
-                <div class="info-card">
-                    <h3>📞 Thông tin Liên hệ</h3>
-                    <div class="contact-list">
-                        <a href="https://www.facebook.com/TruongxAIC?locale=vi_VN" target="_blank" class="contact-item">
-                            <div class="contact-icon" style="color: #1877f2; background: rgba(24, 119, 242, 0.1);">
-                                <svg style="width:24px; height:24px; fill:currentColor;" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                            </div>
-                            <div class="contact-info">
-                                <span class="contact-title">Facebook AIC</span>
-                                <span class="contact-desc">Cập nhật tin tức và phân tích thị trường mới nhất</span>
-                            </div>
-                        </a>
-                        
-                        <a href="https://www.facebook.com/groups/569824848516917?locale=vi_VN" target="_blank" class="contact-item">
-                            <div class="contact-icon" style="color: #1877f2; background: rgba(24, 119, 242, 0.1);">
-                                <svg style="width:24px; height:24px; fill:currentColor;" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                            </div>
-                            <div class="contact-info">
-                                <span class="contact-title">Cộng đồng Fanpage</span>
-                                <span class="contact-desc">Nhóm thảo luận cộng đồng Facebook AIC</span>
-                            </div>
-                        </a>
-
-                        <a href="https://truongaic.substack.com/?utm_campaign=profile_chips" target="_blank" class="contact-item">
-                            <div class="contact-icon" style="color: #ff6719; background: rgba(255, 103, 25, 0.1);">
-                                <svg style="width:24px; height:24px; fill:currentColor;" viewBox="0 0 24 24"><path d="M22.539 8.242H1.46V5.406h21.078v2.836zM1.46 10.812V24L12 18.11 22.54 24V10.812H1.46zM22.54 0H1.46v2.836h21.08V0z"/></svg>
-                            </div>
-                            <div class="contact-info">
-                                <span class="contact-title">Bài viết Substack</span>
-                                <span class="contact-desc">Phân tích chuyên sâu về vĩ mô và doanh nghiệp</span>
-                            </div>
-                        </a>
-                    </div>
-                    
-                    <div class="qr-section">
-                        <span class="contact-title" style="margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
-                            <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; background: #0068ff; color: white; font-weight: 900; font-size: 8px; border-radius: 6px; font-family: sans-serif; line-height: 1; letter-spacing: 0.3px;">Zalo</span>
-                            Nhóm chém gió Free
-                        </span>
-                        <div class="qr-image">
-                            <img src="group_za.png" alt="Zalo Free Group QR Code">
-                        </div>
-                        <span class="contact-desc" style="text-align: center; margin-top: 4px;">Quét mã QR để tham gia nhóm thảo luận Zalo miễn phí</span>
-                    </div>
-                </div>
-
-                <!-- Right Column: Investment Philosophy -->
-                <div class="info-card">
-                    <h3>💎 Triết lý & Phương pháp Đầu tư</h3>
-                    <div class="philosophy-section">
-                        <div class="philosophy-workflow">
-                            <div class="philosophy-workflow-title">
-                                <span>🎯 Phong cách Đầu tư Chủ động</span>
-                            </div>
-                            <div class="philosophy-workflow-desc">
-                                Phương pháp kết hợp linh hoạt giữa phân tích giá trị cơ bản và động lượng dòng tiền, đi theo 2 hướng chiến lược cốt lõi:
-                            </div>
-                        </div>
-
-                        <div class="philosophy-path">
-                            <div class="philosophy-path-title">🚀 Hướng 1: Tìm Cổ phiếu Giá trị & Chờ xác nhận Dòng tiền</div>
-                            <div class="philosophy-path-desc">
-                                Tập trung tìm kiếm các doanh nghiệp có nền tảng cơ bản tốt, định giá rẻ hoặc dưới giá trị thực. Tuy nhiên, không mua gom thụ động rồi chờ đợi vô hạn, mà chỉ giải ngân khi hệ thống xác nhận dòng tiền lớn (Banker) bắt đầu tham gia đẩy giá, tối ưu hóa hiệu quả sử dụng vốn.
-                            </div>
-                        </div>
-
-                        <div class="philosophy-path">
-                            <div class="philosophy-path-title">⚡ Hướng 2: Tìm Cổ phiếu có Dòng tiền & Định giá hợp lý</div>
-                            <div class="philosophy-path-desc">
-                                Săn tìm các cổ phiếu đang thu hút dòng tiền cực mạnh trên thị trường (Breakout, Trend mạnh). Để quản trị rủi ro, hệ thống sẽ chắt lọc và loại bỏ các cổ phiếu đã quá đắt đỏ hoặc tăng quá nóng (fomo), chỉ lựa chọn các cổ phiếu có định giá còn nằm trong vùng chấp nhận được và có biên an toàn tốt.
-                            </div>
-                        </div>
-
-                        <div class="philosophy-workflow" style="background: rgba(20, 184, 166, 0.02); border-color: rgba(20, 184, 166, 0.1);">
-                            <div class="philosophy-workflow-title" style="color: var(--accent-teal);">
-                                <span>🧠 Kết hợp Con người & Công nghệ (AI + Cơm)</span>
-                            </div>
-                            <div class="philosophy-workflow-desc" style="color: var(--text-secondary);">
-                                <strong>Định giá doanh nghiệp</strong> được xây dựng từ năng lực cơ bắp, chuyên môn phân tích và sự tìm hiểu sâu sắc của con người. Ngược lại, <strong>phân tích kỹ thuật, xác định hỗ trợ/kháng cự và đánh giá dòng tiền</strong> được xử lý tự động bởi AI và hệ thống thời gian thực.<br><br>
-                                Sự cộng hưởng này giúp <strong>tiết giảm tối đa thời gian & công sức</strong> của nhà đầu tư, đồng thời <strong>loại bỏ hoàn toàn yếu tố cảm xúc</strong> chủ quan khi ra quyết định giao dịch.
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tab 6: AIC Pro -->
-        <div class="tab-content" id="aicpro-tab">
-            <div class="pro-grid-container">
-                <!-- Left Column: AIC Pro App -->
-                <div class="pro-card">
-                    <h3>💻 Hệ thống 1: AIC Pro APP</h3>
-                    <div class="pro-card-subtitle">
-                        Phần mềm chuyên dụng chạy trực tiếp trên hệ điều hành Windows do AIC phát triển, cung cấp bộ công cụ phân tích kỹ thuật chuyên sâu dưới góc độ đa chỉ báo, hỗ trợ tư vấn danh mục và đánh giá thị trường toàn diện.
-                    </div>
-                    
-                    <div class="pro-feature-list">
-                        <div class="pro-feature-item">
-                            <span class="pro-feature-icon">⚡</span>
-                            <div>
-                                <strong>Chủ động cập nhật dữ liệu:</strong> Tương tự phiên bản Web, nhưng người dùng có toàn quyền chủ động nạp thêm file dữ liệu đầu vào (CSV) bất cứ lúc nào (từ CafeF, Vietstock, Amibroker...) hoặc tự động cập nhật nhanh chóng mà không phụ thuộc vào chu kỳ cập nhật hệ thống.
-                            </div>
-                        </div>
-                        <div class="pro-feature-item">
-                            <span class="pro-feature-icon">🔍</span>
-                            <div>
-                                <strong>Bộ chỉ báo nâng cao độc quyền:</strong> Tích hợp các hệ thống phân tích đa chiều (Heikin Flower, Heatmap Bands, GP Chart, Trending Scanner) giúp phát hiện xu hướng và điểm gom hàng của dòng tiền lớn với độ chính xác cao.
-                            </div>
-                        </div>
-                        <div class="pro-feature-item">
-                            <span class="pro-feature-icon">💼</span>
-                            <div>
-                                <strong>Tư vấn & Quản trị Danh mục:</strong> Đánh giá chi tiết điểm mua, điểm bán, vùng cắt lỗ và mục tiêu chốt lời của từng mã cổ phiếu cụ thể dựa trên thuật toán quản lý rủi ro nâng cao.
-                            </div>
-                        </div>
-                        <div class="pro-feature-item">
-                            <span class="pro-feature-icon">🎁</span>
-                            <div>
-                                <strong>Tiện ích nâng cấp liên tục:</strong> Được tích hợp sẵn các công cụ bổ trợ, bộ lọc tùy chọn thông minh và tự động tối ưu hóa hệ thống thông qua các bản cập nhật phần mềm định kỳ.
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="pro-media-container" title="Giao diện phần mềm AIC Pro APP">
-                        <img src="aic_pro_app_intro.png" alt="Giao diện phần mềm AIC Pro APP">
-                    </div>
-                </div>
-
-                <!-- Right Column: AIC Pro Web -->
-                <div class="pro-card web-system">
-                    <h3>🌐 Hệ thống 2: AIC Pro WEB</h3>
-                    <div class="pro-card-subtitle">
-                        Hệ thống Web App do AIC phát triển trên nền tảng đám mây, vận hành và xây dựng dựa trên AI số hóa. Cho phép truy cập linh hoạt bằng máy tính hoặc thiết bị di động ở bất cứ đâu mà không bắt buộc phải chạy trên Windows như bản App.
-                    </div>
-                    
-                    <div class="pro-feature-list">
-                        <div class="pro-feature-item">
-                            <span class="pro-feature-icon">🧠</span>
-                            <div>
-                                <strong>Vận hành bởi AI & Số hóa:</strong> Mọi đánh giá, phân loại và nhận diện các mẫu hình dòng tiền được thiết lập tự động bằng trí tuệ nhân tạo, đảm bảo tính khách quan và nhất quán.
-                            </div>
-                        </div>
-                        <div class="pro-feature-item">
-                            <span class="pro-feature-icon">📱</span>
-                            <div>
-                                <strong>Đa nền tảng, Tiện dụng:</strong> Phù hợp cho mọi loại thiết bị (PC, Laptop, iPad, iPhone, Android). Chỉ cần một kết nối internet để theo dõi thị trường mọi lúc mọi nơi.
-                            </div>
-                        </div>
-                        <div class="pro-feature-item">
-                            <span class="pro-feature-icon">⏰</span>
-                            <div>
-                                <strong>Dữ liệu cập nhật định kỳ:</strong> Phiên bản Web chạy ở chế độ bán thời gian thực (non-realtime). Dữ liệu được tính toán và tự động cập nhật cố định vào <strong>12:00</strong> (kết thúc phiên sáng) và <strong>15:30</strong> (kết thúc ngày giao dịch) hàng ngày từ Thứ 2 đến Thứ 6.
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- PWA Section -->
-                    <div class="pwa-guide-box">
-                        <div class="pwa-guide-title">
-                            <span>📲 Hướng dẫn Ghim Web thành App di động (PWA)</span>
-                        </div>
-                        <div class="pro-card-subtitle" style="margin-top:-6px;">
-                            Bạn có thể lưu lại URL trang web lên màn hình chính của điện thoại để sử dụng mượt mà và trực quan giống như một ứng dụng gốc (App native) với biểu tượng ứng dụng riêng và không bị chiếm dụng không gian bởi thanh địa chỉ trình duyệt.
-                        </div>
-                        
-                        <div class="pwa-icon-showcase">
-                            <img src="aic_pro_icon_mobile.png" alt="AIC PRO 2.0 Icon" class="pwa-icon-img">
-                            <div class="pwa-icon-text">
-                                <span class="pwa-icon-name">AIC PRO 2.0</span>
-                                <span class="pwa-icon-desc">Biểu tượng ứng dụng trên màn hình điện thoại khi lưu URL</span>
-                            </div>
-                        </div>
-                        
-                        <div style="font-size:0.78rem; line-height:1.5; color:var(--text-primary); display:flex; flex-direction:column; gap:6px;">
-                            <div>
-                                <strong>Dành cho iPhone (Safari):</strong>
-                                <span style="color:var(--text-secondary);">Mở URL bằng Safari -> Bấm nút <strong>Chia sẻ (Share)</strong> dưới thanh công cụ -> Chọn <strong>Thêm vào MH chính (Add to Home Screen)</strong>.</span>
-                            </div>
-                            <div>
-                                <strong>Dành cho Android (Chrome):</strong>
-                                <span style="color:var(--text-secondary);">Mở URL bằng Chrome -> Bấm nút <strong>Tùy chọn (3 chấm)</strong> ở góc trên bên phải -> Chọn <strong>Cài đặt ứng dụng</strong> hoặc <strong>Thêm vào màn hình chính</strong>.</span>
-                            </div>
-                        </div>
-                        
-                        <div class="pro-media-container small-media" style="margin-top: 8px;" title="Hướng dẫn chi tiết lưu URL ra màn hình điện thoại">
-                            <img src="huong_dan_save_app.jpg" alt="Hướng dẫn lưu Web App">
-                        </div>
-                    </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tab 7: What-If Scenario Forecast -->
-        <div class="tab-content" id="whatif-tab">
-            <section class="search-filter-section" style="margin-bottom: 16px;">
-                <div class="search-bar">
-                    <span class="search-icon">🔮</span>
-                    <input type="text" id="whatifSearchInput" class="search-input" placeholder="Nhập mã cổ phiếu hoặc chỉ số (VD: VNINDEX, FPT, HPG...) để phân tích What-If" oninput="handleWhatifSearch()">
-                    <div class="suggestions-dropdown" id="whatifSuggestions" style="display: none;"></div>
-                </div>
-            </section>
-
-            <div id="whatifDashboard" class="stock-dashboard" style="display: none;">
-                <!-- Main Header info card -->
-                <div class="whatif-header-card" id="whatifHeaderCard">
-                    <!-- Loaded dynamically -->
-                </div>
-
-                <!-- Sub-tabs nav -->
-                <div class="whatif-subtabs-nav">
-                    <button class="whatif-subtab-btn active" data-subtab="whatif-subtab-tree" onclick="switchWhatifSubtab('whatif-subtab-tree')">🌳 Cây Kịch Bản</button>
-                    <button class="whatif-subtab-btn" data-subtab="whatif-subtab-mc" onclick="switchWhatifSubtab('whatif-subtab-mc')">📊 Thống kê xác suất</button>
-                    <button class="whatif-subtab-btn" data-subtab="whatif-subtab-state" onclick="switchWhatifSubtab('whatif-subtab-state')">📊 Trạng thái &amp; Lịch sử</button>
-                    <button class="whatif-subtab-btn" data-subtab="whatif-subtab-sr" onclick="switchWhatifSubtab('whatif-subtab-sr')">🧲 Vùng S/R &amp; Phản ứng</button>
-                    <button class="whatif-subtab-btn" data-subtab="whatif-subtab-chart" onclick="switchWhatifSubtab('whatif-subtab-chart')">📈 Biểu đồ dự báo</button>
-                </div>
-
-                <!-- Mobile sub-tabs select menu -->
-                <div class="whatif-subtabs-select-container">
-                    <select id="whatifMobileSubtabsSelect" class="whatif-subtabs-select-mobile" onchange="switchWhatifSubtab(this.value)">
-                        <option value="whatif-subtab-tree">🌳 Cây Kịch Bản</option>
-                        <option value="whatif-subtab-mc">📊 Thống kê xác suất</option>
-                        <option value="whatif-subtab-state">📊 Trạng thái &amp; Lịch sử</option>
-                        <option value="whatif-subtab-sr">🧲 Vùng S/R &amp; Phản ứng</option>
-                        <option value="whatif-subtab-chart">📈 Biểu đồ dự báo</option>
-                    </select>
-                </div>
-
-                <!-- Subtab: State & Analogs -->
-                <div class="whatif-subtab-panel" id="whatif-subtab-state" style="display: none;">
-                    <div class="whatif-grid-2">
-                        <div class="whatif-card">
-                            <h3>🔍 Trạng thái Chỉ báo Hiện tại</h3>
-                            <div class="state-vector-container" id="whatifStateVectorContainer">
-                                <!-- Loaded dynamically -->
-                            </div>
-                        </div>
-                        <div>
-                            <div class="whatif-card">
-                                <h3>📊 Phân Phối Xác Suất Thực Tế (Lịch Sử)</h3>
-                                <div class="table-container">
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Kỳ hạn</th>
-                                                <th>Mẫu</th>
-                                                <th style="color:var(--accent-green);">Tăng (>1.5%)</th>
-                                                <th style="color:var(--accent-orange);">Đi ngang</th>
-                                                <th style="color:var(--accent-red);">Giảm (<-1.5%)</th>
-                                                <th>TB</th>
-                                                <th>Trung vị</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="whatifDistTableBody">
-                                            <!-- Loaded dynamically -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                            <div class="whatif-card">
-                                <h3>🔮 Trường Hợp Lịch Sử Tương Đồng Nhất</h3>
-                                <div class="table-container">
-                                    <table>
-                                        <thead>
-                                            <tr>
-                                                <th>Ngày</th>
-                                                <th>Độ tương đồng</th>
-                                                <th>Giá lúc đó</th>
-                                                <th>Tăng 3p</th>
-                                                <th>Tăng 5p</th>
-                                                <th>Tăng 10p</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="whatifMatchesTableBody">
-                                            <!-- Loaded dynamically -->
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Subtab 2: S/R zones -->
-                <div class="whatif-subtab-panel" id="whatif-subtab-sr" style="display: none;">
-                    <div class="whatif-card">
-                        <h3>🧲 Vùng Hỗ Trợ / Kháng Cự Chủ Chốt & Phản Ứng Lịch Sử</h3>
-                        <div class="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Vùng giá</th>
-                                        <th>Loại</th>
-                                        <th>Cách giá HT</th>
-                                        <th>Độ tin cậy</th>
-                                        <th>Số lần chạm</th>
-                                        <th>Số test</th>
-                                        <th>Phản ứng lịch sử chính</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="whatifSRTableBody">
-                                    <!-- Loaded dynamically -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Subtab: Scenario Tree -->
-                <div class="whatif-subtab-panel" id="whatif-subtab-tree" style="display: block;">
-                    <div class="whatif-grid-2">
-                        <div class="whatif-card">
-                            <h3>🌳 Cây Kịch Bản Giả Định (Scenario Tree)</h3>
-                            <div class="scenario-tree" id="whatifScenarioTreeContainer">
-                                <!-- Loaded dynamically -->
-                            </div>
-                        </div>
-                        <div class="whatif-card">
-                            <h3>🎯 Dự Phóng Mục Tiêu Kỳ Vọng</h3>
-                            <div class="projected-targets-grid" id="whatifTargetsContainer">
-                                <!-- Loaded dynamically -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Subtab 4: Thống kê xác suất -->
-                <div class="whatif-subtab-panel" id="whatif-subtab-mc" style="display: none;">
-                    <!-- Analog-based Forecast (10-Day Forecast) -->
-                    <div style="margin-bottom: 30px;">
-                        <h2 style="font-family:'Outfit'; font-size:1.3rem; font-weight:800; color:gold; margin-bottom:15px; border-bottom: 2px solid rgba(255, 215, 0, 0.2); padding-bottom: 6px;">
-                            📅 Dự Báo Theo Phiên Tương Đồng (Kỳ Hạn 10 Phiên)
-                        </h2>
-                        <div class="whatif-grid-2">
-                            <!-- Left Column: Analog Stats -->
-                            <div class="whatif-card" style="display: flex; flex-direction: column; justify-content: space-between;">
-                                <h3>📊 Thống Kê Xác Suất Tương Đồng (10 Phiên)</h3>
-                                <div class="mc-stats-grid" id="whatifAnalogStats10d">
-                                    <!-- Loaded dynamically -->
-                                </div>
-                            </div>
-                            <!-- Right Column: Probability Chart -->
-                            <div style="display: flex; flex-direction: column; gap: 15px;">
-                                <div class="whatif-card">
-                                    <h3>📊 Biểu Đồ Xác Suất Biến Động Giá Tương Đồng (10 Phiên)</h3>
-                                    <div class="mc-bar-container" id="whatifAnalogProbBar10d">
-                                        <!-- Loaded dynamically -->
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Subtab 5: Biểu đồ dự báo -->
-                <div class="whatif-subtab-panel" id="whatif-subtab-chart" style="display: none;">
-                    <div class="whatif-card">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                            <h3>📈 Biểu đồ so sánh dự báo EV10 &amp; MA3(EV10) &amp; MA5(EV10)</h3>
-                            <button onclick="toggleWhatifChartFullscreen()" style="background: var(--accent-purple); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">⛶ Fullscreen</button>
-                        </div>
-                        <!-- [THÊM MỚI] Panel mức độ tin cậy từ match_quality -->
-                        <div id="whatifMatchConfidencePanel" style="display: none; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
-                            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Chất lượng mẫu tương đồng:</div>
-                            <div id="whatif-match-confidence-label" style="font-size: 15px; font-weight: bold; margin-bottom: 4px;">--</div>
-                            <div id="whatif-match-tier-dist" style="font-size: 12px; color: #888;">--</div>
-                            <div id="whatif-match-warning" style="font-size: 12px; color: #ff9800; margin-top: 4px;"></div>
-                        </div>
-
-                        <!-- Thống kê độ tin cậy của mô hình dự báo - Bố trí theo chiều dọc gọn đẹp -->
-                        <div id="whatifAccuracyPanel" style="display: none; flex-direction: column; gap: 8px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 6px;">
-                                <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Độ tin cậy EV10 (T-10)</span>
-                                <div style="text-align: right;">
-                                    <span id="accuracy-ev10" style="font-size: 14px; font-weight: bold; color: yellow; margin-right: 8px;">--%</span>
-                                    <span id="error-ev10" style="font-size: 11px; color: #888;">(Sai số: --%)</span>
-                                </div>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 6px;">
-                                <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Độ tin cậy MA3(EV10)</span>
-                                <div style="text-align: right;">
-                                    <span id="accuracy-ma3" style="font-size: 14px; font-weight: bold; color: #00BFFF; margin-right: 8px;">--%</span>
-                                    <span id="error-ma3" style="font-size: 11px; color: #888;">(Sai số: --%)</span>
-                                </div>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 2px;">
-                                <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Độ tin cậy MA5(EV10)</span>
-                                <div style="text-align: right;">
-                                    <span id="accuracy-ma5" style="font-size: 14px; font-weight: bold; color: #FF69B4; margin-right: 8px;">--%</span>
-                                    <span id="error-ma5" style="font-size: 11px; color: #888;">(Sai số: --%)</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Bảng chọn các đường hiển thị - Thu gọn chiều ngang, tự xuống hàng trên mobile -->
-                        <div style="margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 8px;">
-                            <button class="toggle-btn active" onclick="toggleWhatifSeries('price')" id="btn-toggle-whatif-price" style="background: #222; color: white; border: 1px solid #444; padding: 6px 12px; cursor: pointer; border-radius: 6px; font-size: 12px; font-weight: 600;">Giá hiện tại</button>
-                            <button class="toggle-btn active" onclick="toggleWhatifSeries('ev10')" id="btn-toggle-whatif-ev10" style="background: #222; color: yellow; border: 1px solid #444; padding: 6px 12px; cursor: pointer; border-radius: 6px; font-size: 12px; font-weight: 600;">EV10 (T-10)</button>
-                            <button class="toggle-btn active" onclick="toggleWhatifSeries('ev10_ma3')" id="btn-toggle-whatif-ev10_ma3" style="background: #222; color: #00BFFF; border: 1px solid #444; padding: 6px 12px; cursor: pointer; border-radius: 6px; font-size: 12px; font-weight: 600;">MA3(EV10)</button>
-                            <button class="toggle-btn active" onclick="toggleWhatifSeries('ev10_ma5')" id="btn-toggle-whatif-ev10_ma5" style="background: #222; color: #FF69B4; border: 1px solid #444; padding: 6px 12px; cursor: pointer; border-radius: 6px; font-size: 12px; font-weight: 600;">MA5(EV10)</button>
-                        </div>
-
-                        <div id="whatifChartWrapper" style="position: relative; height: 500px; width: 100%; background: #080808; padding: 10px; border-radius: 8px;">
-                            <canvas id="whatifForecastChart"></canvas>
-                        </div>
-                        <button id="whatifFsCloseBtn" onclick="toggleWhatifChartFullscreen()" style="display: none; position: fixed; top: 60px; right: 15px; z-index: 2147483647; background: rgba(255,0,0,0.85); color: white; border: 1px solid #ff4444; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.7); font-size: 14px;">✕ Đóng biểu đồ</button>
-                    </div>
-                </div>
-            </div>
-        </div>
     </main>
 
     <!-- Popup Modal for Ticker Details -->
@@ -3987,6 +3274,7 @@
 
     <script>
         let rawData = null;
+        let sectorGroups = {};
         let searchQuery = '';
         let breadthChart = null;
         let currentChartRange = 30;
@@ -5001,86 +4289,14 @@
             return 'wait';
         }
 
-        let authLevel = 0;
-        let pendingTabId = null;
-
-        function showPasswordModal(tabId) {
-            pendingTabId = tabId;
-            document.getElementById('passwordModal').style.display = 'flex';
-            document.getElementById('passwordErrorMsg').style.display = 'none';
-            document.getElementById('sysPasswordInput').value = '';
-            setTimeout(() => document.getElementById('sysPasswordInput').focus(), 100);
-        }
-
-        function cancelPassword() {
-            document.getElementById('passwordModal').style.display = 'none';
-            pendingTabId = null;
-            selectMenuTab('market-tab', '📊', 'Thị trường (VNINDEX)');
-        }
-
-        function submitPassword() {
-            const pwd = document.getElementById('sysPasswordInput').value;
-            
-            if (pwd === '333333') { // SYS_PWD_L2
-                authLevel = Math.max(authLevel, 2);
-            } else if (pwd === 'mkc1') { // SYS_PWD_L1
-                authLevel = Math.max(authLevel, 1);
-            } else {
-                document.getElementById('passwordErrorMsg').innerText = 'Mật khẩu không chính xác!';
-                document.getElementById('passwordErrorMsg').style.display = 'block';
-                document.getElementById('sysPasswordInput').value = '';
-                document.getElementById('sysPasswordInput').focus();
-                return;
-            }
-            
-            let requiredLevel = 0;
-            if (pendingTabId === 'lookup-tab') requiredLevel = 1;
-            else if (pendingTabId === 'filter-tab' || pendingTabId === 'portfolio-tab' || pendingTabId === 'whatif-tab') requiredLevel = 2;
-            
-            if (authLevel >= requiredLevel) {
-                document.getElementById('passwordModal').style.display = 'none';
-                if (pendingTabId) {
-                    switchTab(pendingTabId, true);
-                    pendingTabId = null;
-                }
-            } else {
-                document.getElementById('passwordErrorMsg').innerText = 'Mật khẩu cấp 1 không đủ quyền truy cập mục này!';
-                document.getElementById('passwordErrorMsg').style.display = 'block';
-                document.getElementById('sysPasswordInput').value = '';
-                document.getElementById('sysPasswordInput').focus();
-            }
-        }
-
         // Tab Switching Mechanism
-        function switchTab(tabId, skipAuth = false) {
-            let requiredLevel = 0;
-            if (tabId === 'lookup-tab') requiredLevel = 1;
-            else if (tabId === 'filter-tab' || tabId === 'portfolio-tab' || tabId === 'whatif-tab') requiredLevel = 2;
-
-            if (requiredLevel > authLevel && !skipAuth) {
-                showPasswordModal(tabId);
-                return;
-            }
+        function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
             
             document.getElementById(tabId).classList.add('active');
             const clickedItem = document.querySelector(`.menu-item[data-tab="${tabId}"]`);
             if (clickedItem) clickedItem.classList.add('active');
-            
-            // Re-render chart size if switching to market tab
-            if (tabId === 'market-tab') {
-                setTimeout(() => {
-                    const container = document.getElementById('breadthChartContainer');
-                    if (container && breadthChartLwc && breadthChartLwc.chart) {
-                        breadthChartLwc.chart.resize(container.clientWidth, 400);
-                    }
-                    const iContainer = document.getElementById('ichiChartContainer');
-                    if (iContainer && ichiChartLwc && ichiChartLwc.chart) {
-                        ichiChartLwc.chart.resize(iContainer.clientWidth, 400);
-                    }
-                }, 50);
-            }
         }
 
         // Dropdown Menu functions
@@ -5105,8 +4321,12 @@
         // Fetch analysis data from local Output folder
         async function loadData() {
             try {
-                const response = await fetch('./Output/analysis_results.json?t=' + new Date().getTime());
+                const [response, sectorResponse] = await Promise.all([
+                    fetch('./Output/analysis_results.json?t=' + new Date().getTime()),
+                    fetch('./sector_groups.json?t=' + new Date().getTime())
+                ]);
                 rawData = await response.json();
+                sectorGroups = await sectorResponse.json();
                 
                 // Set update time
                 document.getElementById('updateTimeText').innerText = rawData.last_update.slice(0, 16);
@@ -5159,26 +4379,17 @@
                     vsDot.title = `Số lượng mã cập nhật: ${stockCount ?? 'Không có'}`;
                 }
                 
-                // Render Market Indices Cards (VNINDEX / HNX)
-                renderMarketStatus();
+                // Render danh sách ngành ở trang chủ
+                renderHomeSectors();
 
-                // Select VNINDEX detailed analysis and load charts by default
-                selectMarketIndex('VNINDEX');
-
-                // Initialize Breadth Chart
-                initBreadthChart();
-                initIchiChart();
-
-                // Filter & Render Grid
-                applyCustomFilters();
-
-                // Auto-select first ticker in Lookup view (Tab 2)
-                if (rawData.tickers_analysis && rawData.tickers_analysis.length > 0) {
-                    selectLookupTicker(rawData.tickers_analysis[0].Ticker);
+                // Mặc định hiển thị chỉ số đầu tiên có dữ liệu ở tab phân tích ngành
+                if (!activeMarketIndex || !(rawData.tickers_analysis || []).some(t => t.Ticker === activeMarketIndex)) {
+                    const first = (rawData.tickers_analysis || [])[0];
+                    activeMarketIndex = first ? first.Ticker : null;
                 }
-                
-                // Generate portfolio inputs row structure
-                generatePortfolioRows();
+                if (activeMarketIndex) {
+                    selectMarketIndex(activeMarketIndex);
+                }
 
                 // Hide loading screen
                 document.getElementById('loadingOverlay').style.opacity = 0;
@@ -5218,324 +4429,69 @@
         }
 
         // Render Market Index status cards (VNINDEX & HNXINDEX)
-        function renderMarketStatus() {
-            const vnStatus = rawData.market_indices ? rawData.market_indices["VNINDEX"] : null;
-            if (vnStatus) {
-                renderIndexCard("vnindex-summary-card", "VNINDEX", vnStatus);
-            } else {
-                document.getElementById("vnindex-summary-card").innerHTML = '<div class="empty-state">Thiếu dữ liệu VNINDEX</div>';
+        // ============ Trang chủ: chọn ngành ============
+        function goHome() {
+            selectMenuTab('home-tab', '🏠', 'Trang chủ');
+        }
+
+        function goToSector(code) {
+            if (!code) return;
+            selectMenuTab('market-tab', '📊', 'Phân tích kỹ thuật ngành');
+            selectMarketIndex(code);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderHomeSectors() {
+            const listEl = document.getElementById('homeSectorList');
+            const selectEl = document.getElementById('homeSectorSelect');
+            if (!listEl || !selectEl) return;
+
+            const codes = Object.keys(sectorGroups).sort((a, b) =>
+                (sectorGroups[a].name || a).localeCompare(sectorGroups[b].name || b, 'vi')
+            );
+
+            selectEl.innerHTML = '<option value="">-- Chọn nhanh một ngành --</option>' +
+                codes.map(code => `<option value="${code}">${sectorGroups[code].icon || ''} ${sectorGroups[code].name}</option>`).join('');
+
+            listEl.innerHTML = codes.map(code => {
+                const g = sectorGroups[code];
+                const tickers = g.tickers || [];
+                const countLabel = g.dynamic ? 'Toàn thị trường' : `${tickers.length} mã`;
+                const chips = tickers.map(t => `<span class="home-ticker-chip" onclick="event.stopPropagation(); goToSector('${code}')">${t}</span>`).join('');
+                return `
+                    <div class="home-sector-card" onclick="goToSector('${code}')">
+                        <div class="home-sector-card-header">
+                            <span class="home-sector-icon">${g.icon || '📁'}</span>
+                            <span class="home-sector-name">${g.name}</span>
+                            <span class="home-sector-count">${countLabel}</span>
+                        </div>
+                        <div class="home-ticker-chips">${chips}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getSectorDisplayName(code) {
+            const rec = (rawData.tickers_analysis || []).find(t => t.Ticker === code);
+            return rec ? (rec.DisplayName || rec.Ticker) : code;
+        }
+
+        // Chọn 1 chỉ số ngành/thị trường để hiển thị dashboard chi tiết
+        function selectMarketIndex(code) {
+            activeMarketIndex = code;
+
+            const headerEl = document.getElementById('sectorDetailHeader');
+            if (headerEl) {
+                headerEl.innerHTML = `<h2 class="sector-detail-title">${getSectorDisplayName(code)}</h2>`;
             }
-        }
-        
-        function renderIndexCard(containerId, indexName, status) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            
-            let regimeClass = '';
-            if (status.regime.includes('UPTREND')) regimeClass = 'bullish';
-            else if (status.regime.includes('DOWNTREND')) regimeClass = 'bearish';
-            else regimeClass = 'neutral';
-            
-            let actionClass = getActionClass(status.action);
-            let sr = status.support_resistance || { s1: 0, s2: 0, r1: 0, r2: 0 };
-            
-            container.innerHTML = `
-                <div class="market-card-header">
-                    <span class="market-index-title">${indexName}</span>
-                    <span class="action-badge ${actionClass}">${status.action}</span>
-                </div>
-                <div class="market-price-section">
-                    <div class="market-price-val">${formatPrice(status.price, true)}</div>
-                    <div class="market-date-val">Ngày: ${status.date}</div>
-                </div>
-                <div class="market-metrics-grid">
-                    <div class="market-metric-box">
-                        <span class="m-label">Xu hướng chính</span>
-                        <strong class="m-value ${regimeClass}">${status.regime}</strong>
-                    </div>
-                    <div class="market-metric-box">
-                        <span class="m-label">Tỷ trọng khuyến nghị</span>
-                        <strong class="m-value text-purple">${status.alloc}</strong>
-                    </div>
-                </div>
-                <p class="alloc-note-text">${status.alloc_note}</p>
-                <div class="divider-h"></div>
-                <div class="market-extra-details">
-                    <div class="market-extra-row">
-                        <span>Hỗ trợ S1 / S2:</span>
-                        <strong>${formatPrice(sr.s1, true)} / ${formatPrice(sr.s2, true)}</strong>
-                    </div>
-                    <div class="market-extra-row">
-                        <span>Kháng cự R1 / R2:</span>
-                        <strong>${formatPrice(sr.r1, true)} / ${formatPrice(sr.r2, true)}</strong>
-                    </div>
-                    <div class="market-extra-row">
-                        <span>Bùng nổ theo đà (FTD):</span>
-                        <strong class="${status.ftd_active ? 'bullish' : 'neutral'}">${status.ftd_active ? `CÓ (Ngày ${status.ftd_date})` : 'CHƯA'}</strong>
-                    </div>
-                    <div class="market-extra-row">
-                        <span>Số ngày phân phối:</span>
-                        <strong class="${status.distribution_count >= 4 ? 'bearish' : 'neutral'}">${status.distribution_count} ngày</strong>
-                    </div>
-                </div>
-            `;
-        }
 
-        // Active Index Card Selection
-        function selectMarketIndex(indexName) {
-            activeMarketIndex = indexName;
-            
-            // Toggle active card class
-            const vnCard = document.getElementById('vnindex-summary-card');
-            const hnxCard = document.getElementById('hnxindex-summary-card');
-            if (vnCard) vnCard.classList.toggle('active-index-card', indexName === 'VNINDEX');
-            if (hnxCard) hnxCard.classList.toggle('active-index-card', indexName === 'HNX-INDEX');
-            
-            // Render index assessment detail
-            renderMarketIndexDetail();
-            
-            // Load 4 charts for this index
-            loadMarketCharts();
-        }
-
-        function loadMarketCharts() {
-            renderAll4Charts('market', activeMarketIndex);
-        }
-
-        // Render detailed market index diagnostics
-        function renderMarketIndexDetail() {
-            const indexName = activeMarketIndex;
-            const indexData = rawData.market_indices ? rawData.market_indices[indexName] : null;
-            
-            const detailSection = document.getElementById('vnindexDetailSection');
-            if (!detailSection) return;
-            
-            const sectionTitle = detailSection.querySelector('.charts-section-title');
-            if (sectionTitle) {
-                sectionTitle.innerHTML = `📈 Biểu đồ Phân tích ${indexName}`;
-            }
-            
-            if (!indexData) {
-                detailSection.style.display = 'none';
+            const record = (rawData.tickers_analysis || []).find(t => t.Ticker === code);
+            const dashboard = document.getElementById('stockDetailsDashboard');
+            if (!record) {
+                if (dashboard) dashboard.innerHTML = '<div class="empty-state">Chưa có dữ liệu phân tích cho ngành này. Vui lòng chờ hệ thống cập nhật.</div>';
                 return;
             }
-            detailSection.style.display = 'block';
-
-            // Populate AI Detailed Report Card
-            // Summary Header
-            const headerEl = document.getElementById('vnindexSummaryHeader');
-            if (headerEl) {
-                const diag = indexData.diagnostics || {};
-                
-                let techScore = 50;
-                const diagKeys = ['ma', 'ichimoku', 'rsi', 'macd', 'adx'];
-                let bullCount = 0, bearCount = 0;
-                diagKeys.forEach(k => {
-                    const st = (diag[k]?.status || '').toLowerCase();
-                    const act = (diag[k]?.action || '').toLowerCase();
-                    if (st.includes('bull') || st.includes('uptrend') || act.includes('buy') || act.includes('strong')) bullCount++;
-                    else if (st.includes('bear') || st.includes('downtrend') || act.includes('sell') || act.includes('weak')) bearCount++;
-                });
-                techScore = Math.round(((bullCount - bearCount + diagKeys.length) / (diagKeys.length * 2)) * 100);
-                techScore = Math.max(0, Math.min(100, techScore));
-
-                let barColor = techScore >= 70 ? 'var(--accent-green)' : techScore >= 40 ? 'var(--accent-orange)' : 'var(--accent-red)';
-                let regimeClass = indexData.regime.includes('UPTREND') ? 'bullish' : indexData.regime.includes('DOWNTREND') ? 'bearish' : 'neutral';
-
-                headerEl.innerHTML = `
-                    <div style="flex:1; min-width:200px;">
-                        <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
-                            <span class="index-name">💎 ${indexName}</span>
-                            <span class="index-price">${formatPrice(indexData.price, true)}</span>
-                            <span class="action-badge ${getActionClass(indexData.action)}">${indexData.action}</span>
-                            <span class="index-date">📅 ${indexData.date}</span>
-                        </div>
-                        <div class="rating-bar-container">
-                            <div class="rating-bar-bg">
-                                <div class="rating-bar-fill" style="width:${techScore}%; background:${barColor}"></div>
-                            </div>
-                            <div class="rating-label">Đánh giá Kỹ thuật Tổng quát: <strong style="color:${barColor}">${techScore}/100</strong></div>
-                        </div>
-                        <div style="margin-top:10px;">
-                            <span class="${regimeClass}" style="font-weight:700; font-size:0.95rem;">Xu hướng: ${indexData.regime}</span>
-                            <span style="margin-left:12px; font-size:0.85rem;">Tỷ trọng: <strong class="text-purple">${indexData.alloc}</strong></span>
-                        </div>
-                        <p class="alloc-note-text" style="margin-top:8px;">${indexData.alloc_note}</p>
-                    </div>
-                `;
-            }
-
-            // Diagnostics Grid
-            const gridEl = document.getElementById('vnindexDiagGrid');
-            if (gridEl) {
-                const diag = indexData.diagnostics || {};
-                const sr = indexData.support_resistance || { s1: 0, s2: 0, r1: 0, r2: 0 };
-                const mcdx = indexData.mcdx_eval || {};
-                const stateRules = indexData.state_rules || {};
-
-                function diagClass(st, act) {
-                    const s = (st + ' ' + act).toLowerCase();
-                    if (s.includes('bull') || s.includes('uptrend') || s.includes('buy') || s.includes('strong') || s.includes('tích cực') || s.includes('tăng')) return 'bullish';
-                    if (s.includes('bear') || s.includes('downtrend') || s.includes('sell') || s.includes('weak') || s.includes('tiêu cực') || s.includes('giảm')) return 'bearish';
-                    return 'neutral';
-                }
-
-                function renderDiagTable(diag) {
-                    if (!diag) return '<div class="empty-state">Không có dữ liệu chẩn đoán</div>';
-                    const diagItems = [
-                        { label: 'Hệ thống MA Lines',  status: diag.ma?.status       || 'N/A', action: diag.ma?.action       || '', cls: diagClass(diag.ma?.status, diag.ma?.action) },
-                        { label: 'Ichimoku Cloud',      status: diag.ichimoku?.status  || 'N/A', action: diag.ichimoku?.action  || '', cls: diagClass(diag.ichimoku?.status, diag.ichimoku?.action) },
-                        { label: 'Sức mạnh RSI',        status: diag.rsi?.status       || 'N/A', action: diag.rsi?.action       || '', cls: diagClass(diag.rsi?.status, diag.rsi?.action) },
-                        { label: 'Động lượng MACD',     status: diag.macd?.status      || 'N/A', action: diag.macd?.action      || '', cls: diagClass(diag.macd?.status, diag.macd?.action) },
-                        { label: 'Sức mạnh ADX',        status: diag.adx?.status       || 'N/A', action: diag.adx?.action       || '', cls: diagClass(diag.adx?.status, diag.adx?.action) },
-                    ];
-
-                    let html = '<table class="diag-table" style="width:100%; border-collapse: collapse; font-size: 0.9rem;">';
-                    html += '<thead><tr style="border-bottom: 1px solid var(--border-color); text-align: left; color: var(--text-secondary);">';
-                    html += '<th style="padding: 8px 12px;">Chỉ báo</th><th style="padding: 8px 12px;">Trạng thái</th><th style="padding: 8px 12px;">Khuyến nghị</th></tr></thead>';
-                    html += '<tbody>';
-                    diagItems.forEach(function(d) {
-                        html += '<tr class="' + d.cls + '" style="border-bottom: 1px solid rgba(255,255,255,0.03);">';
-                        html += '<td style="padding: 8px 12px; color: var(--text-secondary);">' + d.label + '</td>';
-                        html += '<td style="padding: 8px 12px; font-weight: 600;">' + d.status + '</td>';
-                        html += '<td style="padding: 8px 12px; font-weight: 600;">' + d.action + '</td></tr>';
-                    });
-                    html += '</tbody></table>';
-                    return html;
-                }
-
-                let regimeClass = indexData.regime.includes('UPTREND') ? 'bullish' : indexData.regime.includes('DOWNTREND') ? 'bearish' : 'neutral';
-
-                gridEl.innerHTML = `
-                    <!-- Card: BỘ CHỈ BÁO ROBOT -->
-                    <div class="analysis-card">
-                        <h4>🤖 Bộ Chỉ Báo ROBOT</h4>
-                        <div class="diag-row"><span>Xu hướng chính</span><strong class="${regimeClass}">${stateRules.primary || 'N/A'}</strong></div>
-                        <div class="diag-row"><span>Xu hướng phụ</span><strong>${stateRules.secondary || 'N/A'}</strong></div>
-                        <div class="diag-row"><span>Tín hiệu Robot</span><strong class="${getActionClass(stateRules.signal)}">${stateRules.signal || 'N/A'}</strong></div>
-                        <div class="diag-row"><span>Trạng thái</span><strong>${stateRules.regime || 'N/A'}</strong></div>
-                        <div class="diag-row"><span>Độ tin cậy</span><strong>${stateRules.confidence || 'N/A'}</strong></div>
-                        <div class="diag-row"><span>Tránh mua (Avoid Entry)</span><strong class="${stateRules.avoid_entry ? 'bearish' : 'bullish'}">${stateRules.avoid_entry ? 'CÓ' : 'KHÔNG'}</strong></div>
-                        <div class="diag-row"><span>Chỉ báo ADX / RSI</span><strong>${stateRules.adx !== undefined ? parseFloat(stateRules.adx).toFixed(1) : 'N/A'} / ${stateRules.rsi !== undefined ? parseFloat(stateRules.rsi).toFixed(1) : 'N/A'}</strong></div>
-                        <div class="diag-row"><span>MACD Hist / Bias</span><strong>${stateRules.macd_hist !== undefined ? parseFloat(stateRules.macd_hist).toFixed(1) : 'N/A'} / ${stateRules.trend_bias !== undefined ? parseFloat(stateRules.trend_bias).toFixed(2) : 'N/A'}</strong></div>
-                    </div>
-
-                    <!-- Card: CHỈ BÁO DÒNG TIỀN MCDX -->
-                    <div class="analysis-card">
-                        <h4>🔥 Dòng Tiền MCDX</h4>
-                        <div class="diag-row"><span>Nguồn vốn lớn (Banker)</span><strong style="color: #ff3b3b;">${mcdx.banker_pct !== undefined ? parseFloat(mcdx.banker_pct).toFixed(1) + '%' : '0.0%'}</strong></div>
-                        <div class="diag-row"><span>Dòng tiền nóng (Hot)</span><strong style="color: #ffcc00;">${mcdx.hot_pct !== undefined ? parseFloat(mcdx.hot_pct).toFixed(1) + '%' : '0.0%'}</strong></div>
-                        <div class="diag-row"><span>Nhỏ lẻ (Retailer)</span><strong style="color: #34c759;">${mcdx.retailer_pct !== undefined ? parseFloat(mcdx.retailer_pct).toFixed(1) + '%' : '0.0%'}</strong></div>
-                        <div class="diag-row"><span>Trạng thái dòng tiền</span><strong>${mcdx.status || 'N/A'}</strong></div>
-                        <div class="diag-row"><span>Hành động đề xuất</span><strong>${mcdx.action || 'N/A'}</strong></div>
-                        <div class="diag-row" style="grid-column: 1 / -1; margin-top: 6px; font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4;">
-                            <span>Chi tiết: ${mcdx.details || 'N/A'}</span>
-                        </div>
-                    </div>
-
-                    <!-- Card: CHẨN ĐOÁN KỸ THUẬT & HỖ TRỢ/KHÁNG CỰ -->
-                    <div class="analysis-card">
-                        <h4>🔍 Chẩn Đoán Kỹ Thuật</h4>
-                        <div class="diag-row"><span>Hệ thống MA</span><strong class="${diagClass(diag.ma?.status, diag.ma?.action)}">${diag.ma?.status || 'N/A'}</strong></div>
-                        <div class="diag-row"><span>Ichimoku Cloud</span><strong class="${diagClass(diag.ichimoku?.status, diag.ichimoku?.action)}">${diag.ichimoku?.status || 'N/A'}</strong></div>
-                        <div class="diag-row"><span>RSI / MACD</span><strong class="${diagClass(diag.rsi?.status, '')}">RSI: ${diag.rsi?.status || 'N/A'}</strong> / <strong class="${diagClass(diag.macd?.status, '')}">MACD: ${diag.macd?.status || 'N/A'}</strong></div>
-                        <div class="diag-row"><span>Xu hướng ADX</span><strong class="${diagClass(diag.adx?.status, '')}">${diag.adx?.status || 'N/A'}</strong></div>
-                        <div class="diag-row"><span>Hỗ trợ S1 / S2</span><strong class="text-green">${formatPrice(sr.s1, true)} / ${formatPrice(sr.s2, true)}</strong></div>
-                        <div class="diag-row"><span>Kháng cự R1 / R2</span><strong class="text-red">${formatPrice(sr.r1, true)} / ${formatPrice(sr.r2, true)}</strong></div>
-                        <div class="diag-row"><span>Bản đồ nhiệt (Heatmap)</span><strong>${indexData.heatmap_eval || 'N/A'}</strong></div>
-                    </div>
-
-                    <!-- Card: TỔNG KẾT CHIẾN LƯỢC AI -->
-                    <div class="analysis-card">
-                        <h4>🎯 Chiến Lược AI & FTD</h4>
-                        <div class="diag-row"><span>FTD (Bùng nổ theo đà)</span><strong class="${indexData.ftd_active ? 'bullish' : 'neutral'}">${indexData.ftd_active ? 'CÓ (' + indexData.ftd_date + ')' : 'CHƯA'}</strong></div>
-                        <div class="diag-row"><span>Chất lượng FTD</span><strong>${indexData.ftd_quality || 'N/A'}</strong></div>
-                        <div class="diag-row"><span>Phục hồi (RA) / Phân phối</span><strong>${indexData.ra_day || 0} ngày / <strong class="${indexData.distribution_count >= 4 ? 'bearish' : 'neutral'}">${indexData.distribution_count} ngày</strong></strong></div>
-                        <div class="diag-row"><span>Tỷ trọng cổ phiếu tối đa</span><strong class="text-purple">${indexData.alloc || 'N/A'}</strong></div>
-                        <div class="diag-row"><span>Hành động AI đề xuất</span><strong class="${getActionClass(indexData.action)}">${indexData.action || 'N/A'}</strong></div>
-                        <div class="diag-row" style="grid-column: 1 / -1; margin-top: 6px; font-size: 0.75rem; color: var(--text-secondary); line-height: 1.4;">
-                            <span>Kịch bản xấu nhất: Nếu thủng MA20 / Kijun, lập tức hạ tỷ trọng.</span>
-                        </div>
-                    </div>
-                `;
-                
-                // Thêm hàng ngang chẩn đoán kỹ thuật (full-width dưới 4 card)
-                const diagRowEl = document.createElement('div');
-                diagRowEl.style.cssText = 'grid-column: 1 / -1; margin-top: 12px;';
-                
-                const diagItems = [
-                    { label: 'Hệ thống MA Lines',  status: diag.ma?.status       || 'N/A', action: diag.ma?.action       || '', cls: diagClass(diag.ma?.status, diag.ma?.action) },
-                    { label: 'Ichimoku Cloud',      status: diag.ichimoku?.status  || 'N/A', action: diag.ichimoku?.action  || '', cls: diagClass(diag.ichimoku?.status, diag.ichimoku?.action) },
-                    { label: 'Sức mạnh RSI',        status: diag.rsi?.status       || 'N/A', action: diag.rsi?.action       || '', cls: diagClass(diag.rsi?.status, diag.rsi?.action) },
-                    { label: 'Động lượng MACD',     status: diag.macd?.status      || 'N/A', action: diag.macd?.action      || '', cls: diagClass(diag.macd?.status, diag.macd?.action) },
-                    { label: 'Sức mạnh ADX',        status: diag.adx?.status       || 'N/A', action: diag.adx?.action       || '', cls: diagClass(diag.adx?.status, diag.adx?.action) },
-                ];
-                let rawBanker = mcdx.banker_pct !== undefined ? parseFloat(mcdx.banker_pct) : 0;
-                let rawHot = mcdx.hot_pct !== undefined ? parseFloat(mcdx.hot_pct) : 0;
-                let bWidth = Math.min(100, (rawBanker / 20.0) * 100);
-                let hWidth = Math.min(100 - bWidth, (rawHot / 20.0) * 100);
-                let rWidth = Math.max(0, 100 - bWidth - hWidth);
-                const bPct = bWidth.toFixed(1); const hPct = hWidth.toFixed(1); const rPct = rWidth.toFixed(1);
-
-                let dHtml = '';
-
-                // Block 1: Bảng chẩn đoán kỹ thuật CHI TIẾT
-                dHtml += '<div class="card block-card" style="margin-bottom:16px;">';
-                dHtml += '<h3 class="card-title">\uD83D\uDD0D Ch\u1EA9n \u0111o\u00E1n K\u1EF9 thu\u1EADt (M15-Day)</h3>';
-                dHtml += renderDiagTable(diag);
-                dHtml += '</div>';
-
-                // Block 2: MCDX & Mini Chart (Dòng tiền MCDX & Đồ thị Lịch sử)
-                dHtml += '<div class="card block-card" style="margin-bottom:16px;">';
-                dHtml += '<h3 class="card-title">\uD83D\uDCCA D\u00F2ng ti\u1EC1n MCDX &amp; \u0110\u1ED3 th\u1ECB L\u1ECBch s\u1EED</h3>';
-                dHtml += '<div class="divider-h" style="margin: 12px 0;"></div>';
-                dHtml += '<div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; font-weight: 500;">';
-                dHtml += '<span class="text-red">T\u1EA1o l\u1EADp (Bankers): ' + bPct + '%</span>';
-                dHtml += '<span style="color:var(--text-primary);">D\u00F2ng ti\u1EC1n n\u00F3ng: ' + hPct + '%</span>';
-                dHtml += '<span class="text-green">Nh\u1ECF l\u1EBB: ' + rPct + '%</span>';
-                dHtml += '</div>';
-                dHtml += '<div class="mcdx-bar-container">';
-                dHtml += '<div class="mcdx-segment banker" style="width: ' + bWidth + '%"></div>';
-                dHtml += '<div class="mcdx-segment hot" style="width: ' + hWidth + '%"></div>';
-                dHtml += '<div class="mcdx-segment retailer" style="width: ' + rWidth + '%"></div>';
-                dHtml += '</div>';
-                dHtml += '<div class="mcdx-eval-text" style="margin-top:12px;">';
-                dHtml += '<div><strong>Tr\u1EA1ng th\u00E1i d\u00F2ng ti\u1EC1n:</strong> ' + (mcdx.status || 'N/A') + '</div>';
-                dHtml += '<div><strong>Khuy\u1EBFn ngh\u1ECB MCDX:</strong> ' + (mcdx.action || 'N/A') + '</div>';
-                if (mcdx.details) dHtml += '<div class="text-secondary" style="font-size: 0.75rem; margin-top: 4px;">' + mcdx.details + '</div>';
-                dHtml += '</div>';
-                
-                dHtml += '<div class="divider-h" style="margin: 16px 0;"></div>';
-                dHtml += '<h4 style="margin: 0 0 12px 0; font-size: 1rem;">\u0110\u1ED3 th\u1ECB Xu h\u01B0\u1EDBng Gi\u00E1 &amp; Kh\u1ED1i l\u01B0\u1EE3ng (30 ng\u00E0y g\u1EA7n nh\u1EA5t)</h4>';
-                dHtml += '<div id="vnindex_mini_chart" style="height: 250px; background: rgba(0,0,0,0.1); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); padding: 10px; position: relative;">';
-                dHtml += '<canvas id="vnindex_mini_chart_canvas" style="width: 100%; height: 100%;"></canvas>';
-                dHtml += '</div>';
-                dHtml += '</div>';
-
-                // Block 3: Báo cáo Phân tích Chi tiết từ AI
-                if (indexData.ReportText) {
-                    dHtml += '<div class="card block-card" style="margin-bottom:16px;">';
-                    dHtml += '<h3 class="card-title">\uD83D\uDCDD B\u00E1o c\u00E1o Ph\u00E2n t\u00EDch Chi ti\u1EBFt t\u1EEB AI</h3>';
-                    dHtml += '<div class="divider-h" style="margin: 12px 0;"></div>';
-                    dHtml += '<pre style="padding: 16px; border-radius: 8px; background: rgba(0, 0, 0, 0.22); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; white-space: pre-wrap; font-size: 0.85rem; line-height: 1.6; color: var(--text-primary); border: 1px solid var(--border-color); max-height: 500px; overflow-y: auto;">' + indexData.ReportText + '</pre>';
-                    dHtml += '</div>';
-                }
-
-                diagRowEl.innerHTML = dHtml;
-                gridEl.appendChild(diagRowEl);
-                
-                // Mount Mini Chart
-                setTimeout(() => {
-                    fetchHistory(indexName).then(hist => {
-                        if (hist) {
-                            const t = { Ticker: indexName, History: hist };
-                            renderMiniTrendChart(t, 'vnindex_mini_chart_canvas');
-                        }
-                    }).catch(err => {
-                        console.error("Failed to load history for index: ", err);
-                    });
-                }, 100);
-            }
+            renderStockDetails(record, 'stockDetailsDashboard');
         }
 
 
@@ -6283,7 +5239,7 @@
                     <div class="card block-card">
                         <div class="block-header">
                             <div class="block-title">
-                                <span class="stock-title">${t.Ticker}</span>
+                                <span class="stock-title">${t.DisplayName || t.Ticker}</span>
                                 <span class="action-badge ${getActionClass(t.Action)}">${t.Action}</span>
                             </div>
                             <div class="stock-price-box">
@@ -6485,7 +5441,7 @@
                 <!-- 4-Panel Interactive Chart Grid -->
                 <section class="card interactive-chart-section" style="margin-top: 20px;">
                     <div class="chart-panel-header">
-                        <span class="chart-panel-title">📈 Biểu đồ Phân tích ${t.Ticker}</span>
+                        <span class="chart-panel-title">📈 Biểu đồ Phân tích ${t.DisplayName || t.Ticker}</span>
                         <span class="chart-hint"><span>🖥️ Cuộn zoom · Kéo pan · ⛶ Toàn màn hình</span></span>
                     </div>
                     <div class="chart-grid-4" id="${containerId}-chartGrid" data-ticker="${t.Ticker}">
@@ -7811,7 +6767,7 @@
             };
 
             // Set global index flag for mkChart formatting
-            window.isCurrentIndex = ticker && (ticker === 'VNINDEX' || ticker === 'HNX-INDEX' || ticker.includes('INDEX') || ticker.includes('index'));
+            window.isCurrentIndex = ticker === 'VNINDEX' || ticker === 'HNX-INDEX';
 
             // Show loading in all cells
             ids.forEach(type => {
@@ -9012,23 +7968,5 @@
         window.addEventListener('DOMContentLoaded', loadData);
     </script>
     <!-- Password Modal -->
-    <div id="passwordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
-        <div style="background: var(--bg-card); padding: 30px; border-radius: 12px; border: 1px solid var(--border-color); width: 100%; max-width: 360px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
-            <div style="margin-bottom: 20px;">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-            </div>
-            <h3 style="margin-top: 0; font-size: 1.25rem; margin-bottom: 10px; color: white;">Yêu cầu Mật khẩu</h3>
-            <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 20px;">Vui lòng nhập mật khẩu hệ thống để sử dụng tính năng này.</p>
-            <input type="password" id="sysPasswordInput" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-dark); color: white; margin-bottom: 5px; font-size: 1rem; box-sizing: border-box;" placeholder="Nhập mật khẩu..." onkeypress="if(event.key === 'Enter') submitPassword()">
-            <p id="passwordErrorMsg" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px; margin-bottom: 15px; display: none; text-align: left;">Mật khẩu không chính xác!</p>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button class="btn" style="flex: 1; background: var(--bg-dark); border: 1px solid var(--border-color); color: white;" onclick="cancelPassword()">Hủy</button>
-                <button class="btn btn-primary" style="flex: 1;" onclick="submitPassword()">Xác nhận</button>
-            </div>
-        </div>
-    </div>
 </body>
 </html>
