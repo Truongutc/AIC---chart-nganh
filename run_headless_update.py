@@ -162,7 +162,7 @@ def run_sync_and_update():
                     continue
                     
             logger.info(f"   [DONE] Kiểm tra toàn vẹn OK. Lưu dữ liệu...")
-            
+
             # Update Active Registry on the last day
             if d == missing_dates[-1]:
                 all_tickers = df_day['Ticker'].unique().tolist()
@@ -170,7 +170,19 @@ def run_sync_and_update():
                 all_tickers = [t for t in all_tickers if len(t) == 3 and t.isalnum()]
                 storage.save_active_registry(all_tickers)
                 logger.info(f"   [*] Đã cập nhật Registry: {len(all_tickers)} mã niêm yết.")
-                
+
+            # Cập nhật số lượng CP lưu hành (Shares_i = MarketCap / Close) từng
+            # mã — dùng làm trọng số vốn hóa khi tính chỉ số ngành (xem
+            # tinvest/sector_index_engine.py). Chỉ lưu giá trị MỚI NHẤT, ghi
+            # đè sticky mỗi lần cập nhật (không lưu vốn hóa lịch sử — không
+            # cần thiết vì mỗi lần tính chỉ số ngành đều dùng lại đúng 1 giá
+            # trị Shares_i hiện tại áp cho toàn bộ chuỗi giá đã điều chỉnh).
+            if 'MarketCap' in df_day.columns:
+                valid = df_day[(df_day['Close'] > 0) & (df_day['MarketCap'] > 0)]
+                shares_map = (valid['MarketCap'] / valid['Close']).groupby(valid['Ticker']).last().to_dict()
+                if shares_map:
+                    storage.save_shares_outstanding(shares_map)
+
             # Sync stock prices
             for idx, (ticker, group) in enumerate(df_day.groupby("Ticker")):
                 try:
@@ -942,12 +954,18 @@ def run_csv_import(csv_paths):
         sys.exit(1)
         
     logger.info(f"✅ Hoàn tất nạp dữ liệu! Đã đồng bộ {loaded_count} mã vào Storage.")
-    
+
     # Cập nhật Registry các mã hoạt động
     storage.save_active_registry(list(affected_tickers))
-    
-    # Tính toán toàn bộ chỉ báo và vẽ biểu đồ
-    compute_and_export_dashboard(storage, affected_tickers, vietstock_status="CSV_MODE")
+
+    # Import New Data CHỈ nạp/làm sạch dữ liệu giá (đã xong ở _clean_dataframe:
+    # phát hiện & lấp phiên biến động sốc/thiếu giá do lỗi). KHÔNG tính chỉ
+    # số ngành/chỉ báo ở đây — vì tính chỉ số ngành theo vốn hóa cần số CP
+    # lưu hành (chỉ Update Stock Data mới lấy được, từ MarketCap của API
+    # Vietstock), Import New Data không có nguồn đó nên không có gì để tính.
+    # Việc tính toán chỉ số ngành + chỉ báo dồn hết vào action Update Stock
+    # Data (run_sync_and_update), chạy sau khi đã có đủ số CP lưu hành.
+    logger.info("[*] Import New Data hoàn tất — dữ liệu giá đã sẵn sàng. Chạy Update Stock Data để tính chỉ số ngành.")
 
 def compute_market_breadth(data_dict):
     """Ported market breadth computation from TinvestApp._update_breadth_from_cache."""

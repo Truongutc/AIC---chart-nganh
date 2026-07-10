@@ -264,6 +264,35 @@ class StorageManager:
             json.dump(unique_tickers, f, ensure_ascii=False, indent=2)
         logger.info(f"Updated Registry (Sticky): Now contains {len(unique_tickers)} tickers.")
 
+    def save_shares_outstanding(self, shares_map: dict):
+        """
+        Lưu số lượng CP lưu hành mới nhất của từng mã (Sticky mode — merge với
+        dữ liệu cũ, không xoá mã vắng mặt trong lần cập nhật này). Dùng làm
+        trọng số vốn hóa cho tính chỉ số ngành: MarketCap_i(t) = Close_i(t)
+        [giá đã điều chỉnh] * Shares_i [hằng số mới nhất]. CHỈ lưu giá trị mới
+        nhất, KHÔNG lưu lịch sử vốn hóa — vì mỗi lần tính chỉ số ngành đều
+        tính lại toàn bộ lịch sử bằng đúng 1 giá trị Shares_i hiện tại cho mỗi
+        mã, không cần biết vốn hóa các ngày trước đó.
+        """
+        import json
+        path = self.base_dir / "shares_outstanding.json"
+
+        existing = self.get_shares_outstanding() or {}
+        existing.update({k: v for k, v in shares_map.items() if v and v > 0})
+
+        with open(path, 'w', encoding='utf-8') as f:
+            json.dump(existing, f, ensure_ascii=False, indent=2)
+        logger.info(f"Updated Shares Outstanding (Sticky): Now contains {len(existing)} tickers.")
+
+    def get_shares_outstanding(self):
+        """Load {ticker: shares_outstanding} map. Returns None if no file exists."""
+        import json
+        path = self.base_dir / "shares_outstanding.json"
+        if path.exists():
+            with open(path, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        return None
+
     def get_active_registry(self):
         """Load the whitelist of active tickers. Returns None if no registry exists."""
         import json
