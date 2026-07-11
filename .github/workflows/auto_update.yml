@@ -1,11 +1,9 @@
 name: Auto Update Stock Data
 
 on:
-  # Lịch tự động cập nhật định kỳ đang được TẠM TẮT.
-  # Bỏ comment đoạn schedule bên dưới để bật lại chạy tự động hàng ngày.
-  # schedule:
-  #   # 15:15 (3:15 PM) ICT is 08:15 UTC (weekdays Monday to Friday)
-  #   - cron: '15 8 * * 1-5'
+  schedule:
+    # 15:15 (3:15 PM) ICT is 08:15 UTC (weekdays Monday to Friday)
+    - cron: '15 8 * * 1-5'
   workflow_dispatch: # Enable manual run button in GitHub Actions tab
 
 jobs:
