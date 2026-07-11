@@ -130,7 +130,16 @@ def format_report(result: dict) -> str:
     ichi = result.get("ichi", {})
     ma_trend = result.get("ma_trend", {})
     tech = val.get("tech_health", {})
-    
+
+    # Ichimoku (evaluate_ichimoku) luôn tính lại cho ĐÚNG phiên hôm nay — nếu
+    # nó xác nhận STRONG DOWNTREND/REVERSAL (avoid_buy=True) thì phải phủ
+    # quyết mọi tín hiệu MUA "đang giữ" (state, có thể cũ tới 150 phiên từ
+    # classify_entry) để tránh báo cáo tự mâu thuẫn (VD vừa nói Ichimoku
+    # "Tránh mua tuyệt đối" vừa khuyến nghị "Mua Mạnh 70-100%" — phát hiện
+    # thực tế ở DAUKHI 2026-07-10). Tính 1 lần, dùng cho cả nhãn CHIẾN LƯỢC
+    # CỐT LÕI (sr_signal) lẫn Tỷ trọng khuyến nghị (target_pct) bên dưới.
+    ichi_avoid = bool(tech.get('diagnostics', {}).get('ichimoku', {}).get('avoid_buy', False))
+
     # Extract valuation data
     s1, s2 = val.get("s1", 0), val.get("s2", 0)
     r1, r2 = val.get("r1", 0), val.get("r2", 0)
@@ -187,6 +196,7 @@ def format_report(result: dict) -> str:
         sr_signal = realtime_sig
     else:
         sr_signal = holding_sig
+    original_sr_signal = sr_signal  # giữ lại tín hiệu gốc để giải thích lý do khi bị phủ quyết (Ichimoku/anti-trap)
     conf = int(state_rules.get("confidence", 0))
     if conf >= 3:
         win_rate = "Tốt (Tỉ lệ thắng >= 70%)"
@@ -196,11 +206,16 @@ def format_report(result: dict) -> str:
         win_rate = "Thấp (Nhiều rủi ro < 50%)"
 
     avoid_entry = state_rules.get("avoid_entry", False)
-    
+
     # Đè Tín hiệu Mua bằng RISK FILTER (Chặn Ngu)
     if avoid_entry and (sr_signal.startswith("MUA") or sr_signal.startswith("GIA TĂNG")):
         if m.get("anti_trap_block"):
             sr_signal = "BLOCK (Rủi ro Fomo: Đợi chỉnh)"
+
+    # Đè Tín hiệu Mua bằng ICHIMOKU VETO — tín hiệu "đang giữ" (state) có thể
+    # cũ, Ichimoku hôm nay mới là đánh giá xu hướng mới nhất.
+    if ichi_avoid and (sr_signal.startswith("Mua") or sr_signal.startswith("Gia tăng") or sr_signal.startswith("MUA") or sr_signal.startswith("GIA TĂNG")):
+        sr_signal = "TRÁNH MUA (Ichimoku đảo chiều xấu)"
 
     sep = "=" * 70
     sep2 = "-" * 70
@@ -297,13 +312,15 @@ def format_report(result: dict) -> str:
     # is_break_confirmed = True chỉ khi gãy trend ĐÃ XÁC NHẬN HOÀN TOÀN.
     is_trend_broken = bool(ma_diag.get('is_break_confirmed', False))
 
+    # (ichi_avoid đã tính ở đầu hàm — dùng lại ở đây cho Tỷ trọng khuyến nghị)
+
     # Khi AI đã xác nhận tín hiệu tốt (STRONG/ADD_2/ADD_1/EARLY),
     # chỉ gãy trend thực sự mới được override sang "Đứng ngoài".
     # risk_score cao đơn thuần KHÔNG đủ để phủ nhận tín hiệu AI bullish.
     ai_bullish = state in ('STRONG', 'ADD_2', 'ADD_1', 'EARLY')
 
     target_pct = "0% (Theo dõi thêm)"
-    if is_trend_broken or (rs > 60 and not ai_bullish):
+    if is_trend_broken or ichi_avoid or (rs > 60 and not ai_bullish):
         target_pct = "0% (Đứng ngoài phòng thủ)"
     else:
         # Ưu tiên theo Tín hiệu đang nắm giữ (Holding signal)
@@ -329,6 +346,8 @@ def format_report(result: dict) -> str:
         if m.get('rsi', 0) > 75: re_rs.append(f"RSI quá nhiệt ({m.get('rsi'):.1f})")
         if (price - result.get('ma20', price)) / result.get('ma20', 1) > 0.1: re_rs.append("Giá rướn quá xa MA20")
         reason_txt = "⚠️ BỘ LỌC CHẶN MUA: " + ", ".join(re_rs)
+    elif ichi_avoid:
+        reason_txt = f"⚠️ ICHIMOKU CHẶN MUA: Xu hướng giảm mạnh/đảo chiều (xem mục Ichimoku). Tín hiệu '{original_sr_signal}' bị vô hiệu để bảo vệ vốn."
     else:
         # Sử dụng Technical Health thay vì Market State
         reason_txt = f"Sức khoẻ: {tech.get('health_rating', 'N/A')} ({tech.get('health_score', 0)}đ). Tín hiệu: {sr_signal}."
@@ -349,6 +368,10 @@ def format_report(result: dict) -> str:
         cash_txt = f"KIÊN NHẪN ĐỢI. Không FOMO. Canh nhặt khi giá lùi về vùng an toàn {s1_val}."
         hold_txt = f"DỪNG MUA GIA TĂNG. Nâng chặn lãi lên {ts_val}. Chủ động chốt lộc 1/2 tại {tp1_val}."
         trap_txt = f"CANH HỒI PHỤC HẠ TỶ TRỌNG. Cơ cấu bớt hàng khi giá hồi về vùng kháng cự {r1_val}."
+    elif ichi_avoid:
+        cash_txt = "TUYỆT ĐỐI ĐỨNG NGOÀI. Ichimoku đang xác nhận xu hướng giảm mạnh/đảo chiều — không mở vị thế mới."
+        hold_txt = f"HẠ TỶ TRỌNG. Ichimoku đã đảo chiều xấu dù tín hiệu Mua cũ ({original_sr_signal}) chưa gãy theo giá — ưu tiên bảo toàn vốn, cân nhắc chốt quanh {sl1_val}."
+        trap_txt = f"THẬN TRỌNG, KHÔNG BÌNH QUÂN GIÁ. Chờ Ichimoku xác nhận đảo chiều tăng trở lại trước khi hành động thêm. Chỉ giữ nếu chưa thủng {sl1_val}."
     elif state in ("STRONG", "ADD_2", "ADD_1"):
         cash_txt = f"MỞ VỊ THẾ TẤN CÔNG. Vị thế đang khỏe ({h_rating}). Giải ngân thêm khi vượt {r1_val}."
         hold_txt = f"GIA TĂNG TỶ TRỌNG. Tiếp tục gồng lãi. Mục tiêu kỳ vọng {tp2_val}."
