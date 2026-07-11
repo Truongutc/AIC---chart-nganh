@@ -319,24 +319,35 @@ def format_report(result: dict) -> str:
     # risk_score cao đơn thuần KHÔNG đủ để phủ nhận tín hiệu AI bullish.
     ai_bullish = state in ('STRONG', 'ADD_2', 'ADD_1', 'EARLY')
 
+    # Áp lực bán xả (state_rules.secondary = DISTRIBUTION/UNDER_PRESSURE, đã
+    # tính sẵn ở Master State Engine) trước đây KHÔNG hề làm giảm tỷ trọng —
+    # chỉ có anti_trap gắn thêm nhãn cảnh báo mà giữ nguyên % gốc theo tín
+    # hiệu Mua. Giờ hạ 1 bậc tỷ trọng khi đang giữ tín hiệu Mua mà xuất hiện
+    # áp lực bán, để không gồng full tỷ trọng giữa lúc dòng tiền đang rút ra.
+    selling_pressure = sec_raw in ("DISTRIBUTION", "UNDER_PRESSURE")
+    tier_order = [
+        "70–100% (Mua Mạnh/Gồng lãi)", "50–70% (Gia tăng 2)",
+        "30–50% (Thăm dò/Gia tăng 1)", "15–25% (Mua sớm)", "0% (Theo dõi thêm)",
+    ]
+
     target_pct = "0% (Theo dõi thêm)"
     if is_trend_broken or ichi_avoid or (rs > 60 and not ai_bullish):
         target_pct = "0% (Đứng ngoài phòng thủ)"
     else:
-        # Ưu tiên theo Tín hiệu đang nắm giữ (Holding signal)
-        if state == "STRONG":
-            target_pct = "70–100% (Mua Mạnh/Gồng lãi)"
-        elif state == "ADD_2":
-            target_pct = "50–70% (Gia tăng 2)"
-        elif state == "ADD_1":
-            target_pct = "30–50% (Thăm dò/Gia tăng 1)"
-        elif state == "EARLY":
-            target_pct = "15–25% (Mua sớm)"
+        # Ưu tiên theo Tín hiệu đang nắm giữ (Holding signal), hạ 1 bậc nếu
+        # đang có áp lực bán xả ra.
+        state_tier = {"STRONG": 0, "ADD_2": 1, "ADD_1": 2, "EARLY": 3}.get(state)
+        if state_tier is not None:
+            tier = state_tier + 1 if selling_pressure else state_tier
+            target_pct = tier_order[min(tier, len(tier_order) - 1)]
         # Nếu không có vị thế, xét theo sức khỏe kỹ thuật chung
         elif tech.get('health_score', 0) >= 65:
             target_pct = "20–40% (Giữ vị thế/Chờ điểm nổ)"
         elif tech.get('health_score', 0) >= 45:
             target_pct = "10–20% (Quan sát chặt)"
+
+    if selling_pressure and state in ("STRONG", "ADD_2", "ADD_1", "EARLY"):
+        target_pct += " | ⚠️ Hạ tỷ trọng do áp lực bán (phân phối)"
     
     if anti_trap: target_pct += " | 🛡️ CHẶN MUA ĐUỔI"
 

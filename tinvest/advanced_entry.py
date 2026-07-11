@@ -175,18 +175,23 @@ def classify_entry(df: pd.DataFrame) -> dict:
     
     # Tìm kiếm Tín hiệu mua GẦN NHẤT trong 15 phiên qua (Holding State)
     current_price = float(df['Close'].iloc[-1])
-    
+
     for i in range(1, 151):
         res = _eval_day(df, -i)
         if res:
             signal_price = float(df['Close'].iloc[-i])
-            
+
             # KIỂM CHỨNG HIỆU LỰC (VALIDATION CỰC KỲ QUAN TRỌNG)
             # Nếu giá hiện tại đã rớt thủng sâu hơn giá của cái ngày báo tín hiệu Mua đó (qúa 1.5% độ nhiễu)
-            # -> Tín hiệu này đã GÃY (Invalidated), không được lấy nó làm mốc để phán đoán Hỗ trợ/Kháng cự nữa!
+            # -> Tín hiệu (điểm mua) GẦN NHẤT này đã GÃY (Invalidated) -> DỪNG NGAY,
+            # coi là cổ phiếu KHÔNG CÒN điểm mua hiệu lực. KHÔNG lùi tiếp về quá khứ
+            # tìm 1 tín hiệu cũ hơn nữa — nếu vẫn tìm tiếp, có thể "ăn theo" 1 tín
+            # hiệu rất cũ (tới 150 phiên trước) chỉ vì giá hiện tại tình cờ còn nằm
+            # trong 1.5% của nó, không phản ánh đúng diễn biến gần đây của giá.
             if current_price < signal_price * 0.985:
-                continue # Lờ đi tín hiệu xịt này, lùi về quá khứ tìm xem còn nền tảng nào vững hơn không
-                
+                return {"entry_type": "NONE", "confidence": "NONE", "position_size": "0%", "details": {},
+                        "risk_flags": [f"Điểm mua gần nhất (T-{i-1}) đã GÃY: giá hiện tại thấp hơn {signal_price:,.2f} quá 1.5%"]}
+
             flags = []
             if i == 1:
                 flags.append("Tín hiệu bùng nổ T-0 (Phiên nay)")
