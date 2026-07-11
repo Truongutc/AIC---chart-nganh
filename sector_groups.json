@@ -174,5 +174,20 @@
     "icon": "📊",
     "dynamic": "ALL_EXCEPT",
     "exclude": ["VIC", "VHM", "VRE", "VPL"]
+  },
+  "CHUNGKHOAN_NHO": {
+    "name": "Chứng khoán nhỏ",
+    "icon": "🔸",
+    "tickers": ["MBS", "FTS", "BSI", "CTS", "AGR", "BVS", "TVS", "VDS", "ORS", "APS", "AAS", "EVS", "WSS", "VIG", "IVS", "DSC", "SBS", "CSI", "HBS", "PSI"]
+  },
+  "BANK_NHO": {
+    "name": "Ngân hàng nhỏ",
+    "icon": "🏧",
+    "tickers": ["VIB", "MSB", "TPB", "EIB", "OCB", "SSB", "NAB", "ABB", "BAB", "BVB", "KLB", "PGB", "SGB", "VAB", "VBB", "LPB"]
+  },
+  "BANK_MEDIUM": {
+    "name": "Ngân hàng vừa",
+    "icon": "🏛️",
+    "tickers": ["MBB", "TCB", "ACB", "STB", "HDB", "SHB"]
   }
 }

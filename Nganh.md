@@ -34,3 +34,6 @@
 38. Họ VIN VHM, VIC, VRE, VPL
 39. Họ Mượt GEX, GEE, VSC, GEL, VIX, EIB
 40. Vnindex non vin: toàn bộ thị trường sau khi loại bỏ VIC, VHM, VRE,VPL
+41. Chứng khoán nhỏ MBS, FTS, BSI, CTS, AGR, BVS, TVS, VDS, ORS, APS, AAS, EVS, WSS, VIG, IVS, DSC, SBS, CSI, HBS, PSI
+42. Ngân hàng nhỏ VIB, MSB, TPB, EIB, OCB, SSB, NAB, ABB, BAB, BVB, KLB, PGB, SGB, VAB, VBB, LPB
+43. Ngân hàng vừa MBB, TCB, ACB, STB, HDB, SHB

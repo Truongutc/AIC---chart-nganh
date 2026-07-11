@@ -652,12 +652,16 @@
             color: var(--text-primary);
         }
         .home-sector-count {
-            margin-left: auto;
+            margin-left: 8px;
             font-size: 0.75rem;
             color: var(--text-secondary);
             background: rgba(255, 255, 255, 0.06);
             padding: 2px 10px;
             border-radius: 999px;
+        }
+        .home-sector-signal {
+            margin-left: auto;
+            white-space: nowrap;
         }
         .home-ticker-chips {
             display: flex;
@@ -4498,17 +4502,40 @@
                 const tickers = g.tickers || [];
                 const countLabel = g.dynamic ? 'Toàn thị trường' : `${tickers.length} mã`;
                 const chips = tickers.map(t => `<span class="home-ticker-chip" onclick="event.stopPropagation(); goToSector('${code}')">${t}</span>`).join('');
+                const signal = getSectorSignalBadge(code);
                 return `
                     <div class="home-sector-card" onclick="goToSector('${code}')">
                         <div class="home-sector-card-header">
                             <span class="home-sector-icon">${g.icon || '📁'}</span>
                             <span class="home-sector-name">${g.name}</span>
+                            ${signal}
                             <span class="home-sector-count">${countLabel}</span>
                         </div>
                         <div class="home-ticker-chips">${chips}</div>
                     </div>
                 `;
             }).join('');
+        }
+
+        // Nhãn ngắn gọn cho từng nhóm tín hiệu, để lướt nhanh qua danh sách
+        // ngành mà không cần bấm vào từng ngành xem chi tiết.
+        const SECTOR_SIGNAL_LABELS = {
+            'no-trade': 'NO',
+            'wait': 'WAIT',
+            'strongly-buy': 'YES',
+            'buy': 'CÂN NHẮC',
+            'take-profit': 'TP',
+            'sell': 'SELL'
+        };
+
+        function getSectorSignalBadge(code) {
+            const rec = (rawData.tickers_analysis || []).find(t => t.Ticker === code);
+            if (!rec || !rec.Action) {
+                return `<span class="action-badge home-sector-signal wait" title="Chưa có dữ liệu phân tích">—</span>`;
+            }
+            const cls = getActionClass(rec.Action);
+            const label = SECTOR_SIGNAL_LABELS[cls] || rec.Action;
+            return `<span class="action-badge home-sector-signal ${cls}" title="${rec.Action}">${label}</span>`;
         }
 
         function getSectorDisplayName(code) {
