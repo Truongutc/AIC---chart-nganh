@@ -212,10 +212,10 @@ def format_report(result: dict) -> str:
         if m.get("anti_trap_block"):
             sr_signal = "BLOCK (Rủi ro Fomo: Đợi chỉnh)"
 
-    # Đè Tín hiệu Mua bằng ICHIMOKU VETO — tín hiệu "đang giữ" (state) có thể
-    # cũ, Ichimoku hôm nay mới là đánh giá xu hướng mới nhất.
-    if ichi_avoid and (sr_signal.startswith("Mua") or sr_signal.startswith("Gia tăng") or sr_signal.startswith("MUA") or sr_signal.startswith("GIA TĂNG")):
-        sr_signal = "TRÁNH MUA (Ichimoku đảo chiều xấu)"
+    # (Nhãn "TRÁNH MUA" do Ichimoku chỉ đè lên sr_signal SAU KHI tính xong
+    # Tỷ trọng khuyến nghị bên dưới — chỉ đè khi tỷ trọng thực sự về 0%, để
+    # tránh mâu thuẫn kiểu headline nói "TRÁNH MUA" trong khi % vẫn còn
+    # 50-70% do Ichimoku chỉ hạ 1 bậc chứ chưa buộc đứng ngoài hoàn toàn.)
 
     sep = "=" * 70
     sep2 = "-" * 70
@@ -314,42 +314,70 @@ def format_report(result: dict) -> str:
 
     # (ichi_avoid đã tính ở đầu hàm — dùng lại ở đây cho Tỷ trọng khuyến nghị)
 
-    # Khi AI đã xác nhận tín hiệu tốt (STRONG/ADD_2/ADD_1/EARLY),
-    # chỉ gãy trend thực sự mới được override sang "Đứng ngoài".
-    # risk_score cao đơn thuần KHÔNG đủ để phủ nhận tín hiệu AI bullish.
-    ai_bullish = state in ('STRONG', 'ADD_2', 'ADD_1', 'EARLY')
-
     # Áp lực bán xả (state_rules.secondary = DISTRIBUTION/UNDER_PRESSURE, đã
     # tính sẵn ở Master State Engine) trước đây KHÔNG hề làm giảm tỷ trọng —
     # chỉ có anti_trap gắn thêm nhãn cảnh báo mà giữ nguyên % gốc theo tín
-    # hiệu Mua. Giờ hạ 1 bậc tỷ trọng khi đang giữ tín hiệu Mua mà xuất hiện
-    # áp lực bán, để không gồng full tỷ trọng giữa lúc dòng tiền đang rút ra.
+    # hiệu Mua.
     selling_pressure = sec_raw in ("DISTRIBUTION", "UNDER_PRESSURE")
     tier_order = [
         "70–100% (Mua Mạnh/Gồng lãi)", "50–70% (Gia tăng 2)",
         "30–50% (Thăm dò/Gia tăng 1)", "15–25% (Mua sớm)", "0% (Theo dõi thêm)",
     ]
 
-    target_pct = "0% (Theo dõi thêm)"
-    if is_trend_broken or ichi_avoid or (rs > 60 and not ai_bullish):
-        target_pct = "0% (Đứng ngoài phòng thủ)"
+    state_tier = {"STRONG": 0, "ADD_2": 1, "ADD_1": 2, "EARLY": 3}.get(state)
+
+    if state_tier is not None:
+        if is_trend_broken:
+            # MA đã XÁC NHẬN gãy trend hoàn toàn (is_break_confirmed) là tín
+            # hiệu nghiêm trọng nhất, khác hẳn Ichimoku/áp lực bán (cảnh báo
+            # mềm hơn) — giữ nguyên override cứng về 0% như thiết kế gốc.
+            from_label = tier_order[state_tier].split(" ", 1)[0]
+            target_pct = "0% (Đứng ngoài phòng thủ)"
+            target_pct += f" | ⚠️ Hạ tỷ trọng từ {from_label} về 0% (MA xác nhận gãy trend)"
+        else:
+            # Ichimoku/áp lực bán — KHÔNG nhảy thẳng về 0% khi có rủi ro (gây
+            # sốc cho người xem báo cáo), mà HẠ DẦN TỪNG BẬC theo tier_order,
+            # cộng dồn nếu nhiều tín hiệu cùng lúc, luôn nêu rõ hạ từ đâu về
+            # đâu (VD "Hạ tỷ trọng từ 50-70% về 30-50%").
+            downgrade_steps = 0
+            reasons = []
+            if ichi_avoid:
+                downgrade_steps += 1
+                reasons.append("Ichimoku xác nhận downtrend/đảo chiều")
+            if selling_pressure:
+                downgrade_steps += 1
+                reasons.append("áp lực bán (phân phối)")
+
+            new_tier = min(state_tier + downgrade_steps, len(tier_order) - 1)
+            target_pct = tier_order[new_tier]
+            if downgrade_steps > 0:
+                from_label = tier_order[state_tier].split(" ", 1)[0]
+                to_label = target_pct.split(" ", 1)[0]
+                target_pct += f" | ⚠️ Hạ tỷ trọng từ {from_label} về {to_label} ({', '.join(reasons)})"
     else:
-        # Ưu tiên theo Tín hiệu đang nắm giữ (Holding signal), hạ 1 bậc nếu
-        # đang có áp lực bán xả ra.
-        state_tier = {"STRONG": 0, "ADD_2": 1, "ADD_1": 2, "EARLY": 3}.get(state)
-        if state_tier is not None:
-            tier = state_tier + 1 if selling_pressure else state_tier
-            target_pct = tier_order[min(tier, len(tier_order) - 1)]
-        # Nếu không có vị thế, xét theo sức khỏe kỹ thuật chung
+        # Không có vị thế đang giữ — xét theo sức khỏe kỹ thuật chung.
+        # risk_score cao đơn thuần vẫn đủ để đứng ngoài khi KHÔNG có tín hiệu
+        # AI bullish nào để cân nhắc (không có bậc nào để hạ dần từ đây).
+        if rs > 60:
+            target_pct = "0% (Đứng ngoài phòng thủ)"
         elif tech.get('health_score', 0) >= 65:
             target_pct = "20–40% (Giữ vị thế/Chờ điểm nổ)"
         elif tech.get('health_score', 0) >= 45:
             target_pct = "10–20% (Quan sát chặt)"
+        else:
+            target_pct = "0% (Theo dõi thêm)"
 
-    if selling_pressure and state in ("STRONG", "ADD_2", "ADD_1", "EARLY"):
-        target_pct += " | ⚠️ Hạ tỷ trọng do áp lực bán (phân phối)"
-    
     if anti_trap: target_pct += " | 🛡️ CHẶN MUA ĐUỔI"
+
+    # Đè nhãn headline (sr_signal) sang "TRÁNH MUA" CHỈ KHI tỷ trọng cuối
+    # cùng thực sự về 0% — nếu Ichimoku/áp lực bán chỉ hạ 1-2 bậc mà vẫn còn
+    # tỷ trọng dương (VD 50-70%), giữ nguyên nhãn tín hiệu gốc để khớp với %,
+    # tránh mâu thuẫn kiểu headline "TRÁNH MUA" trong khi vẫn khuyến nghị mua.
+    if ichi_avoid and target_pct.startswith("0%") and (
+        sr_signal.startswith("Mua") or sr_signal.startswith("Gia tăng")
+        or sr_signal.startswith("MUA") or sr_signal.startswith("GIA TĂNG")
+    ):
+        sr_signal = "TRÁNH MUA (Ichimoku đảo chiều xấu)"
 
     # 2. Xây dựng Lý do hệ thống
     if anti_trap:
@@ -357,8 +385,10 @@ def format_report(result: dict) -> str:
         if m.get('rsi', 0) > 75: re_rs.append(f"RSI quá nhiệt ({m.get('rsi'):.1f})")
         if (price - result.get('ma20', price)) / result.get('ma20', 1) > 0.1: re_rs.append("Giá rướn quá xa MA20")
         reason_txt = "⚠️ BỘ LỌC CHẶN MUA: " + ", ".join(re_rs)
-    elif ichi_avoid:
+    elif ichi_avoid and target_pct.startswith("0%"):
         reason_txt = f"⚠️ ICHIMOKU CHẶN MUA: Xu hướng giảm mạnh/đảo chiều (xem mục Ichimoku). Tín hiệu '{original_sr_signal}' bị vô hiệu để bảo vệ vốn."
+    elif ichi_avoid:
+        reason_txt = f"⚠️ ICHIMOKU HẠ TỶ TRỌNG: Xu hướng giảm mạnh/đảo chiều (xem mục Ichimoku), nhưng tín hiệu '{sr_signal}' theo giá chưa gãy — chỉ hạ bớt tỷ trọng, chưa đứng ngoài hoàn toàn."
     else:
         # Sử dụng Technical Health thay vì Market State
         reason_txt = f"Sức khoẻ: {tech.get('health_rating', 'N/A')} ({tech.get('health_score', 0)}đ). Tín hiệu: {sr_signal}."
