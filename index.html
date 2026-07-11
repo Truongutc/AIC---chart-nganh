@@ -3252,6 +3252,20 @@
         </div>
     </div>
 
+    <!-- Sector Password Modal -->
+    <div id="sectorPasswordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; width: 90%; max-width: 360px; text-align: center;">
+            <h3 style="margin: 0 0 8px 0; font-family: 'Outfit', sans-serif; color: var(--text-primary);">🔒 Ngành yêu cầu mật khẩu</h3>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">Chỉ số VNINDEX (không VIN) xem miễn phí — các ngành khác cần nhập mật khẩu.</p>
+            <input type="password" id="sectorPasswordInput" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-dark); color: white; margin-bottom: 5px; font-size: 1rem; box-sizing: border-box;" placeholder="Nhập mật khẩu..." onkeypress="if(event.key === 'Enter') submitSectorPassword()">
+            <p id="sectorPasswordErrorMsg" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px; margin-bottom: 15px; display: none; text-align: left;">Mật khẩu không chính xác!</p>
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button class="menu-btn" style="flex: 1; min-width: 0;" onclick="cancelSectorPassword()">Huỷ</button>
+                <button class="menu-btn" style="flex: 1; min-width: 0; background: var(--accent-purple); border-color: var(--accent-purple);" onclick="submitSectorPassword()">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Fullscreen Chart Modal -->
     <div id="chartFsModal" class="chart-fs-modal">
         <div class="chart-fs-header">
@@ -3302,7 +3316,7 @@
         let searchQuery = '';
         let breadthChart = null;
         let currentChartRange = 30;
-        let activeMarketIndex = 'VNINDEX';
+        let activeMarketIndex = 'VNINDEX_NONVIN'; // Ngành mặc định miễn phí, xem sectorUnlocked/FREE_SECTOR_CODE bên dưới
         
         let whatifForecastChartInst = null;
         const whatifChartVisibility = {
@@ -4412,7 +4426,9 @@
                     activeMarketIndex = first ? first.Ticker : null;
                 }
                 if (activeMarketIndex) {
-                    selectMarketIndex(activeMarketIndex);
+                    // skipGate=true: đây là render nền lúc tải trang (người dùng đang
+                    // ở Trang chủ), không phải điều hướng chủ động — không bật mật khẩu.
+                    selectMarketIndex(activeMarketIndex, true);
                 }
 
                 // Hide loading screen
@@ -4519,8 +4535,48 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Chọn 1 chỉ số ngành/thị trường để hiển thị dashboard chi tiết
-        function selectMarketIndex(code) {
+        // Ngành xem MIỄN PHÍ, không cần mật khẩu — mọi ngành khác đều bị khoá.
+        const FREE_SECTOR_CODE = 'VNINDEX_NONVIN';
+        let sectorUnlocked = false; // Mở khoá 1 lần cho cả phiên sau khi nhập đúng mật khẩu
+        let pendingSectorCode = null;
+
+        function showSectorPasswordModal(code) {
+            pendingSectorCode = code;
+            document.getElementById('sectorPasswordModal').style.display = 'flex';
+            document.getElementById('sectorPasswordErrorMsg').style.display = 'none';
+            document.getElementById('sectorPasswordInput').value = '';
+            setTimeout(() => document.getElementById('sectorPasswordInput').focus(), 100);
+        }
+
+        function cancelSectorPassword() {
+            document.getElementById('sectorPasswordModal').style.display = 'none';
+            pendingSectorCode = null;
+            goHome();
+        }
+
+        function submitSectorPassword() {
+            const pwd = document.getElementById('sectorPasswordInput').value;
+            if (pwd === 'mkc1') { // SYS_PWD_L1
+                sectorUnlocked = true;
+                document.getElementById('sectorPasswordModal').style.display = 'none';
+                const code = pendingSectorCode;
+                pendingSectorCode = null;
+                if (code) selectMarketIndex(code);
+            } else {
+                document.getElementById('sectorPasswordErrorMsg').innerText = 'Mật khẩu không chính xác!';
+                document.getElementById('sectorPasswordErrorMsg').style.display = 'block';
+                document.getElementById('sectorPasswordInput').value = '';
+                document.getElementById('sectorPasswordInput').focus();
+            }
+        }
+
+        // Chọn 1 chỉ số ngành/thị trường để hiển thị dashboard chi tiết.
+        // skipGate=true chỉ dùng cho lần render nền lúc tải trang (xem loadData).
+        function selectMarketIndex(code, skipGate = false) {
+            if (!skipGate && code !== FREE_SECTOR_CODE && !sectorUnlocked) {
+                showSectorPasswordModal(code);
+                return; // Dừng lại chờ nhập đúng mật khẩu, chưa hiển thị nội dung ngành
+            }
             activeMarketIndex = code;
 
             const headerEl = document.getElementById('sectorDetailHeader');
