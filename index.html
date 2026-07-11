@@ -1125,6 +1125,9 @@
 
         .sector-detail-header {
             margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         .sector-detail-title {
             font-family: 'Outfit', sans-serif;
@@ -1132,6 +1135,27 @@
             font-weight: 700;
             color: var(--text-primary);
             margin: 0;
+        }
+        .sector-nav-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            width: 36px;
+            height: 36px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .sector-nav-btn:hover {
+            background: rgba(139, 92, 246, 0.15);
+            border-color: var(--accent-purple);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
         }
 
         .dashboard-grid {
@@ -4476,13 +4500,36 @@
             return rec ? (rec.DisplayName || rec.Ticker) : code;
         }
 
+        // Danh sách mã ngành theo đúng thứ tự hiển thị ở Trang chủ (sắp xếp
+        // theo tên tiếng Việt) — dùng để chuyển ngành trước/sau.
+        function getSortedSectorCodes() {
+            return Object.keys(sectorGroups).sort((a, b) =>
+                (sectorGroups[a].name || a).localeCompare(sectorGroups[b].name || b, 'vi')
+            );
+        }
+
+        // Chuyển sang ngành trước (-1) hoặc sau (+1) trong danh sách, quay
+        // vòng ở 2 đầu để xem qua lại liên tục không cần trở về Trang chủ.
+        function navigateSector(direction) {
+            const codes = getSortedSectorCodes();
+            if (!codes.length) return;
+            const idx = codes.indexOf(activeMarketIndex);
+            const nextIdx = idx === -1 ? 0 : (idx + direction + codes.length) % codes.length;
+            selectMarketIndex(codes[nextIdx]);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
         // Chọn 1 chỉ số ngành/thị trường để hiển thị dashboard chi tiết
         function selectMarketIndex(code) {
             activeMarketIndex = code;
 
             const headerEl = document.getElementById('sectorDetailHeader');
             if (headerEl) {
-                headerEl.innerHTML = `<h2 class="sector-detail-title">${getSectorDisplayName(code)}</h2>`;
+                headerEl.innerHTML = `
+                    <button class="sector-nav-btn" onclick="navigateSector(-1)" title="Ngành trước">◀</button>
+                    <h2 class="sector-detail-title">${getSectorDisplayName(code)}</h2>
+                    <button class="sector-nav-btn" onclick="navigateSector(1)" title="Ngành sau">▶</button>
+                `;
             }
 
             const record = (rawData.tickers_analysis || []).find(t => t.Ticker === code);
