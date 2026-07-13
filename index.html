@@ -659,8 +659,13 @@
             padding: 2px 10px;
             border-radius: 999px;
         }
-        .home-sector-signal {
+        .home-sector-signal-group {
             margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .home-sector-signal {
             white-space: nowrap;
         }
         .home-ticker-chips {
@@ -1020,6 +1025,12 @@
             background: rgba(239, 68, 68, 0.15);
             color: #f87171;
             border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .action-badge.reduce {
+            background: rgba(249, 115, 22, 0.15);
+            color: #fb923c;
+            border: 1px solid rgba(249, 115, 22, 0.35);
         }
 
         .price-section {
@@ -4508,7 +4519,7 @@
                         <div class="home-sector-card-header">
                             <span class="home-sector-icon">${g.icon || '📁'}</span>
                             <span class="home-sector-name">${g.name}</span>
-                            ${signal}
+                            <span class="home-sector-signal-group">${signal}</span>
                             <span class="home-sector-count">${countLabel}</span>
                         </div>
                         <div class="home-ticker-chips">${chips}</div>
@@ -4528,6 +4539,16 @@
             'sell': 'SELL'
         };
 
+        // Tín hiệu "Hạ tỷ trọng" được hệ thống nhúng thẳng vào dòng "Tỷ trọng
+        // khuyến nghị" trong ReportText (VD "⚠️ Hạ tỷ trọng từ 30–50% về
+        // 15–25%") mỗi khi có downgrade — không phải field riêng. Dò đúng
+        // cụm này để tách bạch với các câu tư vấn khác cũng chứa chữ "hạ tỷ
+        // trọng" (VD lời khuyên chung cho người đang cầm hàng yếu).
+        function hasReduceWeightSignal(rec) {
+            const txt = (rec && rec.ReportText) || '';
+            return txt.includes('⚠️ Hạ tỷ trọng từ');
+        }
+
         function getSectorSignalBadge(code) {
             const rec = (rawData.tickers_analysis || []).find(t => t.Ticker === code);
             if (!rec || !rec.Action) {
@@ -4535,7 +4556,11 @@
             }
             const cls = getActionClass(rec.Action);
             const label = SECTOR_SIGNAL_LABELS[cls] || rec.Action;
-            return `<span class="action-badge home-sector-signal ${cls}" title="${rec.Action}">${label}</span>`;
+            let html = `<span class="action-badge home-sector-signal ${cls}" title="${rec.Action}">${label}</span>`;
+            if (hasReduceWeightSignal(rec)) {
+                html += `<span class="action-badge home-sector-signal reduce" title="Hệ thống đang khuyến nghị hạ tỷ trọng ở ngành này — xem chi tiết để biết mức hạ">⚠️ HẠ TỶ TRỌNG</span>`;
+            }
+            return html;
         }
 
         function getSectorDisplayName(code) {
