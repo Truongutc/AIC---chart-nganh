@@ -88,10 +88,10 @@ def calculate_mcdx(df: pd.DataFrame) -> pd.DataFrame:
 def evaluate_mcdx_rules(df: pd.DataFrame) -> dict:
     """Evaluate stock/market health based on MCDX signals."""
     if 'MCDX_Banker' not in df.columns:
-        return {"status": "N/A", "action": "Chưa có dữ liệu MCDX", "details": ""}
+        return {"status": "N/A", "action": "Chưa có dữ liệu MCDX", "details": "", "banker_weakening": False}
 
     if len(df) < 3:
-        return {"status": "N/A", "action": "Dữ liệu quá ngắn", "details": ""}
+        return {"status": "N/A", "action": "Dữ liệu quá ngắn", "details": "", "banker_weakening": False}
 
     last = df.iloc[-1]
     prev = df.iloc[-2]
@@ -152,41 +152,48 @@ def evaluate_mcdx_rules(df: pd.DataFrame) -> dict:
         return {
             "status": "DÒNG TIỀN RÚT RA (Outflow / Gãy nền)",
             "action": "THẬN TRỌNG - ƯU TIÊN QUẢN TRỊ RỦI RO",
-            "details": "Tiền lớn thoát dứt khoát, nổ vol chiều bán."
+            "details": "Tiền lớn thoát dứt khoát, nổ vol chiều bán.",
+            "banker_weakening": banker_weakening
         }
     elif sell_signal:
         return {
             "status": "TIỀN LỚN SUY YẾU",
             "action": "CANH CHỐT LỜI BỚT - NGƯNG MUA",
-            "details": "Banker (Đỏ) cắt xuống MA đen hoặc giảm liên tục 3 phiên."
+            "details": "Banker (Đỏ) cắt xuống MA đen hoặc giảm liên tục 3 phiên.",
+            "banker_weakening": banker_weakening
         }
     elif distribution:
         return {
             "status": "RỦI RO PHÂN PHỐI / FOMO",
             "action": "HẠN CHẾ MUA ĐUỔI, CANH CHỐT LỜI DẦN",
-            "details": "Vàng tăng nhưng Đỏ giảm, Stoch RSI overbought hoặc Volume nổ quá lớn."
+            "details": "Vàng tăng nhưng Đỏ giảm, Stoch RSI overbought hoặc Volume nổ quá lớn.",
+            "banker_weakening": banker_weakening
         }
     elif best_buy:
         return {
             "status": "ĐIỂM NỔ DÒNG TIỀN TẠO LẬP",
             "action": "MUA ĐẸP NHẤT (Breakout / Cắt lên MA)",
-            "details": "Đỏ cắt lên Đen từ nền thấp (<10), Stoch RSI cắt lên từ vùng quá bán."
+            "details": "Đỏ cắt lên Đen từ nền thấp (<10), Stoch RSI cắt lên từ vùng quá bán.",
+            "banker_weakening": banker_weakening
         }
     elif is_strong:
         return {
             "status": "DÒNG TIỀN TẠO LẬP GOM HÀNG",
             "action": "NẮM GIỮ / GIA TĂNG TỶ TRỌNG",
-            "details": "Đỏ tăng dần, nằm trên MA đen, có dòng tiền vào (Inflow)."
+            "details": "Đỏ tăng dần, nằm trên MA đen, có dòng tiền vào (Inflow).",
+            "banker_weakening": banker_weakening
         }
     elif probe_buy:
         return {
             "status": "DÒNG TIỀN VỪA XUẤT HIỆN",
             "action": "MUA THĂM DÒ",
-            "details": "Tín hiệu Inflow chớm nở, theo dõi chờ xác nhận."
+            "details": "Tín hiệu Inflow chớm nở, theo dõi chờ xác nhận.",
+            "banker_weakening": banker_weakening
         }
     else:
         return {
             "status": "TRUNG TÍNH (Chưa rõ xu hướng MCDX)",
             "action": "THEO DÕI",
-            "details": "Dòng tiền tạo lập (Đỏ) và dòng tiền đầu cơ (Vàng) đi ngang."
+            "details": "Dòng tiền tạo lập (Đỏ) và dòng tiền đầu cơ (Vàng) đi ngang.",
+            "banker_weakening": banker_weakening
         }

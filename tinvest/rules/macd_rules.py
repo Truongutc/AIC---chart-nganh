@@ -103,5 +103,7 @@ def evaluate_macd(df: pd.DataFrame, idx: int = -1) -> dict:
     return {
         "value": f"{macd:.2f} / Hist: {hist:.2f}",
         "status": " | ".join(status),
-        "action": " | ".join(action)
+        "action": " | ".join(action),
+        # Momentum tăng đang yếu đi (Hist dương nhưng co lại 2 phiên liên tiếp)
+        "hist_shrinking": hist > 0 and hist < hist_prev and hist_prev < hist_prev2
     }

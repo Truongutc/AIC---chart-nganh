@@ -97,7 +97,16 @@ def analyze_stock(ticker: str, df: pd.DataFrame) -> dict:
 
     heatmap_eval = evaluate_heatmap(df_rich)
     mcdx_eval = evaluate_mcdx_rules(df_rich)
-    
+
+    # Trạng thái màu nến của các chỉ báo trực quan (dùng cho đồng thuận đa
+    # chỉ báo trong format_report) — chỉ có ở đây vì cần last row của
+    # df_rich, format_report không có quyền truy cập raw dataframe.
+    heatmap_is_red = False
+    if 'HM_Flower_Open' in df_rich.columns and 'HM_MoneyFlow' in df_rich.columns:
+        heatmap_is_red = bool(last['HM_Flower_Close'] < last['HM_Flower_Open'] and last['HM_MoneyFlow'] == -1)
+    ha_color = str(last.get('HA_Color', 'Green'))
+    oct_color = str(last.get('OCT_Color', ''))
+
     return {
         "ticker": ticker.upper(),
         "price": float(last["Close"]),
@@ -113,7 +122,10 @@ def analyze_stock(ticker: str, df: pd.DataFrame) -> dict:
         "ma20": float(df_rich['MA20'].iloc[-1]),
         "ma50": float(df_rich['MA50'].iloc[-1]),
         "heatmap_eval": heatmap_eval,
-        "mcdx_eval": mcdx_eval
+        "mcdx_eval": mcdx_eval,
+        "heatmap_is_red": heatmap_is_red,
+        "ha_color": ha_color,
+        "oct_color": oct_color
     }
 
 
@@ -319,6 +331,32 @@ def format_report(result: dict) -> str:
     # chỉ có anti_trap gắn thêm nhãn cảnh báo mà giữ nguyên % gốc theo tín
     # hiệu Mua.
     selling_pressure = sec_raw in ("DISTRIBUTION", "UNDER_PRESSURE")
+
+    # Đồng thuận đa chỉ báo (multi-indicator confluence): từng chỉ báo dưới
+    # đây vốn chỉ hiển thị nhận định riêng lẻ (text), KHÔNG tự động phản ánh
+    # vào tỷ trọng khuyến nghị. Khi ≥5/8 tín hiệu độc lập cùng xấu đi một
+    # lúc, xem đây là một tín hiệu hạ tỷ trọng riêng (cộng dồn như
+    # ichi_avoid/selling_pressure), để tránh trường hợp cả ADX/MACD/MCDX/
+    # Heatmap/Heikin/Octopus/giá đều xấu mà tỷ trọng vẫn giữ nguyên.
+    macd_diag = tech.get('diagnostics', {}).get('macd', {})
+    mcdx_diag = result.get('mcdx_eval', {})
+    kijun = ichi.get('kijun', price)
+    confluence_flags = {
+        "ADX (DI− áp đảo DI+)": tech.get('adx_label') == 'RED',
+        "MACD Hist co lại": bool(macd_diag.get('hist_shrinking', False)),
+        "MCDX Banker suy yếu": bool(mcdx_diag.get('banker_weakening', False)),
+        "Heatmap chuyển Đỏ": bool(result.get('heatmap_is_red', False)),
+        "Heikin Ashi Đỏ": result.get('ha_color') == 'Red',
+        # Octopus dùng thay cho "GreenPink": Pink (#FF69B4, momentum dương
+        # nhưng đang yếu đi = "xanh sang hồng") hoặc Red (#FF0000, momentum
+        # âm = "sang đỏ") đều tính là tín hiệu xấu, theo đúng mô tả gốc.
+        "Octopus chuyển Hồng/Đỏ": result.get('oct_color') in ('#FF69B4', '#FF0000'),
+        "Mất MA20": price < result.get('ma20', price),
+        "Mất Kijun 26": price < kijun,
+    }
+    confluence_count = sum(1 for v in confluence_flags.values() if v)
+    confluence_bad = confluence_count >= 5
+
     tier_order = [
         "70–100% (Mua Mạnh/Gồng lãi)", "50–70% (Gia tăng 2)",
         "30–50% (Thăm dò/Gia tăng 1)", "15–25% (Mua sớm)", "0% (Theo dõi thêm)",
@@ -347,6 +385,10 @@ def format_report(result: dict) -> str:
             if selling_pressure:
                 downgrade_steps += 1
                 reasons.append("áp lực bán (phân phối)")
+            if confluence_bad:
+                downgrade_steps += 1
+                bad_signals = ", ".join(k for k, v in confluence_flags.items() if v)
+                reasons.append(f"đồng thuận đa chỉ báo xấu {confluence_count}/8: {bad_signals}")
 
             new_tier = min(state_tier + downgrade_steps, len(tier_order) - 1)
             target_pct = tier_order[new_tier]
