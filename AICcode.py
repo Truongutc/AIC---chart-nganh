@@ -3206,6 +3206,19 @@ class TinvestApp:
                     close_26 = df['Close'].iloc[-26] if len(df) > 26 else df['Close'].iloc[0]
                     heatmap_eval_val = evaluate_heatmap(df)
                     
+                    _ma20_val = float(df['MA20'].iloc[-1]) if 'MA20' in df.columns else float(df['Close'].rolling(20).mean().iloc[-1])
+                    # Tính heatmap_is_red từ cột HM_, ha_color từ HA_Color, oct_color từ OCT_Color
+                    # để truyền vào format_report cho logic đồng thuận đa chỉ báo (confluence ≥5/8)
+                    _last = df.iloc[-1]
+                    _heatmap_is_red = False
+                    if 'HM_Flower_Open' in df.columns and 'HM_MoneyFlow' in df.columns:
+                        try:
+                            _heatmap_is_red = bool(_last['HM_Flower_Close'] < _last['HM_Flower_Open'] and _last['HM_MoneyFlow'] == -1)
+                        except Exception:
+                            _heatmap_is_red = False
+                    _ha_color = str(_last.get('HA_Color', 'Green')) if 'HA_Color' in df.columns else 'Green'
+                    _oct_color = str(_last.get('OCT_Color', '')) if 'OCT_Color' in df.columns else ''
+
                     report_input = {
                         "ticker": ticker.upper(),
                         "price": float(df['Close'].iloc[-1]),
@@ -3218,10 +3231,14 @@ class TinvestApp:
                         "valuation": val,
                         "state_rules": data.get("state_rules"),
                         "close_26": float(close_26),
-                        "ma20": float(df['MA20'].iloc[-1]) if 'MA20' in df.columns else float(df['Close'].rolling(20).mean().iloc[-1]),
+                        "ma20": _ma20_val,
                         "ma50": float(df['MA50'].iloc[-1]) if 'MA50' in df.columns else float(df['Close'].rolling(50).mean().iloc[-1]),
                         "heatmap_eval": heatmap_eval_val,
-                        "mcdx_eval": mcdx_eval
+                        "mcdx_eval": mcdx_eval,
+                        # --- Bắt buộc cho logic đồng thuận đa chỉ báo (≥5/8) ---
+                        "heatmap_is_red": _heatmap_is_red,
+                        "ha_color": _ha_color,
+                        "oct_color": _oct_color,
                     }
                     report_text = format_report(report_input)
                 except Exception as e_rep:

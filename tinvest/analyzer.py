@@ -343,7 +343,7 @@ def format_report(result: dict) -> str:
     kijun = ichi.get('kijun', price)
     confluence_flags = {
         "ADX (DI− áp đảo DI+)": tech.get('adx_label') == 'RED',
-        "MACD Hist co lại": bool(macd_diag.get('hist_shrinking', False)),
+        "MACD xấu (xanh co/đỏ to)": bool(macd_diag.get('hist_shrinking', False)),
         "MCDX Banker suy yếu": bool(mcdx_diag.get('banker_weakening', False)),
         "Heatmap chuyển Đỏ": bool(result.get('heatmap_is_red', False)),
         "Heikin Ashi Đỏ": result.get('ha_color') == 'Red',

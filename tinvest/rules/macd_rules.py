@@ -99,11 +99,16 @@ def evaluate_macd(df: pd.DataFrame, idx: int = -1) -> dict:
     if not status:
         status.append("MACD vận động bình thường.")
         action.append("Dùng MACD đóng vai trò Trend Filter (Ưu tiên mua khi MACD > 0).")
-        
+
     return {
         "value": f"{macd:.2f} / Hist: {hist:.2f}",
         "status": " | ".join(status),
         "action": " | ".join(action),
-        # Momentum tăng đang yếu đi (Hist dương nhưng co lại 2 phiên liên tiếp)
-        "hist_shrinking": hist > 0 and hist < hist_prev and hist_prev < hist_prev2
+        # Xấu theo 2 nhánh:
+        #   1. Hist dương (xanh) nhưng co lại 2 phiên liên tiếp (momentum yếu dần)
+        #   2. Hist âm (đỏ) và đang to lên (âm hơn 2 phiên liên tiếp = lực giảm tăng)
+        "hist_shrinking": (
+            (hist > 0 and hist < hist_prev and hist_prev < hist_prev2)
+            or (hist < 0 and hist < hist_prev and hist_prev < hist_prev2)
+        )
     }
