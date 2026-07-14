@@ -140,7 +140,13 @@ def evaluate_mcdx_rules(df: pd.DataFrame) -> dict:
     distribution = fomo or divergence or overbought or vol_spike
 
     # 5. TÍN HIỆU BÁN (Tiền lớn suy yếu)
-    banker_weakening = (banker < banker_prev) and (banker_prev < banker_prev2)
+    # MCDX xấu theo định nghĩa AIC:
+    #   - Nếu banker > 3: xấu khi banker hôm nay < banker hôm qua HOẶC < banker t-2
+    #   - Hoặc banker < 3 (dòng tiền tạo lập quá yếu)
+    banker_weakening = (
+        (banker < 3)
+        or (banker > 3 and (banker < banker_prev or banker < banker_prev2))
+    )
     banker_cross_down = (banker < banker_ma) and (banker_prev >= banker_ma_prev)
     sell_signal = banker_weakening or banker_cross_down
 

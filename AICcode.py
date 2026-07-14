@@ -226,6 +226,54 @@ def analyze_ticker_worker(ticker_df_tuple):
         df_rich.attrs['_whatif_ev'] = (ev10, 0.0)
         df_rich.attrs['_whatif_ev_ma3'] = ma3_ev10_pct
 
+        # ── Dark Color: tính confluence để headless update / format_report dùng ──
+        # Lặp lại logic từ analyze_stock() — cần df_rich có đủ OCT_A1, DI_Minus, etc.
+        from tinvest.mcdx_engine import evaluate_mcdx_rules as _mcdx_fn2
+        _last_row = df_rich.iloc[-1]
+        _price_now = float(_last_row['Close'])
+        _ma20_now  = float(df_rich['MA20'].iloc[-1]) if 'MA20' in df_rich.columns else _price_now
+        _kijun_now = float(ichi.get('kijun', _price_now))
+
+        _hm_is_red = False
+        if 'HM_Flower_Open' in df_rich.columns and 'HM_MoneyFlow' in df_rich.columns:
+            _hm_is_red = bool(_last_row['HM_Flower_Close'] < _last_row['HM_Flower_Open'] and _last_row['HM_MoneyFlow'] == -1)
+        _ha_color  = str(_last_row.get('HA_Color', 'Green'))
+        _oct_color = str(_last_row.get('OCT_Color', ''))
+
+        _adx_val    = float(df_rich['ADX'].iloc[-1])     if 'ADX'      in df_rich.columns else 0
+        _di_plus    = float(df_rich['DI_Plus'].iloc[-1]) if 'DI_Plus'  in df_rich.columns else 0
+        _di_minus   = float(df_rich['DI_Minus'].iloc[-1])if 'DI_Minus' in df_rich.columns else 0
+        _di_m_p1    = float(df_rich['DI_Minus'].iloc[-2])if 'DI_Minus' in df_rich.columns and len(df_rich) > 1 else _di_minus
+        _di_m_p2    = float(df_rich['DI_Minus'].iloc[-3])if 'DI_Minus' in df_rich.columns and len(df_rich) > 2 else _di_m_p1
+        _adx_bad    = (_adx_val > 25) and (_di_minus > _di_plus) and ((_di_minus > _di_m_p1) or (_di_minus > _di_m_p2))
+
+        _GREEN = {'#008000', '#00FF00'}
+        _PINK  = '#FF69B4'
+        _RED   = '#FF0000'
+        _oct_a1    = float(df_rich['OCT_A1'].iloc[-1]) if 'OCT_A1' in df_rich.columns else 0
+        _oct_a1_p1 = float(df_rich['OCT_A1'].iloc[-2]) if 'OCT_A1' in df_rich.columns and len(df_rich) > 1 else _oct_a1
+        _oct_a1_p2 = float(df_rich['OCT_A1'].iloc[-3]) if 'OCT_A1' in df_rich.columns and len(df_rich) > 2 else _oct_a1_p1
+        _oct_c_p1  = str(df_rich['OCT_Color'].iloc[-2]) if 'OCT_Color' in df_rich.columns and len(df_rich) > 1 else _oct_color
+        _oct_c_p2  = str(df_rich['OCT_Color'].iloc[-3]) if 'OCT_Color' in df_rich.columns and len(df_rich) > 2 else _oct_c_p1
+        _oct_pink_bad = _oct_color == _PINK and (_oct_a1 < _oct_a1_p1 or _oct_a1 < _oct_a1_p2 or _oct_c_p1 in _GREEN or _oct_c_p2 in _GREEN)
+        _oct_red_bad  = _oct_color == _RED  and (_oct_a1 < _oct_a1_p1 or _oct_a1 < _oct_a1_p2 or _oct_c_p1 == _PINK or _oct_c_p2 == _PINK or _oct_c_p1 in _GREEN)
+        _oct_bad = _oct_pink_bad or _oct_red_bad
+
+        _macd_diag  = val.get('tech_health', {}).get('diagnostics', {}).get('macd', {})
+        _mcdx_eval  = mcdx_eval_cached
+        _conf_flags = {
+            "ADX (DI− áp đảo + tăng)":    _adx_bad,
+            "MACD xấu (hist xấu đi)":      bool(_macd_diag.get('hist_shrinking', False)),
+            "MCDX Banker suy yếu":         bool(_mcdx_eval.get('banker_weakening', False)),
+            "Heatmap chuyển Đỏ":           _hm_is_red,
+            "Heikin Ashi Đỏ":              _ha_color == 'Red',
+            "Octopus xấu (hồng/đỏ xấu)":  _oct_bad,
+            "Mất MA20":                    _price_now < _ma20_now,
+            "Mất Kijun 26":                _price_now < _kijun_now,
+        }
+        _conf_count = sum(1 for v in _conf_flags.values() if v)
+        _conf_bad   = _conf_count >= 5
+
         return ticker, {
             "df": df_rich,
             "ichi": ichi,
@@ -237,7 +285,15 @@ def analyze_ticker_worker(ticker_df_tuple):
             "ma_trend": ma_trend,
             "valuation": val,
             "state_rules": state_rules,
-            "whatif": whatif_data
+            "whatif": whatif_data,
+            # Dark Color fields — dùng bởi run_headless_update + format_report
+            "heatmap_is_red":   _hm_is_red,
+            "ha_color":         _ha_color,
+            "oct_color":        _oct_color,
+            "oct_bad":          _oct_bad,
+            "confluence_flags": _conf_flags,
+            "confluence_count": _conf_count,
+            "confluence_bad":   _conf_bad,
         }
 
 

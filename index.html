@@ -1298,6 +1298,8 @@
         .bullish { color: var(--accent-green) !important; }
         .bearish { color: var(--accent-red) !important; }
         .neutral { color: var(--text-primary) !important; }
+        .diag-table tr.warning { background-color: rgba(245, 158, 11, 0.07); }
+        .diag-table tr.warning td:first-child { color: #f59e0b; }
         
         .text-green { color: var(--accent-green) !important; }
         .text-red { color: var(--accent-red) !important; }
@@ -5473,6 +5475,20 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                ${(() => {
+                                    const dc = (t.Diagnostics && t.Diagnostics.dark_color) ? t.Diagnostics.dark_color : {count:0, is_bad:false, flags:{}};
+                                    const dcCount = dc.count || 0;
+                                    const dcBad   = dc.is_bad || false;
+                                    const dcFlags = dc.flags || {};
+                                    const badList = Object.entries(dcFlags).filter(([k,v])=>v).map(([k])=>k).join(', ');
+                                    const dcClass = dcBad ? 'bearish' : (dcCount >= 3 ? 'warning' : '');
+                                    const dcTag   = dcBad ? ' ⚠️ [HẠ TỈ TRỌNG]' : '';
+                                    return `<tr class="${dcClass}" style="font-weight:600;">
+                                        <td>🌑 Dark Color</td>
+                                        <td>${dcCount}/8${dcTag}</td>
+                                        <td style="font-size:0.85em;color:#aaa;">${badList || '—'}</td>
+                                    </tr>`;
+                                })()}
                                 <tr class="${t.Diagnostics.ma.status.toLowerCase().includes('bull') || t.Diagnostics.ma.action.toLowerCase().includes('buy') ? 'bullish' : t.Diagnostics.ma.status.toLowerCase().includes('bear') || t.Diagnostics.ma.action.toLowerCase().includes('sell') ? 'bearish' : ''}">
                                     <td>Hệ thống MA Lines</td>
                                     <td>${t.Diagnostics.ma.status}</td>

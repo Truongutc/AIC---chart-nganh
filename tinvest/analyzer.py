@@ -107,6 +107,69 @@ def analyze_stock(ticker: str, df: pd.DataFrame) -> dict:
     ha_color = str(last.get('HA_Color', 'Green'))
     oct_color = str(last.get('OCT_Color', ''))
 
+    # ── Đồng thuận đa chỉ báo (Dark Color) ──────────────────────────────────
+    # Tính tại analyze_stock() để có quyền truy cập df_rich nhiều phiên;
+    # format_report() chỉ nhận kết quả, không tính lại.
+
+    price_now = float(last['Close'])
+    ma20_now  = float(df_rich['MA20'].iloc[-1]) if 'MA20' in df_rich.columns else price_now
+    kijun_now = ichi.get('kijun', price_now)
+
+    # --- ADX xấu: ADX > 25, DI- > DI+, và DI- đang xấu (tăng so t-1 hoặc t-2)
+    _adx_val     = float(df_rich['ADX'].iloc[-1])     if 'ADX'      in df_rich.columns else 0
+    _di_plus     = float(df_rich['DI_Plus'].iloc[-1]) if 'DI_Plus'  in df_rich.columns else 0
+    _di_minus    = float(df_rich['DI_Minus'].iloc[-1])if 'DI_Minus' in df_rich.columns else 0
+    _di_minus_p1 = float(df_rich['DI_Minus'].iloc[-2])if 'DI_Minus' in df_rich.columns and len(df_rich) > 1 else _di_minus
+    _di_minus_p2 = float(df_rich['DI_Minus'].iloc[-3])if 'DI_Minus' in df_rich.columns and len(df_rich) > 2 else _di_minus_p1
+    _di_minus_bad = (_di_minus > _di_minus_p1) or (_di_minus > _di_minus_p2)
+    adx_bad = (_adx_val > 25) and (_di_minus > _di_plus) and _di_minus_bad
+
+    # --- Octopus xấu: hồng xấu HOẶC đỏ xấu
+    GREEN_COLORS = {'#008000', '#00FF00'}  # xanh đậm / xanh sáng
+    PINK_COLOR   = '#FF69B4'
+    RED_COLOR    = '#FF0000'
+
+    _oct_a1      = float(df_rich['OCT_A1'].iloc[-1]) if 'OCT_A1' in df_rich.columns else 0
+    _oct_a1_p1   = float(df_rich['OCT_A1'].iloc[-2]) if 'OCT_A1' in df_rich.columns and len(df_rich) > 1 else _oct_a1
+    _oct_a1_p2   = float(df_rich['OCT_A1'].iloc[-3]) if 'OCT_A1' in df_rich.columns and len(df_rich) > 2 else _oct_a1_p1
+    _oct_c_p1    = str(df_rich['OCT_Color'].iloc[-2]) if 'OCT_Color' in df_rich.columns and len(df_rich) > 1 else oct_color
+    _oct_c_p2    = str(df_rich['OCT_Color'].iloc[-3]) if 'OCT_Color' in df_rich.columns and len(df_rich) > 2 else _oct_c_p1
+
+    # Hồng xấu: đang hồng VÀ (a1 co lại so t-1 hoặc t-2, hoặc trước đó xanh)
+    oct_pink_bad = (
+        oct_color == PINK_COLOR and (
+            _oct_a1 < _oct_a1_p1 or _oct_a1 < _oct_a1_p2
+            or _oct_c_p1 in GREEN_COLORS or _oct_c_p2 in GREEN_COLORS
+        )
+    )
+    # Đỏ xấu: đang đỏ VÀ (a1 sâu hơn so t-1 hoặc t-2, hoặc trước đó hồng/xanh)
+    oct_red_bad = (
+        oct_color == RED_COLOR and (
+            _oct_a1 < _oct_a1_p1 or _oct_a1 < _oct_a1_p2
+            or _oct_c_p1 == PINK_COLOR or _oct_c_p2 == PINK_COLOR
+            or _oct_c_p1 in GREEN_COLORS
+        )
+    )
+    oct_bad = oct_pink_bad or oct_red_bad
+
+    # --- Lấy MACD và MCDX diagnostics để dùng trong confluence
+    _tech        = valuation.get('tech_health', {})
+    _macd_diag   = _tech.get('diagnostics', {}).get('macd', {})
+    _mcdx_eval   = mcdx_eval
+
+    confluence_flags = {
+        "ADX (DI− áp đảo + tăng)":    adx_bad,
+        "MACD xấu (hist xấu đi)":      bool(_macd_diag.get('hist_shrinking', False)),
+        "MCDX Banker suy yếu":         bool(_mcdx_eval.get('banker_weakening', False)),
+        "Heatmap chuyển Đỏ":           heatmap_is_red,
+        "Heikin Ashi Đỏ":              ha_color == 'Red',
+        "Octopus xấu (hồng/đỏ xấu)":  oct_bad,
+        "Mất MA20":                    price_now < ma20_now,
+        "Mất Kijun 26":                price_now < kijun_now,
+    }
+    confluence_count = sum(1 for v in confluence_flags.values() if v)
+    confluence_bad   = confluence_count >= 5
+
     return {
         "ticker": ticker.upper(),
         "price": float(last["Close"]),
@@ -125,7 +188,11 @@ def analyze_stock(ticker: str, df: pd.DataFrame) -> dict:
         "mcdx_eval": mcdx_eval,
         "heatmap_is_red": heatmap_is_red,
         "ha_color": ha_color,
-        "oct_color": oct_color
+        "oct_color": oct_color,
+        "oct_bad": oct_bad,
+        "confluence_flags": confluence_flags,
+        "confluence_count": confluence_count,
+        "confluence_bad": confluence_bad,
     }
 
 
@@ -243,6 +310,14 @@ def format_report(result: dict) -> str:
 
     # --- 1. PHÂN TÍCH KỸ THUẬT ---
     lines.append("  [1. PHÂN TÍCH CHỈ BÁO & SETUP HÀNH ĐỘNG]")
+    # Dòng Dark Color: hiển thị số chỉ báo xấu / 8
+    _conf_count = result.get('confluence_count', 0)
+    _conf_flags = result.get('confluence_flags', {})
+    _dark_tag   = " ⚠️ [HẠ TỈ TRỌNG]" if _conf_count >= 5 else ""
+    _bad_names  = ", ".join(k for k, v in _conf_flags.items() if v) if _conf_flags else ""
+    lines.append(f"  🌑 Dark Color: {_conf_count}/8{_dark_tag}")
+    if _bad_names:
+        lines.append(f"     └─ Chỉ báo xấu: {_bad_names}")
     if tech:
         lines.append(f"  ● Tổng quan kỹ thuật: {tech.get('health_rating', 'BÌNH THƯỜNG')} (Điểm đánh giá: {tech.get('health_score', 0)}/100)")
         diag = tech.get('diagnostics', {})
@@ -332,30 +407,13 @@ def format_report(result: dict) -> str:
     # hiệu Mua.
     selling_pressure = sec_raw in ("DISTRIBUTION", "UNDER_PRESSURE")
 
-    # Đồng thuận đa chỉ báo (multi-indicator confluence): từng chỉ báo dưới
-    # đây vốn chỉ hiển thị nhận định riêng lẻ (text), KHÔNG tự động phản ánh
-    # vào tỷ trọng khuyến nghị. Khi ≥5/8 tín hiệu độc lập cùng xấu đi một
-    # lúc, xem đây là một tín hiệu hạ tỷ trọng riêng (cộng dồn như
-    # ichi_avoid/selling_pressure), để tránh trường hợp cả ADX/MACD/MCDX/
-    # Heatmap/Heikin/Octopus/giá đều xấu mà tỷ trọng vẫn giữ nguyên.
-    macd_diag = tech.get('diagnostics', {}).get('macd', {})
-    mcdx_diag = result.get('mcdx_eval', {})
+    # Đồng thuận đa chỉ báo (Dark Color) — đã tính sẵn trong analyze_stock()
+    # với đầy đủ logic ADX/MACD/MCDX/Octopus theo định nghĩa AIC.
+    # Dùng lại kết quả ở đây, không tính lại.
+    confluence_flags = result.get('confluence_flags', {})
+    confluence_count = result.get('confluence_count', 0)
+    confluence_bad   = result.get('confluence_bad', False)
     kijun = ichi.get('kijun', price)
-    confluence_flags = {
-        "ADX (DI− áp đảo DI+)": tech.get('adx_label') == 'RED',
-        "MACD xấu (xanh co/đỏ to)": bool(macd_diag.get('hist_shrinking', False)),
-        "MCDX Banker suy yếu": bool(mcdx_diag.get('banker_weakening', False)),
-        "Heatmap chuyển Đỏ": bool(result.get('heatmap_is_red', False)),
-        "Heikin Ashi Đỏ": result.get('ha_color') == 'Red',
-        # Octopus dùng thay cho "GreenPink": Pink (#FF69B4, momentum dương
-        # nhưng đang yếu đi = "xanh sang hồng") hoặc Red (#FF0000, momentum
-        # âm = "sang đỏ") đều tính là tín hiệu xấu, theo đúng mô tả gốc.
-        "Octopus chuyển Hồng/Đỏ": result.get('oct_color') in ('#FF69B4', '#FF0000'),
-        "Mất MA20": price < result.get('ma20', price),
-        "Mất Kijun 26": price < kijun,
-    }
-    confluence_count = sum(1 for v in confluence_flags.values() if v)
-    confluence_bad = confluence_count >= 5
 
     tier_order = [
         "70–100% (Mua Mạnh/Gồng lãi)", "50–70% (Gia tăng 2)",

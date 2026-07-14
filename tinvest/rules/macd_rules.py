@@ -104,11 +104,14 @@ def evaluate_macd(df: pd.DataFrame, idx: int = -1) -> dict:
         "value": f"{macd:.2f} / Hist: {hist:.2f}",
         "status": " | ".join(status),
         "action": " | ".join(action),
-        # Xấu theo 2 nhánh:
-        #   1. Hist dương (xanh) nhưng co lại 2 phiên liên tiếp (momentum yếu dần)
-        #   2. Hist âm (đỏ) và đang to lên (âm hơn 2 phiên liên tiếp = lực giảm tăng)
+        # MACD xấu theo định nghĩa AIC:
+        #   1. Hist xanh (>0) đang co lại: hôm nay < hôm qua HOẶC hôm nay < t-2
+        #   2. Hist đỏ (<0) đang sâu hơn: hôm nay < hôm qua HOẶC hôm nay < t-2
+        #      (âm hơn = giá trị số nhỏ hơn, tức lực giảm tăng)
+        #   3. Hist đảo chiều: hôm nay đỏ trong khi hôm qua xanh (cross zero xuống)
         "hist_shrinking": (
-            (hist > 0 and hist < hist_prev and hist_prev < hist_prev2)
-            or (hist < 0 and hist < hist_prev and hist_prev < hist_prev2)
+            (hist > 0 and (hist < hist_prev or hist < hist_prev2))
+            or (hist < 0 and (hist < hist_prev or hist < hist_prev2))
+            or (hist < 0 and hist_prev > 0)
         )
     }

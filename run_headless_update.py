@@ -556,7 +556,15 @@ def compute_and_export_dashboard(storage, affected_tickers, vietstock_status=Non
                 "ma20": float(df['MA20'].iloc[-1]) if 'MA20' in df.columns else float(df['Close'].rolling(20).mean().iloc[-1]),
                 "ma50": float(df['MA50'].iloc[-1]) if 'MA50' in df.columns else float(df['Close'].rolling(50).mean().iloc[-1]),
                 "heatmap_eval": heatmap_eval_val,
-                "mcdx_eval": mcdx_eval
+                "mcdx_eval": mcdx_eval,
+                # Dark Color confluence — lấy từ analyze_stock cache (nếu có)
+                "confluence_flags": data.get("confluence_flags", {}),
+                "confluence_count": data.get("confluence_count", 0),
+                "confluence_bad":   data.get("confluence_bad", False),
+                "heatmap_is_red":   data.get("heatmap_is_red", False),
+                "ha_color":         data.get("ha_color", "Green"),
+                "oct_color":        data.get("oct_color", ""),
+                "oct_bad":          data.get("oct_bad", False),
             }
             report_text = format_report(report_input)
         except Exception as e_rep:
@@ -668,6 +676,11 @@ def compute_and_export_dashboard(storage, affected_tickers, vietstock_status=Non
             },
 
             "Diagnostics": {
+                "dark_color": {
+                    "count": data.get("confluence_count", 0),
+                    "is_bad": data.get("confluence_bad", False),
+                    "flags": data.get("confluence_flags", {})
+                },
                 "rsi": {"status": str(val.get("tech_health", {}).get("diagnostics", {}).get("rsi", {}).get("status", "N/A")),
                         "action": str(val.get("tech_health", {}).get("diagnostics", {}).get("rsi", {}).get("action", "N/A"))},
                 "macd": {"status": str(val.get("tech_health", {}).get("diagnostics", {}).get("macd", {}).get("status", "N/A")),
