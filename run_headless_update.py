@@ -307,6 +307,16 @@ def compute_and_export_dashboard(storage, affected_tickers, vietstock_status=Non
     computed_groups = compute_all_sector_indices(storage, active_registry=active_set)
     logger.info(f"--- ĐÃ TÍNH {len(computed_groups)}/{len(sector_groups)} CHỈ SỐ NGÀNH ---")
 
+    # P/E, P/B ngành theo phiên — chỉ đọc lại Output/sector_finance_quarterly.json
+    # (do Action Import/Update Finance ghi riêng, xem tinvest/sector_finance_engine.py)
+    # kết hợp vốn hóa hôm nay. Không cần secret/Drive gì ở bước này. Bọc try/except
+    # để 1 lỗi ở đây không bao giờ làm hỏng pipeline phân tích kỹ thuật chính.
+    try:
+        from tinvest.sector_finance_engine import compute_and_append_daily_sector_finance
+        compute_and_append_daily_sector_finance(storage, sector_groups, output_dir)
+    except Exception as e:
+        logger.warning(f"⚠️ Bỏ qua bước P/E, P/B ngành theo ngày (lỗi: {e})")
+
     affected_tickers = set(computed_groups) | {"VNINDEX", "HNX-INDEX"}
     logger.info(f"--- ĐANG TÍNH TOÁN CHỈ BÁO VÀ PHÂN TÍCH CHO {len(affected_tickers)} CHỈ SỐ NGÀNH/THỊ TRƯỜNG ---")
 
@@ -1144,16 +1154,175 @@ def run_clear_cache():
     logger.info(f"✅ Hoàn tất dọn dẹp {deleted_output_files} mục trong Output.")
     logger.info("==================================================")
 
+
+WORKBOOK_NAME = "sector_finance_ticker_data.xlsx"
+
+
+def run_import_finance(csv_path):
+    """Action 'Import Finance': nạp CSV dạng dài (Ticker,Year,Quarter,VCSH,LNST)
+    người dùng đặt sẵn trên Drive, gộp vào workbook xlsx hiện có (không ghi đè
+    dữ liệu cũ), tính lại toàn bộ tổng hợp ngành + backfill lịch sử P/E, P/B."""
+    logger.info("==================================================")
+    logger.info("📥 BẮT ĐẦU IMPORT FINANCE (nạp dữ liệu tài chính ban đầu)")
+    logger.info("==================================================")
+
+    from tinvest.finance_workbook import parse_long_format_csv, load_workbook_from_bytes, merge_new_quarters, save_workbook_to_path
+    from tinvest.gdrive_client import download_file_by_name, upload_file
+    from tinvest.sector_finance_engine import compute_sector_quarterly_summary, overwrite_quarterly_block, backfill_daily_sector_finance_history
+    from tinvest.sector_index_engine import load_sector_groups
+
+    output_dir = os.path.join(base_path, "Output")
+    os.makedirs(output_dir, exist_ok=True)
+
+    logger.info(f"   Đọc CSV: {csv_path}")
+    new_data = parse_long_format_csv(csv_path)
+    logger.info(f"   CSV có {len(new_data)} mã.")
+
+    logger.info("   Tải workbook hiện có trên Drive (nếu có)...")
+    existing_sheets = load_workbook_from_bytes(download_file_by_name(WORKBOOK_NAME))
+
+    merged_sheets, new_quarters = merge_new_quarters(existing_sheets, new_data)
+    logger.info(f"   Quý mới xuất hiện lần đầu: {new_quarters}")
+
+    local_path = os.path.join(output_dir, WORKBOOK_NAME)
+    save_workbook_to_path(merged_sheets, local_path)
+    file_id, link = upload_file(local_path)
+    if file_id:
+        logger.info(f"   ✅ Đã tải workbook lên Drive: {link}")
+    else:
+        logger.warning("   ⚠️ Không tải được lên Drive (thiếu credential GDRIVE_SERVICE_ACCOUNT_JSON?) — vẫn tiếp tục tính toán cục bộ.")
+
+    sector_groups = load_sector_groups()
+    summary = compute_sector_quarterly_summary(merged_sheets["VCSH"], merged_sheets["LNST"], sector_groups)
+    summary_path = os.path.join(output_dir, "sector_finance_quarterly.json")
+    with open(summary_path, "w", encoding="utf-8") as f:
+        json.dump(summary, f, ensure_ascii=False)
+    logger.info(f"   ✅ Đã ghi {summary_path} ({len(summary['sectors'])} ngành, {len(summary['quarters'])} quý)")
+
+    overwrite_quarterly_block(sector_groups, summary, output_dir)
+
+    storage = StorageManager()
+    backfill_daily_sector_finance_history(storage, sector_groups, output_dir)
+
+    logger.info("✅ HOÀN TẤT IMPORT FINANCE")
+    logger.info("==================================================")
+
+
+def run_update_finance_vietcap():
+    """Action 'Update finance vietcap': kiểm tra mã nào còn thiếu quý mới
+    nhất (theo quy tắc trễ công bố 45 ngày), chỉ gọi lại Vietcap cho các mã
+    đó, gộp thêm cột quý mới vào workbook (không đụng cột cũ), rồi tính lại
+    tổng hợp ngành — CHỈ ghi đè phần 'quarterly' của Output/finance/{SECTOR}.json,
+    không đụng phần 'daily' (thuộc bước hàng ngày riêng)."""
+    logger.info("==================================================")
+    logger.info("🔄 BẮT ĐẦU UPDATE FINANCE VIETCAP")
+    logger.info("==================================================")
+
+    from tinvest.finance_workbook import load_workbook_from_bytes, merge_new_quarters, save_workbook_to_path
+    from tinvest.gdrive_client import download_file_by_name, upload_file
+    from tinvest.vietcap_finance_client import fetch_all_tickers_finance
+    from tinvest.sector_finance_engine import (
+        compute_sector_quarterly_summary, overwrite_quarterly_block,
+        get_finance_ticker_universe, tickers_needing_update, current_expected_quarter,
+    )
+    from tinvest.sector_index_engine import load_sector_groups
+
+    # Chỉ lấy 6 năm gần nhất khi cào từ Vietcap — sau nhiều năm vận hành (VD
+    # chạy năm 2029) thì lấy lại tận 2019 vừa chậm vừa không cần thiết. Dữ
+    # liệu cũ hơn 6 năm đã có sẵn trong workbook (từ Import Finance) vẫn được
+    # GIỮ NGUYÊN — merge_new_quarters() không bao giờ xóa cột cũ, chỉ không
+    # chủ động cào thêm quá khứ xa quá 6 năm nữa thôi.
+    FINANCE_YEARS_BACK = 6
+
+    output_dir = os.path.join(base_path, "Output")
+    os.makedirs(output_dir, exist_ok=True)
+
+    sector_groups = load_sector_groups()
+    universe = sorted(get_finance_ticker_universe(sector_groups))
+    logger.info(f"   Vũ trụ mã tài chính: {len(universe)} mã.")
+
+    existing_sheets = load_workbook_from_bytes(download_file_by_name(WORKBOOK_NAME))
+
+    expected_q = current_expected_quarter()
+    logger.info(f"   Quý kỳ vọng đã công bố tính đến hôm nay: {expected_q}")
+
+    if expected_q:
+        need = tickers_needing_update(existing_sheets["VCSH"], existing_sheets["LNST"], universe, expected_q)
+    else:
+        need = universe
+    logger.info(f"   Số mã cần gọi lại Vietcap: {len(need)}/{len(universe)} (chỉ lấy {FINANCE_YEARS_BACK} năm gần nhất)")
+
+    if need:
+        new_data = fetch_all_tickers_finance(need, years_back=FINANCE_YEARS_BACK)
+        merged_sheets, new_quarters = merge_new_quarters(existing_sheets, new_data)
+        logger.info(f"   Quý mới xuất hiện lần đầu: {new_quarters}")
+    else:
+        merged_sheets = existing_sheets
+        logger.info("   Không có mã nào cần cập nhật — bỏ qua gọi Vietcap.")
+
+    local_path = os.path.join(output_dir, WORKBOOK_NAME)
+    save_workbook_to_path(merged_sheets, local_path)
+    file_id, link = upload_file(local_path)
+    if file_id:
+        logger.info(f"   ✅ Đã tải workbook lên Drive: {link}")
+    else:
+        logger.warning("   ⚠️ Không tải được lên Drive (thiếu credential GDRIVE_SERVICE_ACCOUNT_JSON?) — vẫn tiếp tục tính toán cục bộ.")
+
+    summary = compute_sector_quarterly_summary(merged_sheets["VCSH"], merged_sheets["LNST"], sector_groups)
+    summary_path = os.path.join(output_dir, "sector_finance_quarterly.json")
+    with open(summary_path, "w", encoding="utf-8") as f:
+        json.dump(summary, f, ensure_ascii=False)
+    logger.info(f"   ✅ Đã ghi {summary_path}")
+
+    overwrite_quarterly_block(sector_groups, summary, output_dir)
+
+    logger.info("✅ HOÀN TẤT UPDATE FINANCE VIETCAP")
+    logger.info("==================================================")
+
+
+def run_clear_finance():
+    """Action 'Clear finance': chỉ xóa KẾT QUẢ TÍNH TOÁN (ROE/tăng trưởng/
+    P-E/P-B + tổng hợp ngành), GIỮ NGUYÊN workbook xlsx gốc trên Drive để
+    không phải cào lại Vietcap khi muốn tính lại."""
+    import shutil
+    logger.info("==================================================")
+    logger.info("🧹 BẮT ĐẦU CLEAR FINANCE (giữ nguyên workbook gốc trên Drive)")
+    logger.info("==================================================")
+
+    output_dir = os.path.join(base_path, "Output")
+    summary_path = os.path.join(output_dir, "sector_finance_quarterly.json")
+    finance_dir = os.path.join(output_dir, "finance")
+
+    if os.path.exists(summary_path):
+        os.remove(summary_path)
+        logger.info(f"   🗑️ Đã xóa {summary_path}")
+    if os.path.exists(finance_dir):
+        shutil.rmtree(finance_dir)
+        logger.info(f"   🗑️ Đã xóa thư mục {finance_dir}")
+
+    logger.info("✅ HOÀN TẤT CLEAR FINANCE")
+    logger.info("==================================================")
+
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Hệ thống cập nhật dữ liệu tự động cho AIC PRO")
     parser.add_argument("--import-csv", nargs="+", help="Đường dẫn đến một hoặc nhiều file/thư mục CSV chứa dữ liệu lịch sử ban đầu")
     parser.add_argument("--clear-cache", action="store_true", help="Xóa sạch toàn bộ dữ liệu lưu trữ cũ và kết quả tính toán")
+    parser.add_argument("--import-finance", metavar="CSV_PATH", help="Nạp dữ liệu VCSH/LNST ban đầu từ CSV, tính ROE/tăng trưởng cho toàn bộ ngành")
+    parser.add_argument("--update-finance-vietcap", action="store_true", help="Cập nhật quý tài chính mới từ Vietcap cho các mã cần thiết, tính lại ROE/tăng trưởng ngành")
+    parser.add_argument("--clear-finance", action="store_true", help="Xóa kết quả tính toán ROE/LNST/VCSH/tăng trưởng ngành (giữ nguyên workbook gốc trên Drive)")
     args = parser.parse_args()
-    
+
     if args.clear_cache:
         run_clear_cache()
     elif args.import_csv:
         run_csv_import(args.import_csv)
+    elif args.import_finance:
+        run_import_finance(args.import_finance)
+    elif args.update_finance_vietcap:
+        run_update_finance_vietcap()
+    elif args.clear_finance:
+        run_clear_finance()
     else:
         run_sync_and_update()

@@ -8,3 +8,7 @@ requests
 beautifulsoup4
 selenium>=4.0.0
 webdriver-manager>=3.8.0
+openpyxl
+google-api-python-client
+google-auth
+google-auth-httplib2

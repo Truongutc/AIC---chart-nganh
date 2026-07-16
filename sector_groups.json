@@ -173,7 +173,14 @@
     "name": "VNINDEX (không VIN)",
     "icon": "📊",
     "dynamic": "ALL_EXCEPT",
-    "exclude": ["VIC", "VHM", "VRE", "VPL"]
+    "exclude": ["VIC", "VHM", "VRE", "VPL"],
+    "financeUniverse": "ALL_EXCEPT"
+  },
+  "VNINDEX": {
+    "name": "VNINDEX (Toàn thị trường)",
+    "icon": "📊",
+    "tickers": [],
+    "financeUniverse": "ALL"
   },
   "CHUNGKHOAN_NHO": {
     "name": "Chứng khoán nhỏ",

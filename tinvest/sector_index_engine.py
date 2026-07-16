@@ -374,7 +374,19 @@ def compute_all_sector_indices(storage, active_registry=None):
     groups = load_sector_groups()
     computed = set()
 
+    # VNINDEX/HNX-INDEX là 2 mã DỰ TRỮ đã có giá thật lấy trực tiếp từ API chỉ
+    # số Vietstock (VietstockClient.fetch_index_day(), xem run_headless_update.py)
+    # — không bao giờ được tính lại theo kiểu chained-return ở đây, nếu không sẽ
+    # ghi đè lên giá thật (storage.sync_prices() dùng chung tên file). Khoá
+    # "VNINDEX" trong sector_groups.json (thêm cho tính năng tài chính ngành,
+    # xem tinvest/sector_finance_engine.py) chỉ dùng để hiển thị/tổng hợp tài
+    # chính, KHÔNG liên quan tới vòng lặp tính giá này.
+    RESERVED_REAL_INDEX_CODES = {"VNINDEX", "HNX-INDEX"}
+
     for group_code, group_def in groups.items():
+        if group_code in RESERVED_REAL_INDEX_CODES:
+            logger.info(f"⏭️ Bỏ qua {group_code}: mã dự trữ, giá thật đã tính ở luồng Vietstock index riêng.")
+            continue
         try:
             df = compute_sector_index_df(group_def, storage, active_registry)
             if df is None or df.empty:

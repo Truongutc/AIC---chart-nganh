@@ -5698,6 +5698,28 @@
                                 💡 <strong>Ý nghĩa:</strong> Tổng hợp các chỉ báo xu hướng và động lượng kinh điển bao gồm Ichimoku Cloud, hệ thống MA Lines (MA10/20/50), dòng tiền MCDX, sức mạnh xu hướng ADX và chỉ báo MACD.
                             </div>
                         </div>
+                        <div class="chart-cell">
+                            <div class="chart-cell-header">
+                                <span class="chart-cell-label">💹 P/E ngành + Tăng trưởng LNST</span>
+                                <button class="chart-expand-btn" onclick="expandChart('${containerId}','finpe')">⛶ Mở rộng</button>
+                            </div>
+                            <div class="chart-cell-body" id="${containerId}-mount-finpe"></div>
+                            <div class="chart-cell-evaluation" id="${containerId}-eval-finpe"></div>
+                            <div class="chart-cell-footer">
+                                💡 <strong>Ý nghĩa:</strong> P/E ngành theo phiên (đường, trục phải) so với tăng trưởng LNST cùng kỳ theo quý (cột bậc thang, trục trái) — dữ liệu tài chính cập nhật qua Action "Update finance vietcap".
+                            </div>
+                        </div>
+                        <div class="chart-cell">
+                            <div class="chart-cell-header">
+                                <span class="chart-cell-label">📐 P/B ngành + ROE</span>
+                                <button class="chart-expand-btn" onclick="expandChart('${containerId}','finpb')">⛶ Mở rộng</button>
+                            </div>
+                            <div class="chart-cell-body" id="${containerId}-mount-finpb"></div>
+                            <div class="chart-cell-evaluation" id="${containerId}-eval-finpb"></div>
+                            <div class="chart-cell-footer">
+                                💡 <strong>Ý nghĩa:</strong> P/B ngành theo phiên (đường, trục phải) so với ROE theo quý (cột bậc thang, trục trái) — ROE tính theo LNST 4 quý gần nhất chia VCSH quý hiện tại.
+                            </div>
+                        </div>
                     </div>
                 </section>
             `;
@@ -6101,6 +6123,7 @@
 
         // State
         const historyCache  = {};  // { ticker: rawData }
+        const financeCache  = {};  // { sectorCode: Output/finance/{SECTOR}.json content }
         const lwcInstances  = {};  // { mountId: [{chart,ro},...] }
         let   fsInstances   = [];  // chart instances inside fullscreen
         let   marketChartTicker = 'VNINDEX';
@@ -6110,7 +6133,9 @@
             gp:         '🌿 GreenPink + Octopus',
             heikin:     '🕯️ Heikin-Ashi + 2Trend',
             heatmap:    '🔥 Bản đồ nhiệt',
-            techreport: '📊 Báo cáo Kỹ thuật'
+            techreport: '📊 Báo cáo Kỹ thuật',
+            finpe:      '💹 P/E ngành + Tăng trưởng LNST',
+            finpb:      '📐 P/B ngành + ROE'
         };
 
         // ── LWC base theme (TradingView dark) ──
@@ -6209,6 +6234,22 @@
             if (!r.ok) throw new Error(`HTTP ${r.status} for ${ticker}`);
             historyCache[ticker] = await r.json();
             return historyCache[ticker];
+        }
+
+        // ── Lazy-fetch P/E, P/B ngành hàng ngày + ROE/tăng trưởng theo quý ──
+        // (Output/finance/{SECTOR}.json, ghi bởi run_headless_update.py +
+        // Action Import Finance/Update finance vietcap — có thể CHƯA TỒN TẠI
+        // với ngành chưa chạy tính năng tài chính, coi là bình thường.)
+        async function fetchSectorFinance(sectorCode) {
+            if (Object.prototype.hasOwnProperty.call(financeCache, sectorCode)) return financeCache[sectorCode];
+            try {
+                const r = await fetch(`./Output/finance/${sectorCode}.json?t=` + new Date().getTime());
+                if (!r.ok) { financeCache[sectorCode] = null; return null; }
+                financeCache[sectorCode] = await r.json();
+            } catch (e) {
+                financeCache[sectorCode] = null;
+            }
+            return financeCache[sectorCode];
         }
 
         // ── Show loading state in a cell ──
@@ -6960,6 +7001,100 @@
             return c1;
         }
 
+        // ── 'Qn-YYYY' -> 'YYYY-MM-DD' (ngày đầu/cuối quý), dùng để vẽ đoạn
+        // ROE/tăng trưởng LNST đúng khoanh vùng thời gian của CHÍNH quý đó
+        // (không lấn sang quý sau). ──
+        function quarterStartDateStr(label) {
+            const m = /^Q([1-4])-(\d{4})$/.exec(String(label));
+            if (!m) return null;
+            const startDates = { '1': '01-01', '2': '04-01', '3': '07-01', '4': '10-01' };
+            return `${m[2]}-${startDates[m[1]]}`;
+        }
+        function quarterEndDateStr(label) {
+            const m = /^Q([1-4])-(\d{4})$/.exec(String(label));
+            if (!m) return null;
+            const endDates = { '1': '03-31', '2': '06-30', '3': '09-30', '4': '12-31' };
+            return `${m[2]}-${endDates[m[1]]}`;
+        }
+
+        // Gom các quý LIÊN TỤC có dữ liệu thành từng "run" riêng — mỗi run vẽ
+        // bằng 1 line series độc lập (2 điểm/quý: đầu quý & cuối quý, giá trị
+        // không đổi trong quý đó). Quý nào CHƯA có dữ liệu (chưa công bố BCTC)
+        // thì bị bỏ qua và tự động NGẮT run — không vẽ nối/kéo dài sang giai
+        // đoạn chưa có số liệu, đúng yêu cầu "chưa có G thì chỉ hiện P/E".
+        function buildQuarterlySegments(labels, values) {
+            const runs = [];
+            let current = [];
+            for (let i = 0; i < labels.length; i++) {
+                const v = values[i];
+                if (v === null || v === undefined) {
+                    if (current.length) runs.push(current);
+                    current = [];
+                    continue;
+                }
+                const startStr = quarterStartDateStr(labels[i]);
+                const endStr = quarterEndDateStr(labels[i]);
+                if (!startStr || !endStr) continue;
+                current.push({ time: d2ts(startStr), value: v });
+                current.push({ time: d2ts(endStr), value: v });
+            }
+            if (current.length) runs.push(current);
+            return runs;
+        }
+
+        // ── P/E hoặc P/B ngành theo phiên (trục phải, vẽ liên tục theo đúng
+        // biến động vốn hóa thực tế mỗi ngày) + ROE/tăng trưởng LNST theo quý
+        // (trục trái, mỗi quý 1 đoạn thẳng đúng khoảng thời gian của quý đó,
+        // ngắt quãng ở quý chưa công bố) — 1 pane, 2 trục giá. ──
+        function renderSectorFinanceChart(mountId, financeData, instances, dailyCol, dailyColor, quarterlyCol, quarterlyColor, opts = {}) {
+            const root = document.getElementById(mountId);
+            if (!root) return null;
+            root.innerHTML = ''; root.style.display = 'flex'; root.style.flexDirection = 'column';
+
+            const h = opts.h || 260;
+            const d1 = document.createElement('div'); d1.style.cssText = `flex:none;height:${h}px;`;
+            root.appendChild(d1);
+
+            const daily = (financeData && financeData.daily) || { dates: [] };
+            const quarterly = (financeData && financeData.quarterly) || { labels: [] };
+            const dDates = daily.dates || [];
+
+            const { chart, ro } = mkChart(d1, h, dDates, {
+                leftPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.15, bottom: 0.15 } },
+                rightPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.1, bottom: 0.1 } }
+            });
+            instances.push({ chart, ro });
+
+            // Đoạn thẳng theo từng quý (ROE hoặc tăng trưởng LNST) — trục trái
+            const labels = quarterly.labels || [];
+            const qValues = quarterly[quarterlyCol] || [];
+            const segments = buildQuarterlySegments(labels, qValues);
+            segments.forEach(seg => {
+                chart.addLineSeries({ priceScaleId: 'left', color: quarterlyColor, lineWidth: 2, priceLineVisible: false, lastValueVisible: false, title: '' }).setData(seg);
+            });
+
+            // Đường P/E hoặc P/B hàng ngày (liên tục, theo đúng vốn hóa thực tế) — trục phải
+            const dValues = daily[dailyCol] || [];
+            const dSeries = [];
+            for (let i = 0; i < dDates.length; i++) {
+                const v = dValues[i];
+                if (v === null || v === undefined) continue;
+                dSeries.push({ time: d2ts(dDates[i]), value: v });
+            }
+            chart.addLineSeries({ priceScaleId: 'right', color: dailyColor, lineWidth: 3, priceLineVisible: false, title: '' }).setData(dSeries);
+
+            if (dDates.length > 0) applyDefaultChartRange(chart, dDates, 365);
+            else chart.timeScale().fitContent();
+            return chart;
+        }
+
+        function renderSectorFinPeChart(mountId, financeData, instances, opts = {}) {
+            return renderSectorFinanceChart(mountId, financeData, instances, 'pe', '#60a5fa', 'yoy_lnst_growth', '#fbbf24', opts);
+        }
+        function renderSectorFinPbChart(mountId, financeData, instances, opts = {}) {
+            return renderSectorFinanceChart(mountId, financeData, instances, 'pb', '#c084fc', 'roe', '#34d399', opts);
+        }
+
         // ================================================================
         //  renderAll4Charts  — render all 4 simultaneously in a grid prefix
         //  mountPrefix: e.g. 'market' → ids: marketMount-gp, marketMount-heikin ...
@@ -6981,30 +7116,53 @@
                 destroyMount(mid);
                 cellLoading(mid, `Tải ${ticker}...`);
             });
+            ['finpe', 'finpb'].forEach(type => {
+                const mid = `${mountPrefix}-mount-${type}`;
+                destroyMount(mid);
+                cellLoading(mid, `Tải dữ liệu tài chính ${ticker}...`);
+            });
 
-            let data;
+            let data = null;
             try { data = await fetchHistory(ticker); }
             catch(e) {
                 ids.forEach(type => cellError(`${mountPrefix}-mount-${type}`,
                     `Chưa có dữ liệu ${ticker}. Hãy chạy Actions để tạo Output/history/${ticker}.json`));
-                return;
             }
 
-            // Render each chart and collect primary chart instances for cross-sync
-            const primaryCharts = [];
-            ids.forEach(type => {
+            if (data) {
+                // Render each chart and collect primary chart instances for cross-sync
+                const primaryCharts = [];
+                ids.forEach(type => {
+                    const mid = `${mountPrefix}-mount-${type}`;
+                    const inst = [];
+                    lwcInstances[mid] = inst;
+                    const primary = renders[type](mid, data, inst);
+                    if (primary) primaryCharts.push(primary);
+                });
+
+                // Cross-chart time-scale sync disabled to keep charts independent
+                // syncCharts(primaryCharts);
+
+                // Update evaluations for each chart cell
+                updateChartEvaluations(mountPrefix, ticker);
+            }
+
+            // P/E, P/B ngành — nguồn dữ liệu RIÊNG (Output/finance/{SECTOR}.json,
+            // do Action Import Finance/Update finance vietcap ghi), độc lập với
+            // lịch sử kỹ thuật ở trên — ngành nào chưa chạy tính năng tài chính
+            // vẫn hiện trạng thái rỗng gọn gàng, không lỗi cả dashboard.
+            const financeData = await fetchSectorFinance(ticker);
+            ['finpe', 'finpb'].forEach(type => {
                 const mid = `${mountPrefix}-mount-${type}`;
-                const inst = [];
-                lwcInstances[mid] = inst;
-                const primary = renders[type](mid, data, inst);
-                if (primary) primaryCharts.push(primary);
+                if (financeData) {
+                    const inst = [];
+                    lwcInstances[mid] = inst;
+                    const fn = type === 'finpe' ? renderSectorFinPeChart : renderSectorFinPbChart;
+                    fn(mid, financeData, inst);
+                } else {
+                    cellError(mid, `Ngành ${ticker} chưa có dữ liệu tài chính. Hãy chạy Action "Import Finance" hoặc "Update finance vietcap".`);
+                }
             });
-
-            // Cross-chart time-scale sync disabled to keep charts independent
-            // syncCharts(primaryCharts);
-
-            // Update evaluations for each chart cell
-            updateChartEvaluations(mountPrefix, ticker);
         }
 
         // ── Helper to determine evaluation badge color and content ──
@@ -7139,7 +7297,11 @@
                 const grid = document.getElementById(`${mountPrefix}-chartGrid`);
                 if (grid && grid.dataset.ticker) ticker = grid.dataset.ticker;
             }
-            if (!ticker || !historyCache[ticker]) {
+            const isFinanceChart = chartType === 'finpe' || chartType === 'finpb';
+            const dataReady = isFinanceChart
+                ? Object.prototype.hasOwnProperty.call(financeCache, ticker) && financeCache[ticker]
+                : historyCache[ticker];
+            if (!ticker || !dataReady) {
                 alert('Dữ liệu chưa được tải. Hãy mở chart thường trước.'); return;
             }
 
@@ -7168,6 +7330,12 @@
             // Wait for modal to be visible, then render at full size
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
+                    if (isFinanceChart) {
+                        const total = fsMt.offsetHeight || window.innerHeight - 120;
+                        const fn = chartType === 'finpe' ? renderSectorFinPeChart : renderSectorFinPbChart;
+                        fn('chartFsMount', financeCache[ticker], fsInstances, { h: total });
+                        return;
+                    }
                     const renders = {
                         gp: renderGPChartFs, heikin: renderHeikinChartFs,
                         heatmap: renderHeatmapChartFs, techreport: renderTechReportChartFs
