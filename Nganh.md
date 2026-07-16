@@ -1,6 +1,6 @@
 # Danh sách ngành và mã cổ phiếu theo ngành 
 1. Ngân hàng (Bank) VCB, BID, CTG, MBB, TCB, ACB, STB, HDB, SHB, LPB, VIB, MSB, TPB, EIB, OCB, SSB, NAB, ABB, BAB, BVB, KLB, NVB, PGB, SGB, VAB, VBB 
-2. Chứng khoán SSI, VCI, HCM, VIX, SHS, MBS, VND, FTS, BSI, CTS, AGR, BVS, TVS, VDS, ORS, APS, AAS, EVS, WSS, VIG, IVS, DSC, SBS, CSI, HBS, PSI, PHS 
+2. Chứng khoán SSI, VCI, HCM, VIX, SHS, MBS, VND, FTS, BSI, CTS, AGR, BVS, TVS, VDS, ORS, APS, AAS, EVS, WSS, VIG, IVS, DSC, SBS, CSI, HBS, PSI, PHS, VCK, VPX, TCX 
 3. Bảo hiểm BVH, BMI, MIG, BIC, PGI, PTI, ABI, PRE, VNR, AIC, BHI 
 4. Phân bón DCM, DPM, DDV, LAS, BFC, SFG, PSW, PSE, PMB 
 5. Hóa chất DGC, CSV, PLC

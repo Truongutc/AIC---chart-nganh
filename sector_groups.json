@@ -7,7 +7,7 @@
   "CHUNGKHOAN": {
     "name": "Chứng khoán",
     "icon": "📈",
-    "tickers": ["SSI", "VCI", "HCM", "VIX", "SHS", "MBS", "VND", "FTS", "BSI", "CTS", "AGR", "BVS", "TVS", "VDS", "ORS", "APS", "AAS", "EVS", "WSS", "VIG", "IVS", "DSC", "SBS", "CSI", "HBS", "PSI", "PHS"]
+    "tickers": ["SSI", "VCI", "HCM", "VIX", "SHS", "MBS", "VND", "FTS", "BSI", "CTS", "AGR", "BVS", "TVS", "VDS", "ORS", "APS", "AAS", "EVS", "WSS", "VIG", "IVS", "DSC", "SBS", "CSI", "HBS", "PSI", "PHS", "VCK", "VPX", "TCX"]
   },
   "BAOHIEM": {
     "name": "Bảo hiểm",
