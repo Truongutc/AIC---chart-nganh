@@ -3233,6 +3233,7 @@
             <div id="menuContent" class="menu-content">
                 <button class="menu-item active" data-tab="home-tab" onclick="selectMenuTab('home-tab', '🏠', 'Trang chủ')">🏠 Trang chủ</button>
                 <button class="menu-item" data-tab="market-tab" onclick="selectMenuTab('market-tab', '📊', 'Phân tích kỹ thuật ngành')">📊 Phân tích kỹ thuật ngành</button>
+                <button class="menu-item" data-tab="stats-tab" onclick="selectMenuTab('stats-tab', '📉', 'Thống kê giao dịch')">📉 Thống kê giao dịch</button>
             </div>
         </div>
     </nav>
@@ -3256,6 +3257,22 @@
         <div class="tab-content" id="market-tab">
             <div id="sectorDetailHeader" class="sector-detail-header"></div>
             <div id="stockDetailsDashboard" class="stock-dashboard"></div>
+        </div>
+
+        <!-- Tab 2: Thống kê giao dịch — tra cứu tự do theo mã, dữ liệu trực tiếp từ Vietcap -->
+        <div class="tab-content" id="stats-tab">
+            <section class="card home-hero">
+                <h2 class="home-title">Thống kê giao dịch</h2>
+                <p class="home-subtitle">Nhập mã cổ phiếu (VD: HPG, TCB) hoặc VNINDEX để xem 5 biểu đồ giao dịch trực tiếp từ Vietcap.</p>
+                <form onsubmit="event.preventDefault(); submitStatsTicker();" style="display:flex; gap:8px; max-width:420px; margin:14px auto 0 auto;">
+                    <input type="text" id="statsTickerInput" class="home-sector-select" style="margin:0;" placeholder="HPG, TCB, VNINDEX..." autocomplete="off" oninput="this.value = this.value.toUpperCase()">
+                    <button type="submit" class="btn-primary" style="flex:none; padding:10px 20px;">Xem</button>
+                </form>
+                <div class="home-ticker-chips" style="justify-content:center; margin-top:10px;">
+                    <span class="home-ticker-chip" onclick="document.getElementById('statsTickerInput').value='VNINDEX'; submitStatsTicker();">VNINDEX</span>
+                </div>
+            </section>
+            <div id="statsResultArea"></div>
         </div>
 
 
@@ -4593,9 +4610,11 @@
         const FREE_SECTOR_CODE = 'VNINDEX_NONVIN';
         let sectorUnlocked = false; // Mở khoá 1 lần cho cả phiên sau khi nhập đúng mật khẩu
         let pendingSectorCode = null;
+        let pendingUnlockCallback = null; // Dùng cho các nơi gọi gate khác selectMarketIndex (VD tab Thống kê giao dịch)
 
-        function showSectorPasswordModal(code) {
+        function showSectorPasswordModal(code, callback = null) {
             pendingSectorCode = code;
+            pendingUnlockCallback = callback;
             document.getElementById('sectorPasswordModal').style.display = 'flex';
             document.getElementById('sectorPasswordErrorMsg').style.display = 'none';
             document.getElementById('sectorPasswordInput').value = '';
@@ -4605,7 +4624,11 @@
         function cancelSectorPassword() {
             document.getElementById('sectorPasswordModal').style.display = 'none';
             pendingSectorCode = null;
-            goHome();
+            if (pendingUnlockCallback) {
+                pendingUnlockCallback = null; // Gate không đến từ điều hướng ngành → chỉ đóng modal, không goHome()
+            } else {
+                goHome();
+            }
         }
 
         function submitSectorPassword() {
@@ -4615,13 +4638,25 @@
                 document.getElementById('sectorPasswordModal').style.display = 'none';
                 const code = pendingSectorCode;
                 pendingSectorCode = null;
-                if (code) selectMarketIndex(code);
+                const cb = pendingUnlockCallback;
+                pendingUnlockCallback = null;
+                if (cb) cb();
+                else if (code) selectMarketIndex(code);
             } else {
                 document.getElementById('sectorPasswordErrorMsg').innerText = 'Mật khẩu không chính xác!';
                 document.getElementById('sectorPasswordErrorMsg').style.display = 'block';
                 document.getElementById('sectorPasswordInput').value = '';
                 document.getElementById('sectorPasswordInput').focus();
             }
+        }
+
+        // Cổng mật khẩu dùng chung cho tab "Thống kê giao dịch" — tái dùng
+        // đúng modal/cờ sectorUnlocked hiện có, không tạo hệ thống mật khẩu
+        // thứ 2. Khác với FREE_SECTOR_CODE ở tab ngành, VNINDEX gõ ở đây vẫn
+        // bị khoá vì gọi hàm này vô điều kiện.
+        function requireStatsPassword(onUnlock) {
+            if (sectorUnlocked) { onUnlock(); return; }
+            showSectorPasswordModal(null, onUnlock);
         }
 
         // Chọn 1 chỉ số ngành/thị trường để hiển thị dashboard chi tiết.
@@ -8132,6 +8167,468 @@
                 alert("Đã sao chép báo cáo vào clipboard!");
             }).catch(err => {
                 console.error("Không thể sao chép:", err);
+            });
+        }
+
+        // ============================================================
+        //   VIETCAP LIVE DATA CLIENT — Tab "Thống kê giao dịch"
+        //   Gọi thẳng API công khai của Vietcap từ trình duyệt (đã kiểm
+        //   chứng CORS mở, không cần cookie/token/Referer giả).
+        // ============================================================
+        const VC_HEADERS = { 'Accept': 'application/json, text/plain, */*' };
+        const vietcapPriceCache = {};   // { code: normalizedPriceData|null }
+        const vietcapRatioCache = {};   // { code: normalizedRatioData|null }
+
+        function vcDateRange(years = 5) {
+            const to = new Date();
+            const from = new Date();
+            from.setFullYear(to.getFullYear() - years);
+            const fmt = d => d.toISOString().slice(0, 10);
+            return { fromDate: fmt(from), toDate: fmt(to) };
+        }
+
+        // API trả tradingDate có khi kèm hậu tố giờ ("...T00:00:00"), có khi
+        // không — luôn cắt về đúng YYYY-MM-DD trước khi đưa vào d2ts()/dates[],
+        // vì d2ts() tự nối thêm 'T00:00:00Z' và sẽ ra Invalid Date nếu chuỗi
+        // gốc đã có sẵn phần giờ.
+        function vcNormDate(s) { return String(s).slice(0, 10); }
+
+        // Dữ liệu Vietcap đôi khi có 2 bản ghi trùng ngày (đã gặp thực tế với
+        // company-ratio-daily) — lightweight-charts bắt buộc time tăng
+        // nghiêm ngặt nên phải loại trùng sau khi đã sắp xếp tăng dần, giữ
+        // lại bản ghi CUỐI cùng của mỗi ngày (thường là số liệu đã cập nhật).
+        function dedupeByDate(sortedRows) {
+            const out = [];
+            for (let i = 0; i < sortedRows.length; i++) {
+                const cur = vcNormDate(sortedRows[i].tradingDate);
+                const next = (i + 1 < sortedRows.length) ? vcNormDate(sortedRows[i + 1].tradingDate) : null;
+                if (cur === next) continue; // bỏ bản ghi trước, giữ bản ghi sau cùng ngày
+                out.push(sortedRows[i]);
+            }
+            return out;
+        }
+
+        // Lấy + chuẩn hoá lịch sử giá/khối lượng/dư mua-bán cho 1 mã cổ phiếu
+        // hoặc "VNINDEX". Trả về null nếu mã không có dữ liệu (không tồn tại).
+        async function fetchVietcapPriceHistory(code) {
+            if (Object.prototype.hasOwnProperty.call(vietcapPriceCache, code)) return vietcapPriceCache[code];
+            const { fromDate, toDate } = vcDateRange(5);
+            const isIndex = code === 'VNINDEX';
+            const url = isIndex
+                ? `https://trading.vietcap.com.vn/api/iq-insight-service/v1/market-indices/history?index=${encodeURIComponent(code)}&page=0&size=3000&fromDate=${fromDate}&toDate=${toDate}`
+                : `https://trading.vietcap.com.vn/api/iq-insight-service/v1/company/${encodeURIComponent(code)}/price-history?page=0&size=3000&fromDate=${fromDate}&toDate=${toDate}`;
+            const r = await fetch(url, { headers: VC_HEADERS });
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            const json = await r.json();
+            let rows = (json && json.data && json.data.content) || [];
+            if (!rows.length) { vietcapPriceCache[code] = null; return null; }
+
+            // Không giả định thứ tự trả về (2 endpoint đã quan sát khác nhau) — luôn tự sắp xếp tăng dần,
+            // đồng thời loại trùng ngày (đã gặp trong dữ liệu thật) vì lightweight-charts yêu cầu time tăng
+            // nghiêm ngặt, không được trùng.
+            rows.sort((a, b) => vcNormDate(a.tradingDate).localeCompare(vcNormDate(b.tradingDate)));
+            rows = dedupeByDate(rows);
+
+            const out = {
+                dates: [], opens: [], highs: [], lows: [], closes: [],
+                totalBuyUnmatchedVolume: [], totalSellUnmatchedVolume: [],
+                averageBuyTradeVolume: [], averageSellTradeVolume: [], foreignNetValueTotal: [],
+                // % room ngoại tối đa & % đang sở hữu — CHỈ có ở endpoint cổ phiếu
+                // (company/{ticker}/price-history), market-indices/history (VNINDEX)
+                // không trả 2 field này nên sẽ luôn là null ở nhánh isIndex.
+                foreignRoomPercentage: [], foreignOwnedPercentage: []
+            };
+            rows.forEach(rec => {
+                out.dates.push(vcNormDate(rec.tradingDate));
+                out.opens.push(isIndex ? rec.openIndex : rec.openPriceAdjusted);
+                out.highs.push(isIndex ? rec.highestIndex : rec.highestPriceAdjusted);
+                out.lows.push(isIndex ? rec.lowestIndex : rec.lowestPriceAdjusted);
+                out.closes.push(isIndex ? rec.closeIndex : rec.closePriceAdjusted);
+                out.totalBuyUnmatchedVolume.push(rec.totalBuyUnmatchedVolume);
+                out.totalSellUnmatchedVolume.push(rec.totalSellUnmatchedVolume);
+                out.averageBuyTradeVolume.push(rec.averageBuyTradeVolume);
+                out.averageSellTradeVolume.push(rec.averageSellTradeVolume);
+                out.foreignNetValueTotal.push(rec.foreignNetValueTotal);
+                out.foreignRoomPercentage.push(isIndex ? null : rec.foreignRoomPercentage);
+                out.foreignOwnedPercentage.push(isIndex ? null : rec.foreignOwnedPercentage);
+            });
+            vietcapPriceCache[code] = out;
+            return out;
+        }
+
+        // Lấy + chuẩn hoá P/E, P/B theo ngày — endpoint DÙNG CHUNG cho mã cổ
+        // phiếu hoặc "VNINDEX". Không có sẵn field trung vị/trung bình.
+        async function fetchVietcapRatioHistory(code, lengthReport = 10) {
+            if (Object.prototype.hasOwnProperty.call(vietcapRatioCache, code)) return vietcapRatioCache[code];
+            const url = `https://iq.vietcap.com.vn/api/iq-insight-service/v1/company-ratio-daily/${encodeURIComponent(code)}?lengthReport=${lengthReport}`;
+            const r = await fetch(url, { headers: VC_HEADERS });
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            const json = await r.json();
+            let rows = (json && json.data) || [];
+            if (!rows.length) { vietcapRatioCache[code] = null; return null; }
+
+            rows.sort((a, b) => vcNormDate(a.tradingDate).localeCompare(vcNormDate(b.tradingDate)));
+            rows = dedupeByDate(rows);
+
+            const out = { dates: [], pe: [], pb: [] };
+            rows.forEach(rec => {
+                out.dates.push(vcNormDate(rec.tradingDate));
+                out.pe.push(rec.pe);
+                out.pb.push(rec.pb);
+            });
+            vietcapRatioCache[code] = out;
+            return out;
+        }
+
+        // ── Tiện ích số học dùng chung cho tab Thống kê giao dịch ──
+        function median(values) {
+            const v = values.filter(x => x !== null && x !== undefined && !isNaN(x)).sort((a, b) => a - b);
+            if (!v.length) return null;
+            const mid = Math.floor(v.length / 2);
+            return v.length % 2 ? v[mid] : (v[mid - 1] + v[mid]) / 2;
+        }
+        function sma(values, period) {
+            const out = new Array(values.length).fill(null);
+            for (let i = period - 1; i < values.length; i++) {
+                let sum = 0, ok = true;
+                for (let k = 0; k < period; k++) {
+                    const v = values[i - k];
+                    if (v === null || v === undefined) { ok = false; break; }
+                    sum += v;
+                }
+                out[i] = ok ? sum / period : null;
+            }
+            return out;
+        }
+
+        // ============================================================
+        //   TAB "THỐNG KÊ GIAO DỊCH" — 5 biểu đồ cho 1 mã bất kỳ
+        //   (tái dùng mkChart/d2ts/ohlcv/lineData/syncCharts/LWC_THEME v.v.
+        //   đã có sẵn cho hệ 4-panel ở trên)
+        // ============================================================
+        let statsCurrentCode = null;
+        let statsPriceData = null;
+        let statsRatioData = null;
+
+        const STATS_CHART_DEFS = [
+            { idx: 1, label: '💰 Giá & Dư mua/bán', desc: 'Đường giá (trắng đậm) so với cột dư mua (xanh) — cột hiệu số dư mua trừ dư bán (hồng tương phản) chồng lên trên: còn dương (nằm trong lòng cột xanh) là dư mua áp đảo, quay xuống dưới đường 0 là dư bán áp đảo.' },
+            { idx: 2, label: '📦 Giá & KLTB lệnh', desc: 'Đường giá đậm đổi màu: trắng khi KLTB mua ≥ KLTB bán, cam khi ngược lại. Cột cyan là KLTB lệnh mua, cột hồng tương phản là hiệu số KLTB mua trừ bán — quay xuống dưới đường 0 khi KLTB bán vượt trội.' },
+            { idx: 3, label: '🌍 Giá & Dòng tiền khối ngoại (MA5)', desc: 'Đường giá đậm đổi màu theo MA5 giá trị ròng khối ngoại: trắng khi MA5 > 0 (mua ròng), cam khi MA5 < 0 (bán ròng). Cột xanh/đỏ bên dưới thể hiện đúng MA5 đó theo dấu.' },
+            { idx: 6, label: '🌐 Room ngoại (%)', desc: 'Đường cam nét đứt là % sở hữu tối đa (room) khối ngoại được phép; đường trắng nét đậm là % đang thực sở hữu. Đường trắng càng sát đường cam là room ngoại càng cạn. Chỉ có dữ liệu với mã cổ phiếu, không áp dụng cho VNINDEX.' },
+            { idx: 4, label: '📐 P/E & Trung vị', desc: 'Diễn biến P/E theo ngày so với đường trung vị lịch sử — P/E dưới trung vị thường hàm ý định giá rẻ hơn so với quá khứ.' },
+            { idx: 5, label: '📐 P/B & Trung vị', desc: 'Diễn biến P/B theo ngày so với đường trung vị lịch sử.' }
+        ];
+
+        function renderStatsChart1(mountId, data, instances, opts = {}) {
+            const root = document.getElementById(mountId);
+            if (!root) return null;
+            root.innerHTML = ''; root.style.display = 'flex'; root.style.flexDirection = 'column';
+
+            const h1 = opts.h1 || 420, h2 = opts.h2 || 180;
+            const d1 = document.createElement('div'); d1.style.cssText = `flex:none;height:${h1}px;`;
+            const d2 = document.createElement('div'); d2.style.cssText = `flex:none;height:${h2}px;border-top:1px solid rgba(255,255,255,0.04);`;
+            root.append(d1, d2);
+
+            // Đường giá (nét đậm) đổi màu theo ngày: trắng khi dư mua ≥ dư bán,
+            // cam khi dư mua < dư bán.
+            const { chart: c1, ro: ro1 } = mkChart(d1, h1, data.dates);
+            instances.push({ chart: c1, ro: ro1 });
+            const priceColorsC1 = data.dates.map((_, i) => {
+                const b = data.totalBuyUnmatchedVolume[i], s = data.totalSellUnmatchedVolume[i];
+                return (b !== null && b !== undefined && s !== null && s !== undefined && b < s) ? '#f59e0b' : '#ffffff';
+            });
+            addColoredLineSegments(c1, data.dates, data.closes, priceColorsC1, 1, 3);
+
+            // Cột KL dư mua (nền, luôn dương) + cột hiệu số (dư mua - dư bán) chồng
+            // lên trên bằng màu tương phản tối đa — hiệu số dương thì "lộ" ra trong
+            // lòng cột dư mua (2 màu = dư mua áp đảo), hiệu số âm thì quay xuống
+            // dưới đường 0 (báo dư bán áp đảo) — không vẽ riêng cột dư bán nữa.
+            const { chart: c2, ro: ro2 } = mkChart(d2, h2, data.dates);
+            instances.push({ chart: c2, ro: ro2 });
+            const buyData = [], diffData = [];
+            for (let i = 0; i < data.dates.length; i++) {
+                const t = d2ts(data.dates[i]);
+                const buy = data.totalBuyUnmatchedVolume[i];
+                const sell = data.totalSellUnmatchedVolume[i];
+                if (buy !== null && buy !== undefined) buyData.push({ time: t, value: buy });
+                if (buy !== null && buy !== undefined && sell !== null && sell !== undefined) {
+                    diffData.push({ time: t, value: buy - sell });
+                }
+            }
+            c2.addHistogramSeries({ color: '#00ff6a', priceLineVisible: false, title: '' }).setData(buyData);
+            c2.addHistogramSeries({ color: '#ff00ff', priceLineVisible: false, title: '' }).setData(diffData);
+
+            syncCharts([c1, c2]);
+            applyDefaultChartRange(c1, data.dates, 90);
+            return c1;
+        }
+
+        function renderStatsChart2(mountId, data, instances, opts = {}) {
+            const root = document.getElementById(mountId);
+            if (!root) return null;
+            root.innerHTML = ''; root.style.display = 'flex'; root.style.flexDirection = 'column';
+
+            // Tách hẳn 2 pane như biểu đồ Dư mua/bán: pane trên là giá, pane dưới
+            // là KLTB — tránh chồng 2 trục giá gây rối mắt.
+            const h1 = opts.h1 || 420, h2 = opts.h2 || 180;
+            const d1 = document.createElement('div'); d1.style.cssText = `flex:none;height:${h1}px;`;
+            const d2 = document.createElement('div'); d2.style.cssText = `flex:none;height:${h2}px;border-top:1px solid rgba(255,255,255,0.04);`;
+            root.append(d1, d2);
+
+            // Đường giá (nét đậm) đổi màu theo ngày: trắng khi KLTB mua ≥ KLTB
+            // bán, cam khi KLTB mua < KLTB bán — thay cho biểu đồ nến cũ.
+            const { chart: c1, ro: ro1 } = mkChart(d1, h1, data.dates);
+            instances.push({ chart: c1, ro: ro1 });
+            const priceColors = data.dates.map((_, i) => {
+                const b = data.averageBuyTradeVolume[i], s = data.averageSellTradeVolume[i];
+                return (b !== null && b !== undefined && s !== null && s !== undefined && b < s) ? '#f59e0b' : '#ffffff';
+            });
+            addColoredLineSegments(c1, data.dates, data.closes, priceColors, 1, 3);
+
+            // Cột KLTB lệnh mua (nền) + cột hiệu số KLTB mua - KLTB bán chồng lên
+            // trên bằng màu tương phản — không vẽ riêng đường/cột KLTB bán nữa.
+            const { chart: c2, ro: ro2 } = mkChart(d2, h2, data.dates);
+            instances.push({ chart: c2, ro: ro2 });
+            const kltbBuyData = [], kltbDiffData = [];
+            for (let i = 0; i < data.dates.length; i++) {
+                const t = d2ts(data.dates[i]);
+                const b = data.averageBuyTradeVolume[i], s = data.averageSellTradeVolume[i];
+                if (b !== null && b !== undefined) kltbBuyData.push({ time: t, value: b });
+                if (b !== null && b !== undefined && s !== null && s !== undefined) kltbDiffData.push({ time: t, value: b - s });
+            }
+            c2.addHistogramSeries({ color: '#00f0ff', priceLineVisible: false, title: '' }).setData(kltbBuyData);
+            c2.addHistogramSeries({ color: '#ff007f', priceLineVisible: false, title: '' }).setData(kltbDiffData);
+
+            syncCharts([c1, c2]);
+            applyDefaultChartRange(c1, data.dates, 90);
+            return c1;
+        }
+
+        function renderStatsChart3(mountId, data, instances, opts = {}) {
+            const root = document.getElementById(mountId);
+            if (!root) return null;
+            root.innerHTML = ''; root.style.display = 'flex'; root.style.flexDirection = 'column';
+
+            // Tách hẳn 2 pane như biểu đồ Dư mua/bán: pane trên là giá (nến),
+            // pane dưới là MA5 dòng tiền khối ngoại — tránh chồng 2 trục giá.
+            const h1 = opts.h1 || 420, h2 = opts.h2 || 180;
+            const d1 = document.createElement('div'); d1.style.cssText = `flex:none;height:${h1}px;`;
+            const d2 = document.createElement('div'); d2.style.cssText = `flex:none;height:${h2}px;border-top:1px solid rgba(255,255,255,0.04);`;
+            root.append(d1, d2);
+
+            // Đường giá (nét đậm) đổi màu theo MA5 giá trị ròng khối ngoại: trắng
+            // khi MA5 > 0 (mua ròng), cam khi MA5 < 0 (bán ròng) — thay cho nến.
+            const ma5 = sma(data.foreignNetValueTotal, 5);
+            const { chart: c1, ro: ro1 } = mkChart(d1, h1, data.dates);
+            instances.push({ chart: c1, ro: ro1 });
+            const priceColorsC3 = data.dates.map((_, i) => {
+                const v = ma5[i];
+                return (v !== null && v !== undefined && v < 0) ? '#f59e0b' : '#ffffff';
+            });
+            addColoredLineSegments(c1, data.dates, data.closes, priceColorsC3, 1, 3);
+
+            const { chart: c2, ro: ro2 } = mkChart(d2, h2, data.dates);
+            instances.push({ chart: c2, ro: ro2 });
+            const histData = [];
+            for (let i = 0; i < data.dates.length; i++) {
+                const v = ma5[i];
+                if (v === null || v === undefined) continue;
+                histData.push({ time: d2ts(data.dates[i]), value: v, color: v >= 0 ? 'rgba(52,211,153,0.7)' : 'rgba(248,113,113,0.7)' });
+            }
+            c2.addHistogramSeries({ priceLineVisible: false, title: '' }).setData(histData);
+
+            syncCharts([c1, c2]);
+            applyDefaultChartRange(c1, data.dates, 90);
+            return c1;
+        }
+
+        // Biểu đồ Room ngoại — độc lập hoàn toàn, không đồng bộ zoom với chart
+        // khác. Đường cam nét đứt = % sở hữu tối đa (room), đường trắng nét
+        // đậm = % đang sở hữu thực tế. Chỉ có dữ liệu với mã cổ phiếu (API
+        // price-history của VNINDEX không trả 2 field này).
+        function renderStatsChart6(mountId, data, instances, opts = {}) {
+            const root = document.getElementById(mountId);
+            if (!root) return null;
+            root.innerHTML = ''; root.style.display = 'flex'; root.style.flexDirection = 'column';
+
+            const h = opts.h || 600;
+            const d1 = document.createElement('div'); d1.style.cssText = `flex:none;height:${h}px;`;
+            root.appendChild(d1);
+
+            const { chart, ro } = mkChart(d1, h, data.dates);
+            instances.push({ chart, ro });
+
+            const ownedData = [], roomData = [];
+            for (let i = 0; i < data.dates.length; i++) {
+                const t = d2ts(data.dates[i]);
+                const owned = data.foreignOwnedPercentage[i];
+                const room = data.foreignRoomPercentage[i];
+                if (owned !== null && owned !== undefined) ownedData.push({ time: t, value: owned * 100 });
+                if (room !== null && room !== undefined) roomData.push({ time: t, value: room * 100 });
+            }
+            chart.addLineSeries({ color: '#f59e0b', lineWidth: 2, lineStyle: 2, priceLineVisible: false, title: '' }).setData(roomData);
+            chart.addLineSeries({ color: '#ffffff', lineWidth: 3, priceLineVisible: false, title: '' }).setData(ownedData);
+
+            applyDefaultChartRange(chart, data.dates, 90);
+            return chart;
+        }
+
+        function renderStatsRatioChart(mountId, ratioData, instances, col, color, opts = {}) {
+            const root = document.getElementById(mountId);
+            if (!root) return null;
+            root.innerHTML = ''; root.style.display = 'flex'; root.style.flexDirection = 'column';
+
+            const h = opts.h || 600;
+            const d1 = document.createElement('div'); d1.style.cssText = `flex:none;height:${h}px;`;
+            root.appendChild(d1);
+
+            const { chart, ro } = mkChart(d1, h, ratioData.dates);
+            instances.push({ chart, ro });
+
+            chart.addLineSeries({ color, lineWidth: 2, priceLineVisible: false, title: '' }).setData(lineData(ratioData, col, 1));
+
+            const med = median(ratioData[col]);
+            if (med !== null && ratioData.dates.length > 1) {
+                chart.addLineSeries({ color: 'rgba(255,255,255,0.45)', lineWidth: 1, lineStyle: 2, priceLineVisible: false, title: '' })
+                    .setData([
+                        { time: d2ts(ratioData.dates[0]), value: med },
+                        { time: d2ts(ratioData.dates[ratioData.dates.length - 1]), value: med }
+                    ]);
+            }
+
+            applyDefaultChartRange(chart, ratioData.dates, 90);
+            return chart;
+        }
+        const renderStatsChart4 = (mountId, ratioData, instances, opts) => renderStatsRatioChart(mountId, ratioData, instances, 'pe', '#60a5fa', opts);
+        const renderStatsChart5 = (mountId, ratioData, instances, opts) => renderStatsRatioChart(mountId, ratioData, instances, 'pb', '#fbbf24', opts);
+
+        async function renderStatsTab(code) {
+            statsCurrentCode = code;
+            const area = document.getElementById('statsResultArea');
+            if (!area) return;
+
+            area.innerHTML = `
+                <section class="card interactive-chart-section" style="margin-top: 20px;">
+                    <div class="chart-panel-header">
+                        <span class="chart-panel-title">📉 Thống kê giao dịch ${code}</span>
+                        <span class="chart-hint"><span>🖥️ Cuộn zoom · Kéo pan · ⛶ Toàn màn hình</span></span>
+                    </div>
+                    <div class="chart-grid-4" id="statsChartGrid">
+                        ${STATS_CHART_DEFS.map(d => `
+                            <div class="chart-cell">
+                                <div class="chart-cell-header">
+                                    <span class="chart-cell-label">${d.label}</span>
+                                    <button class="chart-expand-btn" onclick="expandStatsChart(${d.idx})">⛶ Mở rộng</button>
+                                </div>
+                                <div class="chart-cell-body" id="statsChart-mount-${d.idx}"></div>
+                                <div class="chart-cell-footer">💡 <strong>Ý nghĩa:</strong> ${d.desc}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </section>
+            `;
+
+            STATS_CHART_DEFS.forEach(d => {
+                const mid = `statsChart-mount-${d.idx}`;
+                destroyMount(mid);
+                cellLoading(mid, `Đang tải ${code}...`);
+            });
+
+            const [priceResult, ratioResult] = await Promise.allSettled([
+                fetchVietcapPriceHistory(code),
+                fetchVietcapRatioHistory(code)
+            ]);
+
+            statsPriceData = priceResult.status === 'fulfilled' ? priceResult.value : null;
+            statsRatioData = ratioResult.status === 'fulfilled' ? ratioResult.value : null;
+
+            if (!statsPriceData && !statsRatioData) {
+                STATS_CHART_DEFS.forEach(d => cellError(`statsChart-mount-${d.idx}`, `Không tìm thấy dữ liệu cho mã "${code}". Kiểm tra lại mã cổ phiếu.`));
+                return;
+            }
+
+            const priceRenders = { 1: renderStatsChart1, 2: renderStatsChart2, 3: renderStatsChart3 };
+            [1, 2, 3].forEach(idx => {
+                const mid = `statsChart-mount-${idx}`;
+                if (statsPriceData) {
+                    const inst = [];
+                    lwcInstances[mid] = inst;
+                    priceRenders[idx](mid, statsPriceData, inst);
+                } else {
+                    cellError(mid, `Không có dữ liệu giá/khối lượng cho mã "${code}".`);
+                }
+            });
+
+            // Chart 6 (Room ngoại): chỉ có dữ liệu với mã cổ phiếu — endpoint
+            // của VNINDEX không trả foreignRoomPercentage/foreignOwnedPercentage.
+            {
+                const mid = 'statsChart-mount-6';
+                const hasRoomData = statsPriceData && (statsPriceData.foreignOwnedPercentage || []).some(v => v !== null && v !== undefined);
+                if (hasRoomData) {
+                    const inst = [];
+                    lwcInstances[mid] = inst;
+                    renderStatsChart6(mid, statsPriceData, inst);
+                } else if (statsPriceData) {
+                    cellError(mid, `Không có dữ liệu room ngoại cho "${code}" (chỉ áp dụng cho mã cổ phiếu, không có với VNINDEX).`);
+                } else {
+                    cellError(mid, `Không có dữ liệu cho mã "${code}".`);
+                }
+            }
+
+            const ratioRenders = { 4: renderStatsChart4, 5: renderStatsChart5 };
+            [4, 5].forEach(idx => {
+                const mid = `statsChart-mount-${idx}`;
+                if (statsRatioData) {
+                    const inst = [];
+                    lwcInstances[mid] = inst;
+                    ratioRenders[idx](mid, statsRatioData, inst);
+                } else {
+                    cellError(mid, `Không có dữ liệu P/E, P/B cho mã "${code}".`);
+                }
+            });
+        }
+
+        function submitStatsTicker() {
+            const input = document.getElementById('statsTickerInput');
+            const code = (input.value || '').trim().toUpperCase();
+            if (!code) return;
+            requireStatsPassword(() => renderStatsTab(code));
+        }
+
+        // Mở rộng toàn màn hình 1 trong 5 biểu đồ — tái dùng modal
+        // #chartFsModal/closeChartFullscreen() có sẵn, nguồn dữ liệu lấy từ
+        // cache Vietcap riêng (khác historyCache của hệ 4-panel theo ngành).
+        function expandStatsChart(idx) {
+            const modal = document.getElementById('chartFsModal');
+            const title = document.getElementById('chartFsTitle');
+            const fsMt = document.getElementById('chartFsMount');
+            if (!modal) return;
+            if (!statsCurrentCode) { alert('Chưa có dữ liệu. Hãy tra cứu 1 mã trước.'); return; }
+
+            const def = STATS_CHART_DEFS.find(d => d.idx === idx);
+            title.textContent = `${def ? def.label : 'Biểu đồ'} — ${statsCurrentCode}`;
+
+            const fsControls = document.getElementById('chartFsControls');
+            if (fsControls) { fsControls.style.display = 'none'; fsControls.innerHTML = ''; }
+
+            fsInstances.forEach(it => { try { it.ro && it.ro.disconnect(); } catch (e) {} try { it.chart && it.chart.remove(); } catch (e) {} });
+            fsInstances = [];
+            fsMt.innerHTML = '';
+
+            modal.classList.add('open');
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    const total = fsMt.offsetHeight || window.innerHeight - 120;
+                    if ((idx === 1 || idx === 2 || idx === 3 || idx === 6) && !statsPriceData) return;
+                    if ((idx === 4 || idx === 5) && !statsRatioData) return;
+                    if (idx === 1) renderStatsChart1('chartFsMount', statsPriceData, fsInstances, { h1: Math.round(total * 0.7), h2: Math.round(total * 0.3) });
+                    else if (idx === 2) renderStatsChart2('chartFsMount', statsPriceData, fsInstances, { h1: Math.round(total * 0.7), h2: Math.round(total * 0.3) });
+                    else if (idx === 3) renderStatsChart3('chartFsMount', statsPriceData, fsInstances, { h1: Math.round(total * 0.7), h2: Math.round(total * 0.3) });
+                    else if (idx === 6) renderStatsChart6('chartFsMount', statsPriceData, fsInstances, { h: total });
+                    else if (idx === 4) renderStatsChart4('chartFsMount', statsRatioData, fsInstances, { h: total });
+                    else if (idx === 5) renderStatsChart5('chartFsMount', statsRatioData, fsInstances, { h: total });
+                });
             });
         }
 
