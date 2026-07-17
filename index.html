@@ -4278,7 +4278,51 @@
             </div>
             `;
         }
-        
+
+        // ── Toggle ẩn/hiện từng đường trên biểu đồ P/E ngành + G / P/B ngành +
+        // ROE (renderSectorFinanceChart) — cùng cơ chế với techChartVisibility
+        // ở trên: 1 cờ trạng thái DÙNG CHUNG cho mọi thẻ finpe/finpb trên toàn
+        // trang (không phân biệt theo mountId/ngành), 1 registry lưu series
+        // theo mountId để áp dụng visible khi người dùng bấm checkbox.
+        const financeChartVisibility = { pe: true, pb: true, growth: true, roe: true, vnindex: true, median: true };
+        const financeChartSeriesRegistry = {}; // { mountId: { pe, pb, growth: [...runs], roe: [...runs], vnindex, median } }
+
+        function toggleFinanceLine(key, checked) {
+            financeChartVisibility[key] = checked;
+            document.querySelectorAll(`.fin-toggle-${key}`).forEach(el => { el.checked = checked; });
+            applyFinanceChartVisibility();
+        }
+
+        function applyFinanceChartVisibility() {
+            for (const mountId in financeChartSeriesRegistry) {
+                const registry = financeChartSeriesRegistry[mountId];
+                if (!registry) continue;
+                for (const key in financeChartVisibility) {
+                    const entry = registry[key];
+                    if (!entry) continue;
+                    const seriesArr = Array.isArray(entry) ? entry : [entry];
+                    seriesArr.forEach(s => { try { s.applyOptions({ visible: financeChartVisibility[key] }); } catch (e) {} });
+                }
+            }
+        }
+
+        // chartType: 'finpe' (P/E + G) hoặc 'finpb' (P/B + ROE) — mỗi loại chỉ
+        // hiện toggle của đúng 2 chỉ số nó vẽ, cộng thêm VNINDEX + Trung vị.
+        function getFinanceTogglesHtml(chartType) {
+            const dailyKey = chartType === 'finpe' ? 'pe' : 'pb';
+            const dailyLabel = chartType === 'finpe' ? 'P/E' : 'P/B';
+            const metricKey = chartType === 'finpe' ? 'growth' : 'roe';
+            const metricLabel = chartType === 'finpe' ? 'G' : 'ROE';
+            return `
+            <div class="chart-toggles-container">
+                <label><input type="checkbox" class="fin-toggle-${dailyKey}" ${financeChartVisibility[dailyKey] ? 'checked' : ''} onchange="toggleFinanceLine('${dailyKey}', this.checked)"> ${dailyLabel}</label>
+                <label><input type="checkbox" class="fin-toggle-${metricKey}" ${financeChartVisibility[metricKey] ? 'checked' : ''} onchange="toggleFinanceLine('${metricKey}', this.checked)"> ${metricLabel}</label>
+                <label><input type="checkbox" class="fin-toggle-vnindex" ${financeChartVisibility.vnindex ? 'checked' : ''} onchange="toggleFinanceLine('vnindex', this.checked)"> VNINDEX</label>
+                <label><input type="checkbox" class="fin-toggle-median" ${financeChartVisibility.median ? 'checked' : ''} onchange="toggleFinanceLine('median', this.checked)"> Trung vị</label>
+            </div>
+            `;
+        }
+
         // Pagination logic
         let displayedCount = 0;
         const PAGE_SIZE = 24;
@@ -5637,25 +5681,31 @@
                             </div>
                         </div>
                         <div class="chart-cell">
-                            <div class="chart-cell-header">
-                                <span class="chart-cell-label">💹 P/E ngành + Tăng trưởng LNST</span>
+                            <div class="chart-cell-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                    <span class="chart-cell-label">💹 P/E ngành + Tăng trưởng LNST</span>
+                                    ${getFinanceTogglesHtml('finpe')}
+                                </div>
                                 <button class="chart-expand-btn" onclick="expandChart('${containerId}','finpe')">⛶ Mở rộng</button>
                             </div>
                             <div class="chart-cell-body" id="${containerId}-mount-finpe"></div>
                             <div class="chart-cell-evaluation" id="${containerId}-eval-finpe"></div>
                             <div class="chart-cell-footer">
-                                💡 <strong>Ý nghĩa:</strong> P/E ngành theo phiên (đường, trục phải) so với tăng trưởng LNST cùng kỳ theo quý (cột bậc thang, trục trái) — dữ liệu tài chính cập nhật qua Action "Update finance vietcap".
+                                💡 <strong>Ý nghĩa:</strong> P/E ngành theo phiên (đường, trục phải) so với tăng trưởng LNST cùng kỳ theo quý (đường nối các quý, trục trái, đơn vị %) — đường ngang mờ là trung vị P/E toàn bộ lịch sử, đường trắng đậm (trục riêng bên dưới) là giá VNINDEX — dữ liệu tài chính cập nhật qua Action "Update finance vietcap".
                             </div>
                         </div>
                         <div class="chart-cell">
-                            <div class="chart-cell-header">
-                                <span class="chart-cell-label">📐 P/B ngành + ROE</span>
+                            <div class="chart-cell-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                    <span class="chart-cell-label">📐 P/B ngành + ROE</span>
+                                    ${getFinanceTogglesHtml('finpb')}
+                                </div>
                                 <button class="chart-expand-btn" onclick="expandChart('${containerId}','finpb')">⛶ Mở rộng</button>
                             </div>
                             <div class="chart-cell-body" id="${containerId}-mount-finpb"></div>
                             <div class="chart-cell-evaluation" id="${containerId}-eval-finpb"></div>
                             <div class="chart-cell-footer">
-                                💡 <strong>Ý nghĩa:</strong> P/B ngành theo phiên (đường, trục phải) so với ROE theo quý (cột bậc thang, trục trái) — ROE tính theo LNST 4 quý gần nhất chia VCSH quý hiện tại.
+                                💡 <strong>Ý nghĩa:</strong> P/B ngành theo phiên (đường, trục phải) so với ROE theo quý (đường nối các quý, trục trái, đơn vị %) — ROE tính theo LNST 4 quý gần nhất chia VCSH quý hiện tại. Đường ngang mờ là trung vị P/B toàn bộ lịch sử, đường trắng đậm (trục riêng bên dưới) là giá VNINDEX.
                             </div>
                         </div>
                     </div>
@@ -6208,19 +6258,19 @@
             if (el) el.innerHTML = '';
         }
 
-        function mkChart(hostEl, h, dates = null, extraOpts = {}) {
+        function mkChart(hostEl, h, dates = null, extraOpts = {}, autoRangeDays = 90) {
             hostEl.style.height = h + 'px';
-            
+
             const formatOpts = window.isCurrentIndex ? {
                 localization: {
                     priceFormatter: p => Math.round(p).toString()
                 }
             } : {};
-            
+
             const chart = LightweightCharts.createChart(hostEl, {
-                ...LWC_THEME, 
-                width: hostEl.clientWidth || 100, 
-                height: h, 
+                ...LWC_THEME,
+                width: hostEl.clientWidth || 100,
+                height: h,
                 ...formatOpts,
                 ...extraOpts
             });
@@ -6229,10 +6279,10 @@
                 const w = hostEl.clientWidth;
                 if (w > 0) {
                     chart.resize(w, hostEl.offsetHeight || h);
-                    if (dates && !rangeSet) {
+                    if (dates && !rangeSet && autoRangeDays !== null) {
                         rangeSet = true;
                         requestAnimationFrame(() => {
-                            applyDefaultChartRange(chart, dates, 90);
+                            applyDefaultChartRange(chart, dates, autoRangeDays);
                         });
                     }
                 }
@@ -6968,37 +7018,55 @@
             return runs;
         }
 
-        // ── P/E hoặc P/B ngành theo phiên (trục phải, vẽ liên tục theo đúng
-        // biến động vốn hóa thực tế mỗi ngày) + ROE/tăng trưởng LNST theo quý
-        // (trục trái, đường mượt nối các quý có dữ liệu, để trống hẳn ở quý
-        // chưa công bố BCTC) — 1 pane, 2 trục giá. ──
-        function renderSectorFinanceChart(mountId, financeData, instances, dailyCol, dailyColor, quarterlyCol, quarterlyColor, opts = {}) {
+        // ── P/E hoặc P/B ngành theo phiên (trục phải, liên tục theo đúng biến
+        // động vốn hóa thực tế) + ROE/tăng trưởng LNST theo quý (trục trái, để
+        // trống hẳn ở quý chưa công bố BCTC) + trung vị NGÀNH ALL-TIME (đường
+        // ngang, trục phải) — pane 1; + giá VNINDEX (đường trắng đậm, trục
+        // riêng có thể co kéo) — pane 2, đồng bộ trục thời gian với pane 1. ──
+        async function renderSectorFinanceChart(mountId, financeData, instances, dailyCol, dailyColor, quarterlyCol, quarterlyColor, opts = {}) {
             const root = document.getElementById(mountId);
             if (!root) return null;
             root.innerHTML = ''; root.style.display = 'flex'; root.style.flexDirection = 'column';
 
-            const h = opts.h || 260;
-            const d1 = document.createElement('div'); d1.style.cssText = `flex:none;height:${h}px;`;
-            root.appendChild(d1);
+            const h1 = opts.h1 || 440, h2 = opts.h2 || 160;
+            const d1 = document.createElement('div'); d1.style.cssText = `flex:none;height:${h1}px;`;
+            const d2 = document.createElement('div'); d2.style.cssText = `flex:none;height:${h2}px;border-top:1px solid rgba(255,255,255,0.04);`;
+            root.append(d1, d2);
 
             const daily = (financeData && financeData.daily) || { dates: [] };
             const quarterly = (financeData && financeData.quarterly) || { labels: [] };
             const dDates = daily.dates || [];
 
-            const { chart, ro } = mkChart(d1, h, dDates, {
-                leftPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.15, bottom: 0.15 } },
-                rightPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.1, bottom: 0.1 } }
-            });
+            const dailyKey = dailyCol;                                   // 'pe' | 'pb' — cũng là key trong registry
+            const metricKey = quarterlyCol === 'roe' ? 'roe' : 'growth';  // key trong registry, khác tên cột JSON (yoy_lnst_growth)
+
+            // Margin hẹp (5%) để đường kẻ chiếm gần hết chiều cao pane. Bỏ qua
+            // auto-range 90 ngày mặc định của mkChart (autoRangeDays=null) —
+            // biểu đồ này luôn mặc định xem toàn bộ lịch sử, tự zoom khi cần.
+            const { chart, ro } = mkChart(d1, h1, dDates, {
+                leftPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.05, bottom: 0.05 } },
+                rightPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.05, bottom: 0.05 } }
+            }, null);
             instances.push({ chart, ro });
 
-            // Đường mượt theo từng quý (ROE hoặc tăng trưởng LNST) — trục trái.
-            // lineType: 2 (Curved) của lightweight-charts để nhìn mềm mại, hài
-            // hòa hơn thay vì bậc thang như trước.
+            const registry = { pe: null, pb: null, growth: [], roe: [], vnindex: null, median: null };
+
+            // Đường theo từng quý (ROE hoặc tăng trưởng LNST) — trục trái, nét
+            // thẳng (không dùng lineType Curved nữa — nội suy cong giữa các
+            // điểm quý thưa dễ overshoot vọt quá giá trị thật, gây cảm giác
+            // trục nhảy vô lý khi zoom/pan). Định dạng % vì ROE/G là tỉ lệ.
             const labels = quarterly.labels || [];
             const qValues = quarterly[quarterlyCol] || [];
             const segments = buildQuarterlySegments(labels, qValues);
+            const percentFormat = { type: 'custom', minMove: 0.0001, formatter: v => (v * 100).toFixed(1) + '%' };
             segments.forEach(seg => {
-                chart.addLineSeries({ priceScaleId: 'left', color: quarterlyColor, lineWidth: 2, lineType: 2, priceLineVisible: false, lastValueVisible: false, title: '' }).setData(seg);
+                const s = chart.addLineSeries({
+                    priceScaleId: 'left', color: quarterlyColor, lineWidth: 2,
+                    priceLineVisible: false, lastValueVisible: false, title: '',
+                    priceFormat: percentFormat,
+                    visible: financeChartVisibility[metricKey],
+                }).setData(seg);
+                registry[metricKey].push(s);
             });
 
             // Đường P/E hoặc P/B hàng ngày (liên tục, theo đúng vốn hóa thực tế) — trục phải
@@ -7009,37 +7077,65 @@
                 if (v === null || v === undefined) continue;
                 dSeries.push({ time: d2ts(dDates[i]), value: v });
             }
-            chart.addLineSeries({ priceScaleId: 'right', color: dailyColor, lineWidth: 3, priceLineVisible: false, title: '' }).setData(dSeries);
+            registry[dailyKey] = chart.addLineSeries({
+                priceScaleId: 'right', color: dailyColor, lineWidth: 3, priceLineVisible: false, title: '',
+                visible: financeChartVisibility[dailyKey],
+            }).setData(dSeries);
 
-            // Đường trung vị (median) toàn ngành theo ngày — cùng trục phải với
-            // P/E hoặc P/B tổng hợp ngành, nét đứt để phân biệt.
-            const medianCol = opts.dailyMedianCol;
-            if (medianCol && daily[medianCol]) {
-                const medValues = daily[medianCol];
-                const medSeries = [];
-                for (let i = 0; i < dDates.length; i++) {
-                    const v = medValues[i];
-                    if (v === null || v === undefined) continue;
-                    medSeries.push({ time: d2ts(dDates[i]), value: v });
-                }
-                if (medSeries.length) {
-                    chart.addLineSeries({
-                        priceScaleId: 'right', color: 'rgba(255,255,255,0.5)', lineWidth: 1, lineStyle: 2,
-                        priceLineVisible: false, lastValueVisible: false, title: 'Trung vị ngành',
-                    }).setData(medSeries);
-                }
+            // Trung vị NGÀNH theo TOÀN BỘ lịch sử (không phải trung vị các mã
+            // trong ngành) — 1 đường ngang phẳng từ ngày đầu đến ngày cuối,
+            // giống hệt cách "trung vị lịch sử" đã làm cho P/E, P/B từng mã ở
+            // tab Thống kê giao dịch (renderStatsRatioChart, dùng lại median()).
+            const med = median(dValues);
+            if (med !== null && dDates.length > 1) {
+                registry.median = chart.addLineSeries({
+                    priceScaleId: 'right', color: 'rgba(255,255,255,0.45)', lineWidth: 1, lineStyle: 2,
+                    priceLineVisible: false, lastValueVisible: false, title: '',
+                    visible: financeChartVisibility.median,
+                }).setData([
+                    { time: d2ts(dDates[0]), value: med },
+                    { time: d2ts(dDates[dDates.length - 1]), value: med },
+                ]);
             }
 
-            if (dDates.length > 0) applyDefaultChartRange(chart, dDates, 365);
-            else chart.timeScale().fitContent();
+            // Ẩn hẳn trục nào không có dữ liệu (VD chưa chạy Import Finance nên
+            // chưa có P/E, P/B hàng ngày) — tránh 1 trục trống vẫn chiếm không
+            // gian/gridline, gây cảm giác "khoảng đen thừa" trên biểu đồ.
+            chart.priceScale('left').applyOptions({ visible: segments.length > 0 });
+            chart.priceScale('right').applyOptions({ visible: dSeries.length > 0 });
+
+            chart.timeScale().fitContent(); // luôn mặc định all-time
+
+            // Pane 2: giá VNINDEX (đường trắng đậm), trục giá RIÊNG (visible +
+            // co kéo được — đây là "trục thứ 3" người dùng muốn; lightweight-
+            // charts chỉ hỗ trợ tối đa 2 trục HIỂN THỊ mỗi pane nên cách đúng
+            // là 1 pane riêng có đúng 1 trục, giống renderStatsChart1/2/3).
+            const { chart: c2, ro: ro2 } = mkChart(d2, h2, null, {}, null);
+            instances.push({ chart: c2, ro: ro2 });
+            try {
+                const vnHistory = opts.vnHistory || await fetchHistory('VNINDEX');
+                const vnData = [];
+                for (let i = 0; i < vnHistory.dates.length; i++) {
+                    if (vnHistory.closes[i]) vnData.push({ time: d2ts(vnHistory.dates[i]), value: vnHistory.closes[i] });
+                }
+                registry.vnindex = c2.addLineSeries({
+                    color: '#ffffff', lineWidth: 3, priceLineVisible: false, title: '',
+                    visible: financeChartVisibility.vnindex,
+                });
+                registry.vnindex.setData(vnData);
+                c2.timeScale().fitContent();
+            } catch (e) { /* Không có lịch sử VNINDEX — bỏ qua êm, pane 2 để trống */ }
+
+            syncCharts([chart, c2]);
+            financeChartSeriesRegistry[mountId] = registry;
             return chart;
         }
 
         function renderSectorFinPeChart(mountId, financeData, instances, opts = {}) {
-            return renderSectorFinanceChart(mountId, financeData, instances, 'pe', '#60a5fa', 'yoy_lnst_growth', '#fbbf24', { ...opts, dailyMedianCol: 'pe_median' });
+            return renderSectorFinanceChart(mountId, financeData, instances, 'pe', '#60a5fa', 'yoy_lnst_growth', '#fbbf24', opts);
         }
         function renderSectorFinPbChart(mountId, financeData, instances, opts = {}) {
-            return renderSectorFinanceChart(mountId, financeData, instances, 'pb', '#c084fc', 'roe', '#34d399', { ...opts, dailyMedianCol: 'pb_median' });
+            return renderSectorFinanceChart(mountId, financeData, instances, 'pb', '#c084fc', 'roe', '#34d399', opts);
         }
 
         // ================================================================
@@ -7099,13 +7195,17 @@
             // lịch sử kỹ thuật ở trên — ngành nào chưa chạy tính năng tài chính
             // vẫn hiện trạng thái rỗng gọn gàng, không lỗi cả dashboard.
             const financeData = await fetchSectorFinance(ticker);
+            // Prefetch VNINDEX 1 lần cho cả finpe lẫn finpb (2 charts cùng
+            // cần đường giá VNINDEX ở pane thứ 2) — tránh gọi fetchHistory 2 lần.
+            let vnHistory = null;
+            try { vnHistory = await fetchHistory('VNINDEX'); } catch (e) {}
             ['finpe', 'finpb'].forEach(type => {
                 const mid = `${mountPrefix}-mount-${type}`;
                 if (financeData) {
                     const inst = [];
                     lwcInstances[mid] = inst;
                     const fn = type === 'finpe' ? renderSectorFinPeChart : renderSectorFinPbChart;
-                    fn(mid, financeData, inst);
+                    fn(mid, financeData, inst, { vnHistory });
                 } else {
                     cellError(mid, `Ngành ${ticker} chưa có dữ liệu tài chính. Hãy chạy Action "Import Finance" hoặc "Update finance vietcap".`);
                 }
@@ -7255,12 +7355,15 @@
             _fsCtx = { mountPrefix, chartType, ticker };
             title.textContent = `${CHART_LABELS[chartType] || chartType} — ${ticker}`;
 
-            // Inject toggles if techreport is expanded
+            // Inject toggles if techreport hoặc finance chart được mở rộng
             const fsControls = document.getElementById('chartFsControls');
             if (fsControls) {
                 if (chartType === 'techreport') {
                     fsControls.style.display = 'block';
                     fsControls.innerHTML = getTechTogglesHtml();
+                } else if (isFinanceChart) {
+                    fsControls.style.display = 'block';
+                    fsControls.innerHTML = getFinanceTogglesHtml(chartType);
                 } else {
                     fsControls.style.display = 'none';
                     fsControls.innerHTML = '';
@@ -7280,7 +7383,8 @@
                     if (isFinanceChart) {
                         const total = fsMt.offsetHeight || window.innerHeight - 120;
                         const fn = chartType === 'finpe' ? renderSectorFinPeChart : renderSectorFinPbChart;
-                        fn('chartFsMount', financeCache[ticker], fsInstances, { h: total });
+                        // Giữ đúng tỉ lệ 440/600 (pane chính) và 160/600 (pane VNINDEX)
+                        fn('chartFsMount', financeCache[ticker], fsInstances, { h1: Math.round(total * 0.73), h2: Math.round(total * 0.27) });
                         return;
                     }
                     const renders = {

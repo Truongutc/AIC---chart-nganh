@@ -983,14 +983,23 @@ def run_csv_import(csv_paths):
     # Cập nhật Registry các mã hoạt động
     storage.save_active_registry(list(affected_tickers))
 
-    # Import New Data CHỈ nạp/làm sạch dữ liệu giá (đã xong ở _clean_dataframe:
-    # phát hiện & lấp phiên biến động sốc/thiếu giá do lỗi). KHÔNG tính chỉ
-    # số ngành/chỉ báo ở đây — vì tính chỉ số ngành theo vốn hóa cần số CP
-    # lưu hành (chỉ Update Stock Data mới lấy được, từ MarketCap của API
-    # Vietstock), Import New Data không có nguồn đó nên không có gì để tính.
-    # Việc tính toán chỉ số ngành + chỉ báo dồn hết vào action Update Stock
-    # Data (run_sync_and_update), chạy sau khi đã có đủ số CP lưu hành.
-    logger.info("[*] Import New Data hoàn tất — dữ liệu giá đã sẵn sàng. Chạy Update Stock Data để tính chỉ số ngành.")
+    # P/E, P/B ngành theo phiên hôm nay — dùng LẠI số CP lưu hành đã lưu sẵn
+    # trong data_storage/ (storage.get_shares_outstanding(), do lần chạy Update
+    # Stock Data gần nhất ghi từ MarketCap API Vietstock — Import New Data
+    # không có nguồn MarketCap riêng nên không tính lại số CP lưu hành, chỉ
+    # dùng giá Close vừa nạp kết hợp số CP lưu hành đã có). Nếu chưa từng chạy
+    # Update Stock Data lần nào (chưa có số CP lưu hành) thì vốn hóa/P-E/P-B
+    # sẽ là None cho ngày đó — không lỗi, tự có số khi Update Stock Data chạy.
+    output_dir = os.path.join(base_path, "Output")
+    try:
+        from tinvest.sector_index_engine import load_sector_groups
+        from tinvest.sector_finance_engine import compute_and_append_daily_sector_finance
+        sector_groups = load_sector_groups()
+        compute_and_append_daily_sector_finance(storage, sector_groups, output_dir)
+    except Exception as e:
+        logger.warning(f"⚠️ Bỏ qua bước P/E, P/B ngành theo ngày (lỗi: {e})")
+
+    logger.info("[*] Import New Data hoàn tất — dữ liệu giá đã sẵn sàng.")
 
 def compute_market_breadth(data_dict):
     """Ported market breadth computation from TinvestApp._update_breadth_from_cache."""

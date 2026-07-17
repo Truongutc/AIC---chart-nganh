@@ -16,12 +16,11 @@ Quy ước công thức (đã thống nhất với người dùng):
 
 import json
 import os
-import statistics
 from datetime import date, timedelta, datetime
 
 import pandas as pd
 
-from tinvest.finance_workbook import quarter_sort_key, WORKBOOK_NAME, load_workbook_from_path
+from tinvest.finance_workbook import quarter_sort_key
 
 LAG_DAYS = 45  # giả định độ trễ công bố BCTC hợp nhất (ngày), đã nêu rõ với người dùng
 
@@ -264,10 +263,22 @@ def sector_market_cap(closes_today, shares_outstanding, tickers):
     return total
 
 
-def compute_sector_quarterly_summary(vcsh_df, lnst_df, sector_groups):
+def compute_sector_quarterly_summary(vcsh_df, lnst_df, sector_groups, today=None):
     """Xây dựng toàn bộ nội dung Output/sector_finance_quarterly.json — tổng
     LNST/VCSH, TTM LNST, ROE, tăng trưởng YoY cho MỌI ngành (kể cả VNINDEX,
-    VNINDEX_NONVIN) x MỌI quý có trong workbook."""
+    VNINDEX_NONVIN) x MỌI quý có trong workbook.
+
+    ROE/yoy_lnst_growth CHỈ được tính cho quý đã "đến hạn công bố" (đã qua
+    LAG_DAYS ngày kể từ ngày kết thúc quý, xem quarter_end_date/LAG_DAYS) —
+    nếu không, dù workbook đã có vài mã báo cáo sớm cho quý đó (VD chỉ 5/302
+    mã), tổng lnst_sum/vcsh_sum của quý đó vẫn phản ánh 1 tập hợp cực kỳ
+    thiếu, chia ra sẽ cho ROE/G sai lệch nghiêm trọng (đã xác nhận thực tế:
+    VNINDEX Q2-2026 từng ra roe=7.5, yoy_lnst_growth=-0.98 do quý đó chưa
+    đến hạn công bố nhưng đã có vài mã báo cáo sớm). lnst_sum/vcsh_sum/
+    ttm_lnst của quý chưa đến hạn vẫn giữ nguyên (dữ liệu thô, có thể cần
+    dùng sau khi quý đó chín muồi), chỉ ROE/G bị ép về None."""
+    if today is None:
+        today = date.today()
     all_quarters = sorted(set(vcsh_df.columns) | set(lnst_df.columns), key=quarter_sort_key)
 
     sectors_out = {}
@@ -298,8 +309,14 @@ def compute_sector_quarterly_summary(vcsh_df, lnst_df, sector_groups):
             trailing_vals = [lnst_sums.get(x) for x in trailing]
             ttm = None if any(v is None for v in trailing_vals) else sum(trailing_vals)
             quarterly[q]["ttm_lnst"] = ttm
-            quarterly[q]["roe"] = sector_roe(ttm, vcsh_sums.get(q))
-            quarterly[q]["yoy_lnst_growth"] = yoy_growth(lnst_sums.get(q), lnst_sums.get(quarter_shift(q, -4)))
+
+            quarter_due = (quarter_end_date(q) + timedelta(days=LAG_DAYS)) <= today
+            if quarter_due:
+                quarterly[q]["roe"] = sector_roe(ttm, vcsh_sums.get(q))
+                quarterly[q]["yoy_lnst_growth"] = yoy_growth(lnst_sums.get(q), lnst_sums.get(quarter_shift(q, -4)))
+            else:
+                quarterly[q]["roe"] = None
+                quarterly[q]["yoy_lnst_growth"] = None
 
             # Tập mã CHÍNH XÁC đã đóng góp vào ttm_lnst / vcsh_sum ở quý này —
             # dùng để giới hạn lại đúng tập mã khi tính vốn hóa cho P/E, P/B
@@ -345,8 +362,7 @@ def _upsert_daily_point(daily, trading_date, values, field_names):
     return daily
 
 
-_STOCK_DAILY_FIELDS = ("market_cap", "pe", "pb", "quarter_used")
-_SECTOR_DAILY_FIELDS = ("market_cap", "pe", "pb", "quarter_used", "pe_median", "pb_median")
+_SECTOR_DAILY_FIELDS = ("market_cap", "pe", "pb", "quarter_used")
 
 
 def compute_and_append_daily_sector_finance(storage, sector_groups, output_dir, trading_date=None):
@@ -354,12 +370,11 @@ def compute_and_append_daily_sector_finance(storage, sector_groups, output_dir, 
     Update finance vietcap ghi) + vốn hóa hôm nay, tính P/E, P/B ngày hôm nay
     cho mọi ngành (P/E ngành = tổng vốn hóa CHỈ tính trên tập mã đã đóng góp
     TTM LNST / tổng vốn hóa CHỈ tính trên tập mã có VCSH quý đó — xem
-    "ttm_tickers"/"vcsh_tickers" trong compute_sector_quarterly_summary,
-    tránh lệch tập mã giữa tử số/mẫu số), cộng thêm P/E, P/B TỪNG MÃ (dùng để
-    tính trung vị ngành và ghi riêng Output/finance/stocks/{TICKER}.json).
-    Append vào Output/finance/{SECTOR}.json. KHÔNG BAO GIỜ raise ra ngoài —
-    nếu chưa có dữ liệu tài chính (chưa chạy Import/Update Finance lần nào)
-    thì bỏ qua êm, không được làm hỏng pipeline hàng ngày."""
+    "ttm_tickers"/"vcsh_tickers" trong compute_sector_quarterly_summary, tránh
+    lệch tập mã giữa tử số/mẫu số). Append vào Output/finance/{SECTOR}.json.
+    KHÔNG BAO GIỜ raise ra ngoài — nếu chưa có dữ liệu tài chính (chưa chạy
+    Import/Update Finance lần nào) thì bỏ qua êm, không được làm hỏng pipeline
+    hàng ngày."""
     summary_path = os.path.join(output_dir, "sector_finance_quarterly.json")
     if not os.path.exists(summary_path):
         print("[SectorFinance] Chưa có sector_finance_quarterly.json — bỏ qua bước P/E, P/B hàng ngày.")
@@ -381,61 +396,9 @@ def compute_and_append_daily_sector_finance(storage, sector_groups, output_dir, 
 
     shares_outstanding = storage.get_shares_outstanding() or {}
     finance_dir = os.path.join(output_dir, "finance")
-    stocks_dir = os.path.join(finance_dir, "stocks")
-    os.makedirs(stocks_dir, exist_ok=True)
-
-    workbook_path = os.path.join(output_dir, WORKBOOK_NAME)
-    vcsh_df = lnst_df = None
-    if os.path.exists(workbook_path):
-        try:
-            wb = load_workbook_from_path(workbook_path)
-            vcsh_df, lnst_df = wb.get("VCSH"), wb.get("LNST")
-        except Exception as e:
-            print(f"[SectorFinance] Lỗi đọc {workbook_path}: {e} — bỏ qua P/E, P/B theo mã (median).")
+    os.makedirs(finance_dir, exist_ok=True)
 
     eff_q = effective_quarter_for_date(trading_date, quarters_sorted)
-    universe = sorted(get_finance_ticker_universe(sector_groups))
-
-    # Vốn hóa + P/E, P/B THEO TỪNG MÃ, tính 1 lần cho cả vũ trụ — tái dùng cho
-    # cả tính trung vị ngành (bên dưới) và ghi Output/finance/stocks/{TICKER}.json.
-    stock_pe_pb = {}
-    for t in universe:
-        close = None
-        try:
-            df = storage.load_ticker_data(t)
-            if df is not None and not df.empty and "Close" in df.columns:
-                close = float(df.iloc[-1]["Close"])
-        except Exception:
-            pass
-
-        mc_t = ticker_market_cap(close, shares_outstanding.get(t))
-        ttm_t = per_ticker_ttm_lnst(lnst_df, t, eff_q) if eff_q else None
-        vcsh_t = None
-        if vcsh_df is not None and eff_q and t in vcsh_df.index and eff_q in vcsh_df.columns:
-            v = vcsh_df.at[t, eff_q]
-            vcsh_t = float(v) if pd.notna(v) else None
-        pe_t = sector_pe(mc_t, ttm_t)
-        pb_t = sector_pb(mc_t, vcsh_t)
-        stock_pe_pb[t] = (pe_t, pb_t)
-
-        stock_path = os.path.join(stocks_dir, f"{t}.json")
-        if os.path.exists(stock_path):
-            try:
-                with open(stock_path, "r", encoding="utf-8") as f:
-                    sdata = json.load(f)
-            except Exception:
-                sdata = {}
-        else:
-            sdata = {}
-        sdata["ticker"] = t
-        daily_s = sdata.setdefault("daily", {"dates": [], "market_cap": [], "pe": [], "pb": [], "quarter_used": []})
-        _upsert_daily_point(daily_s, trading_date, (mc_t, pe_t, pb_t, eff_q), _STOCK_DAILY_FIELDS)
-        sdata["last_update"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        try:
-            with open(stock_path, "w", encoding="utf-8") as f:
-                json.dump(sdata, f, ensure_ascii=False)
-        except Exception as e:
-            print(f"[SectorFinance] Lỗi ghi {stock_path}: {e}")
 
     for code, sector_data in summary.get("sectors", {}).items():
         group_def = sector_groups.get(code, {})
@@ -455,7 +418,6 @@ def compute_and_append_daily_sector_finance(storage, sector_groups, output_dir, 
         market_cap = sector_market_cap(closes_today, shares_outstanding, tickers)
 
         pe = pb = None
-        pe_median = pb_median = None
         if eff_q:
             q_data = sector_data.get("quarterly", {}).get(eff_q, {})
             ttm_tickers = q_data.get("ttm_tickers") or []
@@ -464,11 +426,6 @@ def compute_and_append_daily_sector_finance(storage, sector_groups, output_dir, 
             mc_for_pb = sector_market_cap(closes_today, shares_outstanding, vcsh_tickers)
             pe = sector_pe(mc_for_pe, q_data.get("ttm_lnst"))
             pb = sector_pb(mc_for_pb, q_data.get("vcsh_sum"))
-
-            pe_vals = [stock_pe_pb[t][0] for t in tickers if t in stock_pe_pb and stock_pe_pb[t][0] is not None]
-            pb_vals = [stock_pe_pb[t][1] for t in tickers if t in stock_pe_pb and stock_pe_pb[t][1] is not None]
-            pe_median = statistics.median(pe_vals) if pe_vals else None
-            pb_median = statistics.median(pb_vals) if pb_vals else None
 
         finance_path = os.path.join(finance_dir, f"{code}.json")
         if os.path.exists(finance_path):
@@ -480,10 +437,7 @@ def compute_and_append_daily_sector_finance(storage, sector_groups, output_dir, 
         else:
             fdata = {}
 
-        daily = fdata.setdefault("daily", {
-            "dates": [], "market_cap": [], "pe": [], "pb": [], "quarter_used": [],
-            "pe_median": [], "pb_median": [],
-        })
+        daily = fdata.setdefault("daily", {"dates": [], "market_cap": [], "pe": [], "pb": [], "quarter_used": []})
         for fld in _SECTOR_DAILY_FIELDS:
             daily.setdefault(fld, [None] * len(daily["dates"]))
         fdata["sector"] = code
@@ -494,7 +448,7 @@ def compute_and_append_daily_sector_finance(storage, sector_groups, output_dir, 
         # chạy bù cho 1 ngày trong quá khứ sau khi đã có dữ liệu hôm nay),
         # tránh lặp lại đúng lỗi "time không tăng dần nghiêm ngặt" đã gặp với
         # dữ liệu company-ratio-daily của Vietcap trong tab Thống kê giao dịch.
-        _upsert_daily_point(daily, trading_date, (market_cap, pe, pb, eff_q, pe_median, pb_median), _SECTOR_DAILY_FIELDS)
+        _upsert_daily_point(daily, trading_date, (market_cap, pe, pb, eff_q), _SECTOR_DAILY_FIELDS)
 
         fdata["last_update"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         try:
@@ -523,7 +477,7 @@ def overwrite_quarterly_block(sector_groups, summary, output_dir):
             fdata = {}
 
         fdata["sector"] = code
-        fdata.setdefault("daily", {"dates": [], "market_cap": [], "pe": [], "pb": [], "quarter_used": [], "pe_median": [], "pb_median": []})
+        fdata.setdefault("daily", {"dates": [], "market_cap": [], "pe": [], "pb": [], "quarter_used": []})
 
         quarters = sector_data.get("quarterly", {})
         labels = sorted(quarters.keys(), key=quarter_sort_key)
@@ -593,14 +547,13 @@ def tickers_needing_update(vcsh_df, lnst_df, tickers, expected_quarter):
 
 
 def backfill_daily_sector_finance_history(storage, sector_groups, output_dir):
-    """Tính lại TOÀN BỘ chuỗi P/E, P/B hàng ngày (2019 -> nay) cho mọi ngành
-    VÀ từng mã (2019 -> nay), dùng bởi Import Finance sau khi nạp dữ liệu ban
-    đầu (lúc đó chưa có điểm 'daily' nào). Ghi đè hoàn toàn phần 'daily'
-    (không phải append — đây là thao tác hiếm, tính lại từ đầu là hợp lý),
-    giữ nguyên phần 'quarterly' đã có (do overwrite_quarterly_block() ghi
-    riêng). P/E, P/B ngành dùng đúng quy ước tập mã đã thống nhất ở
-    compute_and_append_daily_sector_finance (ttm_tickers/vcsh_tickers), cộng
-    thêm P/E, P/B trung vị ngành tính từ P/E, P/B từng mã."""
+    """Tính lại TOÀN BỘ chuỗi P/E, P/B hàng ngày (2019 -> nay) cho mọi ngành,
+    dùng bởi Import Finance sau khi nạp dữ liệu ban đầu (lúc đó chưa có điểm
+    'daily' nào). Ghi đè hoàn toàn phần 'daily' (không phải append — đây là
+    thao tác hiếm, tính lại từ đầu là hợp lý), giữ nguyên phần 'quarterly' đã
+    có (do overwrite_quarterly_block() ghi riêng). P/E, P/B ngành dùng đúng
+    quy ước tập mã đã thống nhất ở compute_and_append_daily_sector_finance
+    (ttm_tickers/vcsh_tickers)."""
     summary_path = os.path.join(output_dir, "sector_finance_quarterly.json")
     if not os.path.exists(summary_path):
         print("[SectorFinance] Chưa có sector_finance_quarterly.json — bỏ qua backfill lịch sử.")
@@ -619,15 +572,6 @@ def backfill_daily_sector_finance_history(storage, sector_groups, output_dir):
     for code, group_def in sector_groups.items():
         all_needed_tickers |= set(resolve_finance_sector_tickers(code, group_def, sector_groups))
 
-    workbook_path = os.path.join(output_dir, WORKBOOK_NAME)
-    vcsh_df = lnst_df = None
-    if os.path.exists(workbook_path):
-        try:
-            wb = load_workbook_from_path(workbook_path)
-            vcsh_df, lnst_df = wb.get("VCSH"), wb.get("LNST")
-        except Exception as e:
-            print(f"[SectorFinance] Lỗi đọc {workbook_path}: {e} — bỏ qua P/E, P/B theo mã (median).")
-
     # Nạp trước toàn bộ lịch sử giá của mọi mã cần dùng — tra cứu qua dict
     # trong bộ nhớ thay vì đọc lại parquet mỗi ngày (nhanh hơn nhiều với hàng
     # nghìn phiên x hàng trăm mã).
@@ -639,20 +583,6 @@ def backfill_daily_sector_finance_history(storage, sector_groups, output_dir):
         s = df.set_index(df["Date"].dt.strftime("%Y-%m-%d"))["Close"]
         price_series[t] = s.to_dict()
 
-    # Nạp trước TTM LNST / VCSH quý hiện tại cho mọi cặp (mã, quý) — chỉ
-    # ~vài nghìn tổ hợp, rẻ hơn nhiều so với tính lại mỗi phiên giao dịch
-    # (hàng nghìn phiên) trong vòng lặp theo ngày bên dưới.
-    ttm_cache = {}
-    vcsh_cache = {}
-    for t in all_needed_tickers:
-        for q in quarters_sorted:
-            ttm_cache[(t, q)] = per_ticker_ttm_lnst(lnst_df, t, q)
-            vcsh_v = None
-            if vcsh_df is not None and t in vcsh_df.index and q in vcsh_df.columns:
-                v = vcsh_df.at[t, q]
-                vcsh_v = float(v) if pd.notna(v) else None
-            vcsh_cache[(t, q)] = vcsh_v
-
     vni_df = storage.load_ticker_data("VNINDEX")
     if vni_df is None or vni_df.empty:
         print("[SectorFinance] Không có lịch giao dịch VNINDEX — bỏ qua backfill lịch sử.")
@@ -660,34 +590,13 @@ def backfill_daily_sector_finance_history(storage, sector_groups, output_dir):
     trading_dates = sorted(vni_df["Date"].dt.strftime("%Y-%m-%d").unique())
 
     sector_daily = {
-        code: {"dates": [], "market_cap": [], "pe": [], "pb": [], "quarter_used": [], "pe_median": [], "pb_median": []}
+        code: {"dates": [], "market_cap": [], "pe": [], "pb": [], "quarter_used": []}
         for code in summary.get("sectors", {})
-    }
-    stock_daily = {
-        t: {"dates": [], "market_cap": [], "pe": [], "pb": [], "quarter_used": []}
-        for t in all_needed_tickers
     }
 
     for d in trading_dates:
         eff_q = effective_quarter_for_date(d, quarters_sorted)
         closes_today = {t: price_series[t][d] for t in all_needed_tickers if t in price_series and d in price_series[t]}
-
-        # P/E, P/B TỪNG MÃ cho ngày này — tính 1 lần, tái dùng cho cả trung
-        # vị ngành (bên dưới) và chuỗi lịch sử theo mã.
-        stock_pe_pb = {}
-        for t in all_needed_tickers:
-            mc_t = ticker_market_cap(closes_today.get(t), shares_outstanding.get(t))
-            ttm_t = ttm_cache.get((t, eff_q)) if eff_q else None
-            vcsh_t = vcsh_cache.get((t, eff_q)) if eff_q else None
-            pe_t = sector_pe(mc_t, ttm_t)
-            pb_t = sector_pb(mc_t, vcsh_t)
-            stock_pe_pb[t] = (pe_t, pb_t)
-            sd_t = stock_daily[t]
-            sd_t["dates"].append(d)
-            sd_t["market_cap"].append(mc_t)
-            sd_t["pe"].append(pe_t)
-            sd_t["pb"].append(pb_t)
-            sd_t["quarter_used"].append(eff_q)
 
         for code, sector_data in summary.get("sectors", {}).items():
             group_def = sector_groups.get(code, {})
@@ -696,7 +605,6 @@ def backfill_daily_sector_finance_history(storage, sector_groups, output_dir):
                 continue
             market_cap = sector_market_cap(closes_today, shares_outstanding, tickers)
             pe = pb = None
-            pe_median = pb_median = None
             if eff_q:
                 q_data = sector_data.get("quarterly", {}).get(eff_q, {})
                 ttm_tickers = q_data.get("ttm_tickers") or []
@@ -705,23 +613,15 @@ def backfill_daily_sector_finance_history(storage, sector_groups, output_dir):
                 mc_for_pb = sector_market_cap(closes_today, shares_outstanding, vcsh_tickers)
                 pe = sector_pe(mc_for_pe, q_data.get("ttm_lnst"))
                 pb = sector_pb(mc_for_pb, q_data.get("vcsh_sum"))
-
-                pe_vals = [stock_pe_pb[t][0] for t in tickers if t in stock_pe_pb and stock_pe_pb[t][0] is not None]
-                pb_vals = [stock_pe_pb[t][1] for t in tickers if t in stock_pe_pb and stock_pe_pb[t][1] is not None]
-                pe_median = statistics.median(pe_vals) if pe_vals else None
-                pb_median = statistics.median(pb_vals) if pb_vals else None
             sd = sector_daily[code]
             sd["dates"].append(d)
             sd["market_cap"].append(market_cap)
             sd["pe"].append(pe)
             sd["pb"].append(pb)
             sd["quarter_used"].append(eff_q)
-            sd["pe_median"].append(pe_median)
-            sd["pb_median"].append(pb_median)
 
     finance_dir = os.path.join(output_dir, "finance")
-    stocks_dir = os.path.join(finance_dir, "stocks")
-    os.makedirs(stocks_dir, exist_ok=True)
+    os.makedirs(finance_dir, exist_ok=True)
     for code, daily in sector_daily.items():
         finance_path = os.path.join(finance_dir, f"{code}.json")
         fdata = {"sector": code, "daily": daily, "quarterly": {}}
@@ -736,11 +636,4 @@ def backfill_daily_sector_finance_history(storage, sector_groups, output_dir):
         with open(finance_path, "w", encoding="utf-8") as f:
             json.dump(fdata, f, ensure_ascii=False)
 
-    for t, daily in stock_daily.items():
-        stock_path = os.path.join(stocks_dir, f"{t}.json")
-        sdata = {"ticker": t, "daily": daily, "last_update": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-        with open(stock_path, "w", encoding="utf-8") as f:
-            json.dump(sdata, f, ensure_ascii=False)
-
-    print(f"[SectorFinance] Đã backfill P/E, P/B lịch sử cho {len(sector_daily)} ngành, "
-          f"{len(stock_daily)} mã, {len(trading_dates)} phiên.")
+    print(f"[SectorFinance] Đã backfill P/E, P/B lịch sử cho {len(sector_daily)} ngành, {len(trading_dates)} phiên.")
