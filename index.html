@@ -7059,6 +7059,10 @@
             // tự chọn bước chia quá thô với khoảng giá trị nhỏ, hiện toàn
             // "0"); giờ giá trị thật trên trục đã là 15, 20, 30 — chỉ cần
             // format thêm dấu "%" cho rõ.
+            // LƯU Ý: addLineSeries(...).setData(...) trả về undefined (setData
+            // không trả về series) — PHẢI giữ tham chiếu series ở biến riêng
+            // rồi mới gọi setData(), nếu không registry sẽ lưu undefined và
+            // toggle bật/tắt sẽ âm thầm không có tác dụng gì (đã từng là bug).
             const labels = quarterly.labels || [];
             const qValues = quarterly[quarterlyCol] || [];
             const segments = buildQuarterlySegments(labels, qValues).map(
@@ -7067,11 +7071,12 @@
             const percentFormat = { type: 'custom', minMove: 0.1, formatter: v => v.toFixed(0) + '%' };
             segments.forEach(seg => {
                 const s = chart.addLineSeries({
-                    priceScaleId: 'left', color: quarterlyColor, lineWidth: 2,
+                    priceScaleId: 'left', color: quarterlyColor, lineWidth: 2, lineType: 2,
                     priceLineVisible: false, lastValueVisible: false, title: '',
                     priceFormat: percentFormat,
                     visible: financeChartVisibility[metricKey],
-                }).setData(seg);
+                });
+                s.setData(seg);
                 registry[metricKey].push(s);
             });
 
@@ -7083,25 +7088,30 @@
                 if (v === null || v === undefined) continue;
                 dSeries.push({ time: d2ts(dDates[i]), value: v });
             }
-            registry[dailyKey] = chart.addLineSeries({
+            const dailySeries = chart.addLineSeries({
                 priceScaleId: 'right', color: dailyColor, lineWidth: 3, priceLineVisible: false, title: '',
                 visible: financeChartVisibility[dailyKey],
-            }).setData(dSeries);
+            });
+            dailySeries.setData(dSeries);
+            registry[dailyKey] = dailySeries;
 
             // Trung vị NGÀNH theo TOÀN BỘ lịch sử (không phải trung vị các mã
             // trong ngành) — 1 đường ngang phẳng từ ngày đầu đến ngày cuối,
             // giống hệt cách "trung vị lịch sử" đã làm cho P/E, P/B từng mã ở
             // tab Thống kê giao dịch (renderStatsRatioChart, dùng lại median()).
+            // Nét đứt nhưng đậm/rõ hơn bản đầu (opacity 0.7, lineWidth 1.5).
             const med = median(dValues);
             if (med !== null && dDates.length > 1) {
-                registry.median = chart.addLineSeries({
-                    priceScaleId: 'right', color: 'rgba(255,255,255,0.45)', lineWidth: 1, lineStyle: 2,
+                const medianSeries = chart.addLineSeries({
+                    priceScaleId: 'right', color: 'rgba(255,255,255,0.7)', lineWidth: 1.5, lineStyle: 2,
                     priceLineVisible: false, lastValueVisible: false, title: '',
                     visible: financeChartVisibility.median,
-                }).setData([
+                });
+                medianSeries.setData([
                     { time: d2ts(dDates[0]), value: med },
                     { time: d2ts(dDates[dDates.length - 1]), value: med },
                 ]);
+                registry.median = medianSeries;
             }
 
             // Giá VNINDEX (đường trắng đậm) LỒNG NGAY trong cùng pane/cùng
