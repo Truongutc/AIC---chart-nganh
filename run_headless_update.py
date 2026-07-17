@@ -1202,7 +1202,7 @@ def run_import_finance():
     if file_id:
         logger.info(f"   ✅ Đã ghi lại workbook lên Drive (bổ sung sheet ROE, LNST_YOY): {link}")
     else:
-        logger.warning("   ⚠️ Không tải được lên Drive (thiếu credential GDRIVE_SERVICE_ACCOUNT_JSON?) — vẫn tiếp tục tính toán cục bộ.")
+        logger.warning("   ⚠️ Không tải được lên Drive (xem chi tiết lỗi ::error:: [GDrive] phía trên) — vẫn tiếp tục tính toán cục bộ.")
 
     sector_groups = load_sector_groups()
     summary = compute_sector_quarterly_summary(sheets["VCSH"], sheets["LNST"], sector_groups)
@@ -1285,7 +1285,7 @@ def run_update_finance_vietcap():
     if file_id:
         logger.info(f"   ✅ Đã tải workbook lên Drive: {link}")
     else:
-        logger.warning("   ⚠️ Không tải được lên Drive (thiếu credential GDRIVE_SERVICE_ACCOUNT_JSON?) — vẫn tiếp tục tính toán cục bộ.")
+        logger.warning("   ⚠️ Không tải được lên Drive (xem chi tiết lỗi ::error:: [GDrive] phía trên) — vẫn tiếp tục tính toán cục bộ.")
 
     summary = compute_sector_quarterly_summary(merged_sheets["VCSH"], merged_sheets["LNST"], sector_groups)
     summary_path = os.path.join(output_dir, "sector_finance_quarterly.json")

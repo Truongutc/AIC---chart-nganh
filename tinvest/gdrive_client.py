@@ -114,8 +114,25 @@ def upload_file(file_path, folder_id=FOLDER_ID):
         print(f"[GDrive] Tải lên thành công: {file_name} -> {file.get('webViewLink')}")
         return file.get("id"), file.get("webViewLink")
     except Exception as e:
-        print(f"::error::[GDrive] Tải lên thất bại {file_name}: {e} — thường do folder Drive ({folder_id}) "
-              f"chưa được chia sẻ (Editor) với email Service Account, hoặc sai FOLDER_ID.")
+        if "storageQuotaExceeded" in str(e):
+            # Service Account KHÔNG có dung lượng lưu trữ riêng trên Drive cá
+            # nhân (không phải Google Workspace) — nên KHÔNG THỂ tạo file mới
+            # (files().create), dù folder đã share Editor đầy đủ. Chỉ có thể
+            # UPDATE (ghi đè nội dung) 1 file đã tồn tại sẵn, vì dung lượng đó
+            # đã tính vào quota của người tạo file (tài khoản thật), không phải
+            # Service Account. Cách khắc phục: tự tay tạo/tải lên 1 file .xlsx
+            # bất kỳ, ĐÚNG TÊN, vào đúng folder này bằng CHÍNH tài khoản Google
+            # thật — lần chạy sau sẽ khớp tên và chuyển sang nhánh update().
+            print(f"::error::[GDrive] Tải lên thất bại {file_name}: Service Account không có dung lượng lưu "
+                  f"trữ riêng trên Drive cá nhân nên KHÔNG THỂ TẠO file mới (lỗi storageQuotaExceeded của "
+                  f"Google) — dù folder đã chia sẻ Editor đúng rồi. CÁCH KHẮC PHỤC: tự tay tạo/tải lên 1 file "
+                  f".xlsx bất kỳ (kể cả rỗng), đặt ĐÚNG TÊN '{file_name}', vào folder Drive ({folder_id}) "
+                  f"bằng CHÍNH tài khoản Google của bạn (không phải Service Account) — vì file đã có sẵn "
+                  f"(thuộc quota của bạn), lần chạy sau Service Account chỉ cần GHI ĐÈ nội dung (không tốn "
+                  f"quota) là chạy được bình thường.")
+        else:
+            print(f"::error::[GDrive] Tải lên thất bại {file_name}: {e} — thường do folder Drive ({folder_id}) "
+                  f"chưa được chia sẻ (Editor) với email Service Account, hoặc sai FOLDER_ID.")
         return None, None
 
 

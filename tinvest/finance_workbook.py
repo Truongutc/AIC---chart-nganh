@@ -62,10 +62,20 @@ def new_empty_workbook(tickers=None):
 
 def load_workbook_from_bytes(xlsx_bytes):
     """Đọc 2 sheet VCSH/LNST từ nội dung .xlsx (bytes, VD tải về từ Drive).
-    Trả về workbook rỗng nếu bytes là None (chưa từng có file trên Drive)."""
+    Trả về workbook rỗng nếu bytes là None (chưa từng có file trên Drive) HOẶC
+    nếu file tồn tại nhưng thiếu sheet VCSH/LNST — VD file placeholder rỗng
+    người dùng tự tạo để né lỗi storageQuotaExceeded của Service Account (xem
+    gdrive_client.upload_file: Service Account không tạo file mới được, chỉ
+    update file đã có sẵn tên đúng) — không bao giờ raise ra ngoài, coi các
+    trường hợp này tương đương "chưa có dữ liệu gì"."""
     if not xlsx_bytes:
         return new_empty_workbook()
-    sheets = pd.read_excel(io.BytesIO(xlsx_bytes), sheet_name=["VCSH", "LNST"], index_col=0, engine="openpyxl")
+    try:
+        sheets = pd.read_excel(io.BytesIO(xlsx_bytes), sheet_name=["VCSH", "LNST"], index_col=0, engine="openpyxl")
+    except ValueError as e:
+        print(f"[FinanceWorkbook] File trên Drive thiếu sheet VCSH/LNST ({e}) — coi như chưa có dữ liệu, "
+              f"sẽ tạo đầy đủ 4 sheet khi ghi lại lần này.")
+        return new_empty_workbook()
     for name, df in sheets.items():
         df.index = df.index.astype(str).str.upper()
         df.columns = df.columns.astype(str)
