@@ -7042,9 +7042,16 @@
             // Margin hẹp (5%) để đường kẻ chiếm gần hết chiều cao pane. Bỏ qua
             // auto-range 90 ngày mặc định của mkChart (autoRangeDays=null) —
             // biểu đồ này luôn mặc định xem toàn bộ lịch sử, tự zoom khi cần.
+            // localization:{} GHI ĐÈ formatOpts của mkChart — khi xem đúng
+            // "ngành" VNINDEX, window.isCurrentIndex=true khiến mkChart áp
+            // priceFormatter làm tròn số nguyên cho CẢ chart (hợp lý cho điểm
+            // chỉ số ~1200 nhưng sai hoàn toàn cho tỉ lệ P/B ~1-2.5) — trả về
+            // localization rỗng để mỗi series tự dùng priceFormat riêng (P/E,
+            // P/B mặc định 2 chữ số thập phân, ROE/G dùng percentFormat).
             const { chart, ro } = mkChart(d1, h, dDates, {
                 leftPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.05, bottom: 0.05 } },
-                rightPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.05, bottom: 0.05 } }
+                rightPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.05, bottom: 0.05 } },
+                localization: {},
             }, null);
             instances.push({ chart, ro });
 
@@ -7091,6 +7098,7 @@
             const dailySeries = chart.addLineSeries({
                 priceScaleId: 'right', color: dailyColor, lineWidth: 3, priceLineVisible: false, title: '',
                 visible: financeChartVisibility[dailyKey],
+                priceFormat: { type: 'price', precision: 2, minMove: 0.01 }, // P/E, P/B hiện 2 chữ số thập phân (VD 1.23)
             });
             dailySeries.setData(dSeries);
             registry[dailyKey] = dailySeries;
@@ -7106,6 +7114,7 @@
                     priceScaleId: 'right', color: 'rgba(255,255,255,0.7)', lineWidth: 1.5, lineStyle: 2,
                     priceLineVisible: false, lastValueVisible: false, title: '',
                     visible: financeChartVisibility.median,
+                    priceFormat: { type: 'price', precision: 2, minMove: 0.01 },
                 });
                 medianSeries.setData([
                     { time: d2ts(dDates[0]), value: med },
