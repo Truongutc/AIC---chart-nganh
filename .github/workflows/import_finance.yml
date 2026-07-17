@@ -1,7 +1,7 @@
 name: Import Finance
 
 on:
-  workflow_dispatch: # Nạp dữ liệu VCSH/LNST ban đầu từ CSV người dùng đặt sẵn trên Google Drive
+  workflow_dispatch: # Build lai toan bo du lieu tai chinh (VCSH/LNST/ROE/tang truong/P-E/P-B) tu workbook DUY NHAT da co san tren Google Drive, khong can cao lai Vietcap
 
 jobs:
   import-finance:
@@ -37,39 +37,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Download starter CSV from Drive
-        env:
-          PYTHONPATH: .
-          GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
-        run: |
-          python -c '
-          import sys
-          from tinvest.gdrive_client import list_files_in_folder, download_file_by_name
-
-          files = list_files_in_folder()
-          csv_files = [f for f in files if f["name"].lower().endswith(".csv")]
-          if not csv_files:
-              print("::error::Khong tim thay file CSV nao trong folder Drive. Hay dat file len truoc khi chay Action nay.")
-              sys.exit(1)
-          csv_files.sort(key=lambda f: f.get("createdTime", ""))
-          newest = csv_files[-1]
-          print(f">> Chon file moi nhat: {newest[\"name\"]} (createdTime={newest.get(\"createdTime\")})")
-
-          content = download_file_by_name(newest["name"])
-          if content is None:
-              print("::error::Tai file CSV that bai (kiem tra lai GDRIVE_SERVICE_ACCOUNT_JSON va quyen chia se folder).")
-              sys.exit(1)
-          with open("finance_import.csv", "wb") as f:
-              f.write(content)
-          print(">> Da luu finance_import.csv")
-          '
-
       - name: Run Import Finance
         env:
           PYTHONPATH: .
           GDRIVE_SERVICE_ACCOUNT_JSON: ${{ secrets.GDRIVE_SERVICE_ACCOUNT_JSON }}
         run: |
-          python run_headless_update.py --import-finance finance_import.csv
+          python run_headless_update.py --import-finance
 
       - name: Commit and Push Changes
         run: |
@@ -92,7 +65,7 @@ jobs:
 
             echo "💾 Đang commit dữ liệu mới..."
             git add Output/
-            git commit -m "Import Finance: nạp dữ liệu VCSH/LNST ban đầu $(date +'%Y-%m-%d %H:%M:%S')"
+            git commit -m "Import Finance: build lại dữ liệu tài chính từ workbook trên Drive $(date +'%Y-%m-%d %H:%M:%S')"
 
             echo "🚀 Đẩy dữ liệu lên GitHub..."
             git push origin main

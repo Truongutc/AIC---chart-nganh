@@ -1155,51 +1155,64 @@ def run_clear_cache():
     logger.info("==================================================")
 
 
-WORKBOOK_NAME = "sector_finance_ticker_data.xlsx"
-
-
-def run_import_finance(csv_path):
-    """Action 'Import Finance': nạp CSV dạng dài (Ticker,Year,Quarter,VCSH,LNST)
-    người dùng đặt sẵn trên Drive, gộp vào workbook xlsx hiện có (không ghi đè
-    dữ liệu cũ), tính lại toàn bộ tổng hợp ngành + backfill lịch sử P/E, P/B."""
+def run_import_finance():
+    """Action 'Import Finance': tải THẲNG workbook duy nhất (sector_finance_ticker_data.xlsx)
+    đang có trên Google Drive (không cào lại Vietcap), tính lại ROE/tăng
+    trưởng LNST theo từng mã (ghi 2 sheet ROE/LNST_YOY vào chính workbook đó),
+    tổng hợp ngành + backfill TOÀN BỘ lịch sử P/E, P/B. Đây là hành động
+    'build lại từ đầu' dùng sau khi chạy Clear Finance (chỉ xoá JSON, GIỮ
+    NGUYÊN workbook trên Drive) — không cần cào lại Vietcap, tiết kiệm thời
+    gian. Lần đầu tiên (chưa từng có workbook nào trên Drive), người dùng cần
+    tự chuẩn bị và tải lên đúng 1 file .xlsx (2 sheet VCSH/LNST, Ticker ×
+    Qn-YYYY) với ĐÚNG TÊN sector_finance_ticker_data.xlsx vào thư mục Drive."""
     logger.info("==================================================")
-    logger.info("📥 BẮT ĐẦU IMPORT FINANCE (nạp dữ liệu tài chính ban đầu)")
+    logger.info("📥 BẮT ĐẦU IMPORT FINANCE (build lại từ workbook có sẵn trên Drive)")
     logger.info("==================================================")
 
-    from tinvest.finance_workbook import parse_long_format_csv, load_workbook_from_bytes, merge_new_quarters, save_workbook_to_path
+    from tinvest.finance_workbook import WORKBOOK_NAME, load_workbook_from_bytes, save_workbook_to_path
     from tinvest.gdrive_client import download_file_by_name, upload_file
-    from tinvest.sector_finance_engine import compute_sector_quarterly_summary, overwrite_quarterly_block, backfill_daily_sector_finance_history
+    from tinvest.sector_finance_engine import (
+        compute_sector_quarterly_summary, overwrite_quarterly_block, backfill_daily_sector_finance_history,
+        compute_per_ticker_roe_and_growth, current_expected_quarter, log_finance_coverage_gaps,
+    )
     from tinvest.sector_index_engine import load_sector_groups
 
     output_dir = os.path.join(base_path, "Output")
     os.makedirs(output_dir, exist_ok=True)
 
-    logger.info(f"   Đọc CSV: {csv_path}")
-    new_data = parse_long_format_csv(csv_path)
-    logger.info(f"   CSV có {len(new_data)} mã.")
+    logger.info(f"   Tải workbook '{WORKBOOK_NAME}' từ Drive...")
+    sheets = load_workbook_from_bytes(download_file_by_name(WORKBOOK_NAME))
+    if sheets["VCSH"].empty and sheets["LNST"].empty:
+        logger.error(f"   ❌ Không tìm thấy '{WORKBOOK_NAME}' trên Drive (hoặc file rỗng). "
+                     f"Nếu đây là lần đầu tiên (chưa từng chạy gì), hãy chạy Action 'Update finance vietcap' "
+                     f"trước — nó sẽ tự cào toàn bộ dữ liệu từ Vietcap và tạo workbook này trên Drive, "
+                     f"sau đó chạy lại 'Import Finance' để backfill lịch sử P/E, P/B. Hoặc bạn có thể tự "
+                     f"tải lên 1 file Excel đúng tên, đúng định dạng (2 sheet VCSH/LNST) rồi chạy lại.")
+        return
+    logger.info(f"   Workbook có {len(sheets['VCSH'].index)} mã (VCSH), {len(sheets['LNST'].index)} mã (LNST).")
 
-    logger.info("   Tải workbook hiện có trên Drive (nếu có)...")
-    existing_sheets = load_workbook_from_bytes(download_file_by_name(WORKBOOK_NAME))
-
-    merged_sheets, new_quarters = merge_new_quarters(existing_sheets, new_data)
-    logger.info(f"   Quý mới xuất hiện lần đầu: {new_quarters}")
+    logger.info("   Tính ROE, tăng trưởng LNST theo từng mã (sheet ROE, LNST_YOY)...")
+    roe_df, growth_df = compute_per_ticker_roe_and_growth(sheets["VCSH"], sheets["LNST"])
+    sheets["ROE"] = roe_df
+    sheets["LNST_YOY"] = growth_df
 
     local_path = os.path.join(output_dir, WORKBOOK_NAME)
-    save_workbook_to_path(merged_sheets, local_path)
+    save_workbook_to_path(sheets, local_path)
     file_id, link = upload_file(local_path)
     if file_id:
-        logger.info(f"   ✅ Đã tải workbook lên Drive: {link}")
+        logger.info(f"   ✅ Đã ghi lại workbook lên Drive (bổ sung sheet ROE, LNST_YOY): {link}")
     else:
         logger.warning("   ⚠️ Không tải được lên Drive (thiếu credential GDRIVE_SERVICE_ACCOUNT_JSON?) — vẫn tiếp tục tính toán cục bộ.")
 
     sector_groups = load_sector_groups()
-    summary = compute_sector_quarterly_summary(merged_sheets["VCSH"], merged_sheets["LNST"], sector_groups)
+    summary = compute_sector_quarterly_summary(sheets["VCSH"], sheets["LNST"], sector_groups)
     summary_path = os.path.join(output_dir, "sector_finance_quarterly.json")
     with open(summary_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False)
     logger.info(f"   ✅ Đã ghi {summary_path} ({len(summary['sectors'])} ngành, {len(summary['quarters'])} quý)")
 
     overwrite_quarterly_block(sector_groups, summary, output_dir)
+    log_finance_coverage_gaps(sector_groups, sheets["VCSH"], sheets["LNST"], current_expected_quarter())
 
     storage = StorageManager()
     backfill_daily_sector_finance_history(storage, sector_groups, output_dir)
@@ -1218,12 +1231,13 @@ def run_update_finance_vietcap():
     logger.info("🔄 BẮT ĐẦU UPDATE FINANCE VIETCAP")
     logger.info("==================================================")
 
-    from tinvest.finance_workbook import load_workbook_from_bytes, merge_new_quarters, save_workbook_to_path
+    from tinvest.finance_workbook import WORKBOOK_NAME, load_workbook_from_bytes, merge_new_quarters, save_workbook_to_path
     from tinvest.gdrive_client import download_file_by_name, upload_file
     from tinvest.vietcap_finance_client import fetch_all_tickers_finance
     from tinvest.sector_finance_engine import (
         compute_sector_quarterly_summary, overwrite_quarterly_block,
         get_finance_ticker_universe, tickers_needing_update, current_expected_quarter,
+        compute_per_ticker_roe_and_growth, log_finance_coverage_gaps,
     )
     from tinvest.sector_index_engine import load_sector_groups
 
@@ -1260,6 +1274,11 @@ def run_update_finance_vietcap():
         merged_sheets = existing_sheets
         logger.info("   Không có mã nào cần cập nhật — bỏ qua gọi Vietcap.")
 
+    logger.info("   Tính lại ROE, tăng trưởng LNST theo từng mã (sheet ROE, LNST_YOY)...")
+    roe_df, growth_df = compute_per_ticker_roe_and_growth(merged_sheets["VCSH"], merged_sheets["LNST"])
+    merged_sheets["ROE"] = roe_df
+    merged_sheets["LNST_YOY"] = growth_df
+
     local_path = os.path.join(output_dir, WORKBOOK_NAME)
     save_workbook_to_path(merged_sheets, local_path)
     file_id, link = upload_file(local_path)
@@ -1275,6 +1294,7 @@ def run_update_finance_vietcap():
     logger.info(f"   ✅ Đã ghi {summary_path}")
 
     overwrite_quarterly_block(sector_groups, summary, output_dir)
+    log_finance_coverage_gaps(sector_groups, merged_sheets["VCSH"], merged_sheets["LNST"], expected_q)
 
     logger.info("✅ HOÀN TẤT UPDATE FINANCE VIETCAP")
     logger.info("==================================================")
@@ -1309,7 +1329,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Hệ thống cập nhật dữ liệu tự động cho AIC PRO")
     parser.add_argument("--import-csv", nargs="+", help="Đường dẫn đến một hoặc nhiều file/thư mục CSV chứa dữ liệu lịch sử ban đầu")
     parser.add_argument("--clear-cache", action="store_true", help="Xóa sạch toàn bộ dữ liệu lưu trữ cũ và kết quả tính toán")
-    parser.add_argument("--import-finance", metavar="CSV_PATH", help="Nạp dữ liệu VCSH/LNST ban đầu từ CSV, tính ROE/tăng trưởng cho toàn bộ ngành")
+    parser.add_argument("--import-finance", action="store_true", help="Build lại toàn bộ dữ liệu tài chính từ workbook sẵn có trên Drive (không cào lại Vietcap) — tính ROE/tăng trưởng theo mã và cho toàn bộ ngành, backfill lịch sử P/E, P/B")
     parser.add_argument("--update-finance-vietcap", action="store_true", help="Cập nhật quý tài chính mới từ Vietcap cho các mã cần thiết, tính lại ROE/tăng trưởng ngành")
     parser.add_argument("--clear-finance", action="store_true", help="Xóa kết quả tính toán ROE/LNST/VCSH/tăng trưởng ngành (giữ nguyên workbook gốc trên Drive)")
     args = parser.parse_args()
@@ -1319,7 +1339,7 @@ if __name__ == "__main__":
     elif args.import_csv:
         run_csv_import(args.import_csv)
     elif args.import_finance:
-        run_import_finance(args.import_finance)
+        run_import_finance()
     elif args.update_finance_vietcap:
         run_update_finance_vietcap()
     elif args.clear_finance:

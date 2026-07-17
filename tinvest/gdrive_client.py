@@ -19,7 +19,7 @@ try:
 except ImportError:
     _GOOGLE_LIBS_AVAILABLE = False
 
-# Folder Drive đích cho toàn bộ dữ liệu tài chính ngành (VCSH/LNST + CSV nạp ban đầu)
+# Folder Drive đích cho workbook tài chính ngành duy nhất (sector_finance_ticker_data.xlsx)
 FOLDER_ID = "1R40I_9zlQIEoOUMOe7AdRr3vYUnQc4xw"
 
 SCOPES = ["https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
@@ -39,10 +39,13 @@ def get_drive_service():
             info = json.loads(creds_json)
             if isinstance(info, dict) and "client_email" in info:
                 print(f"[GDrive] Xác thực bằng Service Account: {info['client_email']}")
+                print(f"[GDrive] LƯU Ý: folder Drive ({FOLDER_ID}) phải được CHIA SẺ (Editor) "
+                      f"với đúng email này thì Service Account mới đọc/ghi được — service account "
+                      f"KHÔNG tự có quyền vào folder có sẵn của bạn.")
             creds = service_account.Credentials.from_service_account_info(info, scopes=SCOPES)
             return build("drive", "v3", credentials=creds)
         except Exception as e:
-            print(f"[GDrive] Lỗi parse GDRIVE_SERVICE_ACCOUNT_JSON: {e}")
+            print(f"::error::[GDrive] Lỗi parse GDRIVE_SERVICE_ACCOUNT_JSON: {e}")
 
     local_creds_path = os.path.join(os.path.dirname(__file__), "..", "credentials.json")
     if os.path.exists(local_creds_path):
@@ -54,9 +57,11 @@ def get_drive_service():
             creds = service_account.Credentials.from_service_account_file(local_creds_path, scopes=SCOPES)
             return build("drive", "v3", credentials=creds)
         except Exception as e:
-            print(f"[GDrive] Lỗi đọc credentials.json cục bộ: {e}")
+            print(f"::error::[GDrive] Lỗi đọc credentials.json cục bộ: {e}")
 
-    print("[GDrive] Không có credential hợp lệ — bỏ qua thao tác Drive.")
+    print("::error::[GDrive] Không có credential hợp lệ (thiếu secret GDRIVE_SERVICE_ACCOUNT_JSON "
+          "và không có credentials.json cục bộ) — MỌI thao tác đọc/ghi workbook trên Drive sẽ bị bỏ "
+          "qua trong lần chạy này, workbook sẽ KHÔNG được tải lên/tải xuống.")
     return None
 
 
@@ -109,7 +114,8 @@ def upload_file(file_path, folder_id=FOLDER_ID):
         print(f"[GDrive] Tải lên thành công: {file_name} -> {file.get('webViewLink')}")
         return file.get("id"), file.get("webViewLink")
     except Exception as e:
-        print(f"[GDrive] Tải lên thất bại {file_name}: {e}")
+        print(f"::error::[GDrive] Tải lên thất bại {file_name}: {e} — thường do folder Drive ({folder_id}) "
+              f"chưa được chia sẻ (Editor) với email Service Account, hoặc sai FOLDER_ID.")
         return None, None
 
 
@@ -136,21 +142,6 @@ def download_file_by_name(file_name, folder_id=FOLDER_ID):
             _, done = downloader.next_chunk()
         return buf.getvalue()
     except Exception as e:
-        print(f"[GDrive] Lỗi tải file '{file_name}': {e}")
+        print(f"::error::[GDrive] Lỗi tải file '{file_name}': {e} — thường do folder Drive ({folder_id}) "
+              f"chưa được chia sẻ (Editor) với email Service Account, hoặc sai FOLDER_ID.")
         return None
-
-
-def list_files_in_folder(folder_id=FOLDER_ID):
-    """Liệt kê {id, name, createdTime} của mọi file trong folder — dùng cho
-    Import Finance để tìm CSV người dùng vừa đặt lên Drive (chọn file *.csv có
-    createdTime mới nhất nếu có nhiều file)."""
-    service = get_drive_service()
-    if not service:
-        return []
-    try:
-        query = f"'{folder_id}' in parents and trashed = false"
-        results = service.files().list(q=query, fields="files(id, name, createdTime)").execute()
-        return results.get("files", [])
-    except Exception as e:
-        print(f"[GDrive] Lỗi liệt kê folder {folder_id}: {e}")
-        return []

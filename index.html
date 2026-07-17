@@ -269,28 +269,8 @@
             box-shadow: 0 0 8px var(--accent-green);
         }
 
-        /* Sticky Navigation Tab Bar */
-        .tab-navigation {
-            position: sticky;
-            top: 65px; /* height of header */
-            z-index: 99;
-            background: rgba(8, 11, 19, 0.95);
-            backdrop-filter: var(--glass-blur);
-            -webkit-backdrop-filter: var(--glass-blur);
-            border-bottom: 1px solid var(--border-color);
-            padding: 8px 16px;
-            display: flex;
-            justify-content: center;
-        }
-
-        /* Menu Dropdown Style */
-        .menu-dropdown {
-            position: relative;
-            display: inline-block;
-            max-width: 1200px;
-            width: 100%;
-            text-align: center;
-        }
+        /* Nút bấm dùng chung (modal mật khẩu ngành, v.v.) — tách riêng khỏi
+           .menu-item vì đây là style nút generic, không phải mục điều hướng */
         .menu-btn {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border-color);
@@ -306,97 +286,80 @@
             justify-content: center;
             gap: 8px;
             transition: all 0.2s ease;
-            min-width: 260px;
         }
         .menu-btn:hover {
             background: rgba(139, 92, 246, 0.15);
             border-color: var(--accent-purple);
             box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
         }
-        .menu-content {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(8, 11, 19, 0.98);
+
+        /* Sticky Navigation Tab Bar — luôn hiển thị 2 nút (không còn dropdown),
+           dính ngay dưới header (cũng sticky, cao ~65px) — tự co lại khi cuộn
+           trang (xem .nav-compact, gắn bằng JS theo scrollY) */
+        .tab-navigation {
+            position: sticky;
+            top: 65px; /* height of header */
+            z-index: 99;
+            background: rgba(8, 11, 19, 0.95);
             backdrop-filter: var(--glass-blur);
             -webkit-backdrop-filter: var(--glass-blur);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            min-width: 260px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
-            z-index: 150;
-            margin-top: 6px;
-            overflow: hidden;
+            border-bottom: 1px solid var(--border-color);
+            padding: 8px 16px;
+            display: flex;
+            justify-content: center;
+            transition: padding 0.2s ease;
         }
-        .menu-content.show {
-            display: block;
+        .tab-navigation.nav-compact {
+            padding: 4px 16px;
+        }
+        .menu-content {
+            display: flex;
+            flex-direction: row;
+            gap: 8px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
         }
         .menu-item {
-            width: 100%;
-            background: transparent;
-            border: none;
+            flex: 1 1 0;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             color: var(--text-secondary);
-            padding: 12px 16px;
-            text-align: left;
-            font-size: 0.9rem;
+            border-radius: 10px;
+            padding: 14px 8px;
+            font-size: 1rem;
             font-weight: 600;
             font-family: 'Outfit', sans-serif;
             cursor: pointer;
+            text-align: center;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
-            transition: all 0.15s;
+            transition: background 0.15s, border-color 0.15s, color 0.15s, padding 0.2s ease, font-size 0.2s ease;
         }
         .menu-item:hover {
-            background: rgba(139, 92, 246, 0.12);
+            background: rgba(139, 92, 246, 0.15);
+            border-color: var(--accent-purple);
             color: white;
         }
         .menu-item.active {
             background: linear-gradient(135deg, var(--accent-purple) 0%, #6366f1 100%);
+            border-color: transparent;
             color: white;
             font-weight: 700;
         }
+        /* Thu gọn khi đã cuộn xuống — đỡ chiếm diện tích màn hình */
+        .tab-navigation.nav-compact .menu-item {
+            padding: 8px 8px;
+            font-size: 0.85rem;
+        }
 
-        /* Responsive Navigation Tab Bar for Desktop */
+        /* Desktop: nút gọn hơn, không cần chiếm hết chiều rộng như mobile */
         @media (min-width: 768px) {
-            .menu-btn {
-                display: none !important;
-            }
-            .menu-content {
-                display: flex !important;
-                position: static !important;
-                transform: none !important;
-                background: transparent !important;
-                border: none !important;
-                box-shadow: none !important;
-                flex-direction: row !important;
-                justify-content: center !important;
-                gap: 8px !important;
-                margin-top: 0 !important;
-                width: 100% !important;
-                max-width: 1200px !important;
-            }
             .menu-item {
-                width: auto !important;
-                background: rgba(255, 255, 255, 0.03) !important;
-                border: 1px solid rgba(255, 255, 255, 0.05) !important;
-                border-radius: 8px !important;
-                padding: 6px 16px !important;
-                text-align: center !important;
-                justify-content: center !important;
-                color: var(--text-secondary) !important;
-            }
-            .menu-item:hover {
-                background: rgba(139, 92, 246, 0.15) !important;
-                border-color: var(--accent-purple) !important;
-                color: white !important;
-            }
-            .menu-item.active {
-                background: linear-gradient(135deg, var(--accent-purple) 0%, #6366f1 100%) !important;
-                border-color: transparent !important;
-                color: white !important;
+                flex: none;
+                padding: 6px 16px;
             }
         }
 
@@ -3226,15 +3189,9 @@
 
     <!-- Navigation Tabs -->
     <nav class="tab-navigation">
-        <div class="menu-dropdown">
-            <button id="menuBtn" class="menu-btn" onclick="toggleMenuDropdown(event)">
-                <span id="currentTabIcon">🏠</span> <span id="currentTabLabel">Trang chủ</span> <span style="font-size: 0.75rem; margin-left: 4px; opacity: 0.7;">▼</span>
-            </button>
-            <div id="menuContent" class="menu-content">
-                <button class="menu-item active" data-tab="home-tab" onclick="selectMenuTab('home-tab', '🏠', 'Trang chủ')">🏠 Trang chủ</button>
-                <button class="menu-item" data-tab="market-tab" onclick="selectMenuTab('market-tab', '📊', 'Phân tích kỹ thuật ngành')">📊 Phân tích kỹ thuật ngành</button>
-                <button class="menu-item" data-tab="stats-tab" onclick="selectMenuTab('stats-tab', '📉', 'Thống kê giao dịch')">📉 Thống kê giao dịch</button>
-            </div>
+        <div id="menuContent" class="menu-content">
+            <button class="menu-item active" data-tab="home-tab" onclick="selectMenuTab('home-tab')">🏠 Trang chủ</button>
+            <button class="menu-item" data-tab="stats-tab" onclick="selectMenuTab('stats-tab')">📉 Thống kê giao dịch</button>
         </div>
     </nav>
 
@@ -4371,24 +4328,21 @@
             if (clickedItem) clickedItem.classList.add('active');
         }
 
-        // Dropdown Menu functions
-        function toggleMenuDropdown(event) {
-            event.stopPropagation();
-            const content = document.getElementById('menuContent');
-            if (content) content.classList.toggle('show');
-        }
-        
-        function selectMenuTab(tabId, icon, label) {
-            const content = document.getElementById('menuContent');
-            if (content) content.classList.remove('show');
-            
-            const tabIcon = document.getElementById('currentTabIcon');
-            const tabLabel = document.getElementById('currentTabLabel');
-            if (tabIcon) tabIcon.innerText = icon;
-            if (tabLabel) tabLabel.innerText = label;
-            
+        function selectMenuTab(tabId) {
             switchTab(tabId);
         }
+
+        // Tự thu gọn thanh nav khi cuộn trang xuống, mở lại khi về gần đầu
+        // trang — đỡ chiếm diện tích màn hình trên mobile.
+        let navScrollTicking = false;
+        window.addEventListener('scroll', () => {
+            if (navScrollTicking) return;
+            navScrollTicking = true;
+            requestAnimationFrame(() => {
+                document.querySelector('.tab-navigation')?.classList.toggle('nav-compact', window.scrollY > 24);
+                navScrollTicking = false;
+            });
+        });
 
         // Fetch analysis data from local Output folder
         async function loadData() {
@@ -4505,12 +4459,12 @@
         // Render Market Index status cards (VNINDEX & HNXINDEX)
         // ============ Trang chủ: chọn ngành ============
         function goHome() {
-            selectMenuTab('home-tab', '🏠', 'Trang chủ');
+            selectMenuTab('home-tab');
         }
 
         function goToSector(code) {
             if (!code) return;
-            selectMenuTab('market-tab', '📊', 'Phân tích kỹ thuật ngành');
+            selectMenuTab('market-tab');
             selectMarketIndex(code);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -4607,14 +4561,14 @@
         }
 
         // Ngành xem MIỄN PHÍ, không cần mật khẩu — mọi ngành khác đều bị khoá.
+        // (Tab "Thống kê giao dịch" không còn dùng cổng mật khẩu này nữa —
+        // dữ liệu Vietcap ở đó miễn phí.)
         const FREE_SECTOR_CODE = 'VNINDEX_NONVIN';
         let sectorUnlocked = false; // Mở khoá 1 lần cho cả phiên sau khi nhập đúng mật khẩu
         let pendingSectorCode = null;
-        let pendingUnlockCallback = null; // Dùng cho các nơi gọi gate khác selectMarketIndex (VD tab Thống kê giao dịch)
 
-        function showSectorPasswordModal(code, callback = null) {
+        function showSectorPasswordModal(code) {
             pendingSectorCode = code;
-            pendingUnlockCallback = callback;
             document.getElementById('sectorPasswordModal').style.display = 'flex';
             document.getElementById('sectorPasswordErrorMsg').style.display = 'none';
             document.getElementById('sectorPasswordInput').value = '';
@@ -4624,11 +4578,7 @@
         function cancelSectorPassword() {
             document.getElementById('sectorPasswordModal').style.display = 'none';
             pendingSectorCode = null;
-            if (pendingUnlockCallback) {
-                pendingUnlockCallback = null; // Gate không đến từ điều hướng ngành → chỉ đóng modal, không goHome()
-            } else {
-                goHome();
-            }
+            goHome();
         }
 
         function submitSectorPassword() {
@@ -4638,25 +4588,13 @@
                 document.getElementById('sectorPasswordModal').style.display = 'none';
                 const code = pendingSectorCode;
                 pendingSectorCode = null;
-                const cb = pendingUnlockCallback;
-                pendingUnlockCallback = null;
-                if (cb) cb();
-                else if (code) selectMarketIndex(code);
+                if (code) selectMarketIndex(code);
             } else {
                 document.getElementById('sectorPasswordErrorMsg').innerText = 'Mật khẩu không chính xác!';
                 document.getElementById('sectorPasswordErrorMsg').style.display = 'block';
                 document.getElementById('sectorPasswordInput').value = '';
                 document.getElementById('sectorPasswordInput').focus();
             }
-        }
-
-        // Cổng mật khẩu dùng chung cho tab "Thống kê giao dịch" — tái dùng
-        // đúng modal/cờ sectorUnlocked hiện có, không tạo hệ thống mật khẩu
-        // thứ 2. Khác với FREE_SECTOR_CODE ở tab ngành, VNINDEX gõ ở đây vẫn
-        // bị khoá vì gọi hàm này vô điều kiện.
-        function requireStatsPassword(onUnlock) {
-            if (sectorUnlocked) { onUnlock(); return; }
-            showSectorPasswordModal(null, onUnlock);
         }
 
         // Chọn 1 chỉ số ngành/thị trường để hiển thị dashboard chi tiết.
@@ -5849,18 +5787,13 @@
         window.onclick = function(event) {
             const modal = document.getElementById('tickerDetailsModal');
             const dropdown = document.getElementById('lookupSuggestions');
-            const menuContent = document.getElementById('menuContent');
-            
+
             if (event.target === modal) {
                 closeTickerDetailsModal();
             }
             // Auto hide search dropdown suggestions if clicking elsewhere
             if (event.target !== document.getElementById('lookupSearchInput')) {
                 if (dropdown) dropdown.style.display = 'none';
-            }
-            // Auto hide menu dropdown if clicking elsewhere
-            if (!event.target.closest('.menu-dropdown')) {
-                if (menuContent) menuContent.classList.remove('show');
             }
             // Auto hide ticker autocomplete dropdowns in portfolio
             if (!event.target.classList.contains('ticker-input')) {
@@ -7001,15 +6934,8 @@
             return c1;
         }
 
-        // ── 'Qn-YYYY' -> 'YYYY-MM-DD' (ngày đầu/cuối quý), dùng để vẽ đoạn
-        // ROE/tăng trưởng LNST đúng khoanh vùng thời gian của CHÍNH quý đó
-        // (không lấn sang quý sau). ──
-        function quarterStartDateStr(label) {
-            const m = /^Q([1-4])-(\d{4})$/.exec(String(label));
-            if (!m) return null;
-            const startDates = { '1': '01-01', '2': '04-01', '3': '07-01', '4': '10-01' };
-            return `${m[2]}-${startDates[m[1]]}`;
-        }
+        // ── 'Qn-YYYY' -> 'YYYY-MM-DD' (ngày cuối quý), dùng làm mốc thời gian
+        // cho 1 điểm ROE/tăng trưởng LNST của quý đó. ──
         function quarterEndDateStr(label) {
             const m = /^Q([1-4])-(\d{4})$/.exec(String(label));
             if (!m) return null;
@@ -7018,10 +6944,12 @@
         }
 
         // Gom các quý LIÊN TỤC có dữ liệu thành từng "run" riêng — mỗi run vẽ
-        // bằng 1 line series độc lập (2 điểm/quý: đầu quý & cuối quý, giá trị
-        // không đổi trong quý đó). Quý nào CHƯA có dữ liệu (chưa công bố BCTC)
-        // thì bị bỏ qua và tự động NGẮT run — không vẽ nối/kéo dài sang giai
-        // đoạn chưa có số liệu, đúng yêu cầu "chưa có G thì chỉ hiện P/E".
+        // bằng 1 line series độc lập, 1 điểm/quý (mốc cuối quý), nối mượt
+        // (lineType Curved) sang quý kế tiếp thay vì bậc thang. Quý CHƯA công
+        // bố BCTC (giá trị null) NGẮT run và để trống hẳn trên biểu đồ — dù
+        // P/E, P/B ngày vẫn tạm dùng số liệu quý liền trước (xem
+        // effective_quarter_for_date ở backend), đường ROE/G không "mượn" số
+        // quý trước để tránh nhìn nhầm là số liệu thật của quý đang hiện.
         function buildQuarterlySegments(labels, values) {
             const runs = [];
             let current = [];
@@ -7032,10 +6960,8 @@
                     current = [];
                     continue;
                 }
-                const startStr = quarterStartDateStr(labels[i]);
                 const endStr = quarterEndDateStr(labels[i]);
-                if (!startStr || !endStr) continue;
-                current.push({ time: d2ts(startStr), value: v });
+                if (!endStr) continue;
                 current.push({ time: d2ts(endStr), value: v });
             }
             if (current.length) runs.push(current);
@@ -7044,8 +6970,8 @@
 
         // ── P/E hoặc P/B ngành theo phiên (trục phải, vẽ liên tục theo đúng
         // biến động vốn hóa thực tế mỗi ngày) + ROE/tăng trưởng LNST theo quý
-        // (trục trái, mỗi quý 1 đoạn thẳng đúng khoảng thời gian của quý đó,
-        // ngắt quãng ở quý chưa công bố) — 1 pane, 2 trục giá. ──
+        // (trục trái, đường mượt nối các quý có dữ liệu, để trống hẳn ở quý
+        // chưa công bố BCTC) — 1 pane, 2 trục giá. ──
         function renderSectorFinanceChart(mountId, financeData, instances, dailyCol, dailyColor, quarterlyCol, quarterlyColor, opts = {}) {
             const root = document.getElementById(mountId);
             if (!root) return null;
@@ -7065,12 +6991,14 @@
             });
             instances.push({ chart, ro });
 
-            // Đoạn thẳng theo từng quý (ROE hoặc tăng trưởng LNST) — trục trái
+            // Đường mượt theo từng quý (ROE hoặc tăng trưởng LNST) — trục trái.
+            // lineType: 2 (Curved) của lightweight-charts để nhìn mềm mại, hài
+            // hòa hơn thay vì bậc thang như trước.
             const labels = quarterly.labels || [];
             const qValues = quarterly[quarterlyCol] || [];
             const segments = buildQuarterlySegments(labels, qValues);
             segments.forEach(seg => {
-                chart.addLineSeries({ priceScaleId: 'left', color: quarterlyColor, lineWidth: 2, priceLineVisible: false, lastValueVisible: false, title: '' }).setData(seg);
+                chart.addLineSeries({ priceScaleId: 'left', color: quarterlyColor, lineWidth: 2, lineType: 2, priceLineVisible: false, lastValueVisible: false, title: '' }).setData(seg);
             });
 
             // Đường P/E hoặc P/B hàng ngày (liên tục, theo đúng vốn hóa thực tế) — trục phải
@@ -7083,16 +7011,35 @@
             }
             chart.addLineSeries({ priceScaleId: 'right', color: dailyColor, lineWidth: 3, priceLineVisible: false, title: '' }).setData(dSeries);
 
+            // Đường trung vị (median) toàn ngành theo ngày — cùng trục phải với
+            // P/E hoặc P/B tổng hợp ngành, nét đứt để phân biệt.
+            const medianCol = opts.dailyMedianCol;
+            if (medianCol && daily[medianCol]) {
+                const medValues = daily[medianCol];
+                const medSeries = [];
+                for (let i = 0; i < dDates.length; i++) {
+                    const v = medValues[i];
+                    if (v === null || v === undefined) continue;
+                    medSeries.push({ time: d2ts(dDates[i]), value: v });
+                }
+                if (medSeries.length) {
+                    chart.addLineSeries({
+                        priceScaleId: 'right', color: 'rgba(255,255,255,0.5)', lineWidth: 1, lineStyle: 2,
+                        priceLineVisible: false, lastValueVisible: false, title: 'Trung vị ngành',
+                    }).setData(medSeries);
+                }
+            }
+
             if (dDates.length > 0) applyDefaultChartRange(chart, dDates, 365);
             else chart.timeScale().fitContent();
             return chart;
         }
 
         function renderSectorFinPeChart(mountId, financeData, instances, opts = {}) {
-            return renderSectorFinanceChart(mountId, financeData, instances, 'pe', '#60a5fa', 'yoy_lnst_growth', '#fbbf24', opts);
+            return renderSectorFinanceChart(mountId, financeData, instances, 'pe', '#60a5fa', 'yoy_lnst_growth', '#fbbf24', { ...opts, dailyMedianCol: 'pe_median' });
         }
         function renderSectorFinPbChart(mountId, financeData, instances, opts = {}) {
-            return renderSectorFinanceChart(mountId, financeData, instances, 'pb', '#c084fc', 'roe', '#34d399', opts);
+            return renderSectorFinanceChart(mountId, financeData, instances, 'pb', '#c084fc', 'roe', '#34d399', { ...opts, dailyMedianCol: 'pb_median' });
         }
 
         // ================================================================
@@ -8479,8 +8426,8 @@
         let statsRatioData = null;
 
         const STATS_CHART_DEFS = [
-            { idx: 1, label: '💰 Giá & Dư mua/bán', desc: 'Đường giá (trắng đậm) so với cột dư mua (xanh) — cột hiệu số dư mua trừ dư bán (hồng tương phản) chồng lên trên: còn dương (nằm trong lòng cột xanh) là dư mua áp đảo, quay xuống dưới đường 0 là dư bán áp đảo.' },
-            { idx: 2, label: '📦 Giá & KLTB lệnh', desc: 'Đường giá đậm đổi màu: trắng khi KLTB mua ≥ KLTB bán, cam khi ngược lại. Cột cyan là KLTB lệnh mua, cột hồng tương phản là hiệu số KLTB mua trừ bán — quay xuống dưới đường 0 khi KLTB bán vượt trội.' },
+            { idx: 1, label: '💰 Giá & Dư mua/bán', desc: 'Đường giá đậm đổi màu theo MA5 của hiệu số dư mua trừ dư bán: trắng khi MA5 ≥ 0 (dư mua áp đảo), cam khi MA5 < 0 (dư bán áp đảo). Cột dư mua (xanh) — cột hiệu số dư mua trừ dư bán (hồng tương phản) chồng lên trên.' },
+            { idx: 2, label: '📦 Giá & KLTB lệnh', desc: 'Đường giá đậm đổi màu theo mức độ mạnh của khối lượng (KLTB mua so với MA20) và hướng của MA5 hiệu số mua-bán: khối lượng mạnh (KLTB mua > MA20) → trắng nếu MA5 hiệu số ≥ 0, đỏ nếu < 0; khối lượng bình thường → green nếu MA5 hiệu số ≥ 0, cam nếu < 0. Cột cyan là KLTB lệnh mua, cột hồng tương phản là hiệu số KLTB mua trừ bán, đường vàng là MA20 KLTB lệnh mua.' },
             { idx: 3, label: '🌍 Giá & Dòng tiền khối ngoại (MA5)', desc: 'Đường giá đậm đổi màu theo MA5 giá trị ròng khối ngoại: trắng khi MA5 > 0 (mua ròng), cam khi MA5 < 0 (bán ròng). Cột xanh/đỏ bên dưới thể hiện đúng MA5 đó theo dấu.' },
             { idx: 6, label: '🌐 Room ngoại (%)', desc: 'Đường cam nét đứt là % sở hữu tối đa (room) khối ngoại được phép; đường trắng nét đậm là % đang thực sở hữu. Đường trắng càng sát đường cam là room ngoại càng cạn. Chỉ có dữ liệu với mã cổ phiếu, không áp dụng cho VNINDEX.' },
             { idx: 4, label: '📐 P/E & Trung vị', desc: 'Diễn biến P/E theo ngày so với đường trung vị lịch sử — P/E dưới trung vị thường hàm ý định giá rẻ hơn so với quá khứ.' },
@@ -8497,13 +8444,19 @@
             const d2 = document.createElement('div'); d2.style.cssText = `flex:none;height:${h2}px;border-top:1px solid rgba(255,255,255,0.04);`;
             root.append(d1, d2);
 
-            // Đường giá (nét đậm) đổi màu theo ngày: trắng khi dư mua ≥ dư bán,
-            // cam khi dư mua < dư bán.
+            // Đường giá (nét đậm) đổi màu theo MA5 của hiệu số (dư mua - dư bán):
+            // trắng khi MA5 hiệu số ≥ 0, cam khi < 0 — dùng MA5 thay vì giá trị
+            // 1 phiên để tránh đổi màu chỉ vì 1 phiên nhiễu đơn lẻ.
             const { chart: c1, ro: ro1 } = mkChart(d1, h1, data.dates);
             instances.push({ chart: c1, ro: ro1 });
-            const priceColorsC1 = data.dates.map((_, i) => {
+            const diffArrC1 = data.dates.map((_, i) => {
                 const b = data.totalBuyUnmatchedVolume[i], s = data.totalSellUnmatchedVolume[i];
-                return (b !== null && b !== undefined && s !== null && s !== undefined && b < s) ? '#f59e0b' : '#ffffff';
+                return (b !== null && b !== undefined && s !== null && s !== undefined) ? b - s : null;
+            });
+            const diffMA5C1 = sma(diffArrC1, 5);
+            const priceColorsC1 = data.dates.map((_, i) => {
+                const v = diffMA5C1[i];
+                return (v !== null && v !== undefined && v < 0) ? '#f59e0b' : '#ffffff';
             });
             addColoredLineSegments(c1, data.dates, data.closes, priceColorsC1, 1, 3);
 
@@ -8543,29 +8496,49 @@
             const d2 = document.createElement('div'); d2.style.cssText = `flex:none;height:${h2}px;border-top:1px solid rgba(255,255,255,0.04);`;
             root.append(d1, d2);
 
-            // Đường giá (nét đậm) đổi màu theo ngày: trắng khi KLTB mua ≥ KLTB
-            // bán, cam khi KLTB mua < KLTB bán — thay cho biểu đồ nến cũ.
+            // Đường giá (nét đậm) đổi màu theo MỨC ĐỘ MẠNH của khối lượng +
+            // HƯỚNG của hiệu số mua-bán (MA5), không còn theo giá trị 1 phiên:
+            //   - KLTB mua > MA20 KLTB mua (khối lượng đang mạnh):
+            //       MA5(hiệu số mua-bán) ≥ 0 -> trắng ; < 0 -> đỏ
+            //   - KLTB mua <= MA20 KLTB mua (khối lượng bình thường/yếu):
+            //       MA5(hiệu số mua-bán) ≥ 0 -> green  ; < 0 -> cam
+            // (MA20 buýt tái dùng luôn để vẽ đường MA20 KLTB mua bên dưới.)
+            const buyMA20 = sma(data.averageBuyTradeVolume, 20);
+            const diffArrC2 = data.dates.map((_, i) => {
+                const b = data.averageBuyTradeVolume[i], s = data.averageSellTradeVolume[i];
+                return (b !== null && b !== undefined && s !== null && s !== undefined) ? b - s : null;
+            });
+            const diffMA5C2 = sma(diffArrC2, 5);
             const { chart: c1, ro: ro1 } = mkChart(d1, h1, data.dates);
             instances.push({ chart: c1, ro: ro1 });
             const priceColors = data.dates.map((_, i) => {
-                const b = data.averageBuyTradeVolume[i], s = data.averageSellTradeVolume[i];
-                return (b !== null && b !== undefined && s !== null && s !== undefined && b < s) ? '#f59e0b' : '#ffffff';
+                const d5 = diffMA5C2[i];
+                if (d5 === null || d5 === undefined) return '#ffffff';
+                const buy = data.averageBuyTradeVolume[i], ma20 = buyMA20[i];
+                const strong = (buy !== null && buy !== undefined && ma20 !== null && ma20 !== undefined && buy > ma20);
+                if (strong) return d5 < 0 ? '#ef4444' : '#ffffff';
+                return d5 < 0 ? '#f59e0b' : '#22c55e';
             });
             addColoredLineSegments(c1, data.dates, data.closes, priceColors, 1, 3);
 
             // Cột KLTB lệnh mua (nền) + cột hiệu số KLTB mua - KLTB bán chồng lên
             // trên bằng màu tương phản — không vẽ riêng đường/cột KLTB bán nữa.
+            // Cộng thêm đường MA20 KLTB lệnh mua (vàng, nét đậm) để thấy rõ
+            // ngưỡng "khối lượng mạnh" dùng để tô màu đường giá ở trên.
             const { chart: c2, ro: ro2 } = mkChart(d2, h2, data.dates);
             instances.push({ chart: c2, ro: ro2 });
-            const kltbBuyData = [], kltbDiffData = [];
+            const kltbBuyData = [], kltbDiffData = [], kltbMA20Data = [];
             for (let i = 0; i < data.dates.length; i++) {
                 const t = d2ts(data.dates[i]);
                 const b = data.averageBuyTradeVolume[i], s = data.averageSellTradeVolume[i];
                 if (b !== null && b !== undefined) kltbBuyData.push({ time: t, value: b });
                 if (b !== null && b !== undefined && s !== null && s !== undefined) kltbDiffData.push({ time: t, value: b - s });
+                const ma20v = buyMA20[i];
+                if (ma20v !== null && ma20v !== undefined) kltbMA20Data.push({ time: t, value: ma20v });
             }
             c2.addHistogramSeries({ color: '#00f0ff', priceLineVisible: false, title: '' }).setData(kltbBuyData);
             c2.addHistogramSeries({ color: '#ff007f', priceLineVisible: false, title: '' }).setData(kltbDiffData);
+            c2.addLineSeries({ color: '#ffd700', lineWidth: 3, priceLineVisible: false, lastValueVisible: false, title: '' }).setData(kltbMA20Data);
 
             syncCharts([c1, c2]);
             applyDefaultChartRange(c1, data.dates, 90);
@@ -8760,7 +8733,7 @@
             const input = document.getElementById('statsTickerInput');
             const code = (input.value || '').trim().toUpperCase();
             if (!code) return;
-            requireStatsPassword(() => renderStatsTab(code));
+            renderStatsTab(code);
         }
 
         // Mở rộng toàn màn hình 1 trong 5 biểu đồ — tái dùng modal
