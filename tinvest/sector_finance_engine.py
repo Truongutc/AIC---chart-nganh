@@ -526,22 +526,35 @@ def log_finance_coverage_gaps(sector_groups, vcsh_df, lnst_df, expected_quarter)
         print(f"[SectorFinance] Thiếu LNST {expected_quarter} ({len(missing_lnst)} mã): {missing_lnst}")
 
 
-def tickers_needing_update(vcsh_df, lnst_df, tickers, expected_quarter):
-    """Trả về danh sách con của `tickers` mà CHƯA có đủ dữ liệu (VCSH và
-    LNST) cho `expected_quarter` trong workbook hiện có — đây là các mã cần
-    gọi lại Vietcap trong Update finance vietcap. Mã đã có đủ dữ liệu quý mới
-    nhất thì bỏ qua, không gọi lại API (tiết kiệm request)."""
+def tickers_needing_update(vcsh_df, lnst_df, tickers, expected_quarter, earliest_quarter=None):
+    """Trả về danh sách con của `tickers` CẦN gọi lại Vietcap trong Update
+    finance vietcap — thiếu 1 trong 2 điều kiện:
+      1. Chưa có đủ VCSH/LNST cho `expected_quarter` (quý mới nhất đã đến
+         hạn công bố) — mã có tin tức tài chính mới cần cập nhật.
+      2. Chưa có đủ VCSH/LNST cho `earliest_quarter` (mốc lịch sử xa nhất
+         đang chốt, VD FINANCE_SINCE_YEAR trong run_headless_update.py) —
+         mã còn thiếu dữ liệu lịch sử (VD sau khi tăng độ sâu lịch sử cần
+         cào, những mã đã có sẵn quý mới nhất vẫn phải cào lại để bổ sung
+         phần lịch sử còn thiếu, không thì sẽ bị bỏ sót vĩnh viễn).
+    Mã đã có đủ CẢ HAI mốc thì bỏ qua, không gọi lại API (tiết kiệm request).
+    earliest_quarter=None thì bỏ qua điều kiện 2 (giữ hành vi cũ)."""
     need = []
     for t in tickers:
-        has_vcsh = (
+        has_expected = (
             t in vcsh_df.index and expected_quarter in vcsh_df.columns
             and pd.notna(vcsh_df.at[t, expected_quarter])
-        )
-        has_lnst = (
-            t in lnst_df.index and expected_quarter in lnst_df.columns
+            and t in lnst_df.index and expected_quarter in lnst_df.columns
             and pd.notna(lnst_df.at[t, expected_quarter])
         )
-        if not (has_vcsh and has_lnst):
+        has_earliest = True
+        if earliest_quarter is not None:
+            has_earliest = (
+                t in vcsh_df.index and earliest_quarter in vcsh_df.columns
+                and pd.notna(vcsh_df.at[t, earliest_quarter])
+                and t in lnst_df.index and earliest_quarter in lnst_df.columns
+                and pd.notna(lnst_df.at[t, earliest_quarter])
+            )
+        if not (has_expected and has_earliest):
             need.append(t)
     return need
 

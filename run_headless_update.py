@@ -1271,10 +1271,14 @@ def run_update_finance_vietcap():
     existing_sheets = load_workbook_from_bytes(download_file_by_name(WORKBOOK_NAME))
 
     expected_q = current_expected_quarter()
-    logger.info(f"   Quý kỳ vọng đã công bố tính đến hôm nay: {expected_q}")
+    earliest_q = f"Q1-{FINANCE_SINCE_YEAR}"
+    logger.info(f"   Quý kỳ vọng đã công bố tính đến hôm nay: {expected_q} | Mốc lịch sử xa nhất: {earliest_q}")
 
     if expected_q:
-        need = tickers_needing_update(existing_sheets["VCSH"], existing_sheets["LNST"], universe, expected_q)
+        # Cần cả 2 điều kiện: có quý mới nhất VÀ có đủ lịch sử tới earliest_q —
+        # đảm bảo khi tăng độ sâu lịch sử (đổi FINANCE_SINCE_YEAR), các mã dù
+        # đã có sẵn quý mới nhất vẫn được cào bổ sung phần lịch sử còn thiếu.
+        need = tickers_needing_update(existing_sheets["VCSH"], existing_sheets["LNST"], universe, expected_q, earliest_quarter=earliest_q)
     else:
         need = universe
     logger.info(f"   Số mã cần gọi lại Vietcap: {len(need)}/{len(universe)} (lấy từ Q1-{FINANCE_SINCE_YEAR} tới nay)")
