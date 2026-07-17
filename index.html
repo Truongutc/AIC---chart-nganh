@@ -5691,7 +5691,7 @@
                             <div class="chart-cell-body" id="${containerId}-mount-finpe"></div>
                             <div class="chart-cell-evaluation" id="${containerId}-eval-finpe"></div>
                             <div class="chart-cell-footer">
-                                💡 <strong>Ý nghĩa:</strong> P/E ngành theo phiên (đường, trục phải) so với tăng trưởng LNST cùng kỳ theo quý (đường nối các quý, trục trái, đơn vị %) — đường ngang mờ là trung vị P/E toàn bộ lịch sử, đường trắng đậm (trục riêng bên dưới) là giá VNINDEX — dữ liệu tài chính cập nhật qua Action "Update finance vietcap".
+                                💡 <strong>Ý nghĩa:</strong> P/E ngành theo phiên (đường, trục phải) so với tăng trưởng LNST cùng kỳ theo quý (đường nối các quý, trục trái, đơn vị %) — đường ngang mờ là trung vị P/E toàn bộ lịch sử, đường trắng đậm là giá VNINDEX (lồng chung trục thời gian, tự co giãn theo thang riêng) — dữ liệu tài chính cập nhật qua Action "Update finance vietcap".
                             </div>
                         </div>
                         <div class="chart-cell">
@@ -5705,7 +5705,7 @@
                             <div class="chart-cell-body" id="${containerId}-mount-finpb"></div>
                             <div class="chart-cell-evaluation" id="${containerId}-eval-finpb"></div>
                             <div class="chart-cell-footer">
-                                💡 <strong>Ý nghĩa:</strong> P/B ngành theo phiên (đường, trục phải) so với ROE theo quý (đường nối các quý, trục trái, đơn vị %) — ROE tính theo LNST 4 quý gần nhất chia VCSH quý hiện tại. Đường ngang mờ là trung vị P/B toàn bộ lịch sử, đường trắng đậm (trục riêng bên dưới) là giá VNINDEX.
+                                💡 <strong>Ý nghĩa:</strong> P/B ngành theo phiên (đường, trục phải) so với ROE theo quý (đường nối các quý, trục trái, đơn vị %) — ROE tính theo LNST 4 quý gần nhất chia VCSH quý hiện tại. Đường ngang mờ là trung vị P/B toàn bộ lịch sử, đường trắng đậm là giá VNINDEX (lồng chung trục thời gian, tự co giãn theo thang riêng).
                             </div>
                         </div>
                     </div>
@@ -7028,10 +7028,9 @@
             if (!root) return null;
             root.innerHTML = ''; root.style.display = 'flex'; root.style.flexDirection = 'column';
 
-            const h1 = opts.h1 || 440, h2 = opts.h2 || 160;
-            const d1 = document.createElement('div'); d1.style.cssText = `flex:none;height:${h1}px;`;
-            const d2 = document.createElement('div'); d2.style.cssText = `flex:none;height:${h2}px;border-top:1px solid rgba(255,255,255,0.04);`;
-            root.append(d1, d2);
+            const h = opts.h || 600;
+            const d1 = document.createElement('div'); d1.style.cssText = `flex:none;height:${h}px;`;
+            root.appendChild(d1);
 
             const daily = (financeData && financeData.daily) || { dates: [] };
             const quarterly = (financeData && financeData.quarterly) || { labels: [] };
@@ -7043,7 +7042,7 @@
             // Margin hẹp (5%) để đường kẻ chiếm gần hết chiều cao pane. Bỏ qua
             // auto-range 90 ngày mặc định của mkChart (autoRangeDays=null) —
             // biểu đồ này luôn mặc định xem toàn bộ lịch sử, tự zoom khi cần.
-            const { chart, ro } = mkChart(d1, h1, dDates, {
+            const { chart, ro } = mkChart(d1, h, dDates, {
                 leftPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.05, bottom: 0.05 } },
                 rightPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.05, bottom: 0.05 } }
             }, null);
@@ -7054,11 +7053,18 @@
             // Đường theo từng quý (ROE hoặc tăng trưởng LNST) — trục trái, nét
             // thẳng (không dùng lineType Curved nữa — nội suy cong giữa các
             // điểm quý thưa dễ overshoot vọt quá giá trị thật, gây cảm giác
-            // trục nhảy vô lý khi zoom/pan). Định dạng % vì ROE/G là tỉ lệ.
+            // trục nhảy vô lý khi zoom/pan). ROE/G là tỉ lệ nên NHÂN SẴN 100
+            // trước khi đưa vào chart (không dùng priceFormat 'custom' nhân
+            // ngầm nữa — để lại giá trị thô 0.15 rồi format có thể khiến trục
+            // tự chọn bước chia quá thô với khoảng giá trị nhỏ, hiện toàn
+            // "0"); giờ giá trị thật trên trục đã là 15, 20, 30 — chỉ cần
+            // format thêm dấu "%" cho rõ.
             const labels = quarterly.labels || [];
             const qValues = quarterly[quarterlyCol] || [];
-            const segments = buildQuarterlySegments(labels, qValues);
-            const percentFormat = { type: 'custom', minMove: 0.0001, formatter: v => (v * 100).toFixed(1) + '%' };
+            const segments = buildQuarterlySegments(labels, qValues).map(
+                seg => seg.map(pt => ({ time: pt.time, value: pt.value * 100 }))
+            );
+            const percentFormat = { type: 'custom', minMove: 0.1, formatter: v => v.toFixed(0) + '%' };
             segments.forEach(seg => {
                 const s = chart.addLineSeries({
                     priceScaleId: 'left', color: quarterlyColor, lineWidth: 2,
@@ -7098,6 +7104,27 @@
                 ]);
             }
 
+            // Giá VNINDEX (đường trắng đậm) LỒNG NGAY trong cùng pane/cùng
+            // trục thời gian — dùng priceScaleId riêng ('vnindex', không hiện
+            // cột trục — lightweight-charts chỉ hỗ trợ tối đa 2 trục HIỂN THỊ
+            // mỗi pane) để không lẫn đơn vị với P/E, P/B hay ROE/G, nhưng vẫn
+            // đảm bảo khớp tuyệt đối theo thời gian vì là cùng 1 chart instance
+            // (khác với cách dùng 2 pane + syncCharts trước đây, dễ bị lệch
+            // khung khi 2 chuỗi có độ dài lịch sử khác nhau).
+            try {
+                const vnHistory = opts.vnHistory || await fetchHistory('VNINDEX');
+                const vnData = [];
+                for (let i = 0; i < vnHistory.dates.length; i++) {
+                    if (vnHistory.closes[i]) vnData.push({ time: d2ts(vnHistory.dates[i]), value: vnHistory.closes[i] });
+                }
+                registry.vnindex = chart.addLineSeries({
+                    priceScaleId: 'vnindex', color: '#ffffff', lineWidth: 3, priceLineVisible: false, title: '',
+                    visible: financeChartVisibility.vnindex,
+                });
+                registry.vnindex.setData(vnData);
+                chart.priceScale('vnindex').applyOptions({ visible: false, scaleMargins: { top: 0.05, bottom: 0.05 } });
+            } catch (e) { /* Không có lịch sử VNINDEX — bỏ qua êm */ }
+
             // Ẩn hẳn trục nào không có dữ liệu (VD chưa chạy Import Finance nên
             // chưa có P/E, P/B hàng ngày) — tránh 1 trục trống vẫn chiếm không
             // gian/gridline, gây cảm giác "khoảng đen thừa" trên biểu đồ.
@@ -7105,28 +7132,6 @@
             chart.priceScale('right').applyOptions({ visible: dSeries.length > 0 });
 
             chart.timeScale().fitContent(); // luôn mặc định all-time
-
-            // Pane 2: giá VNINDEX (đường trắng đậm), trục giá RIÊNG (visible +
-            // co kéo được — đây là "trục thứ 3" người dùng muốn; lightweight-
-            // charts chỉ hỗ trợ tối đa 2 trục HIỂN THỊ mỗi pane nên cách đúng
-            // là 1 pane riêng có đúng 1 trục, giống renderStatsChart1/2/3).
-            const { chart: c2, ro: ro2 } = mkChart(d2, h2, null, {}, null);
-            instances.push({ chart: c2, ro: ro2 });
-            try {
-                const vnHistory = opts.vnHistory || await fetchHistory('VNINDEX');
-                const vnData = [];
-                for (let i = 0; i < vnHistory.dates.length; i++) {
-                    if (vnHistory.closes[i]) vnData.push({ time: d2ts(vnHistory.dates[i]), value: vnHistory.closes[i] });
-                }
-                registry.vnindex = c2.addLineSeries({
-                    color: '#ffffff', lineWidth: 3, priceLineVisible: false, title: '',
-                    visible: financeChartVisibility.vnindex,
-                });
-                registry.vnindex.setData(vnData);
-                c2.timeScale().fitContent();
-            } catch (e) { /* Không có lịch sử VNINDEX — bỏ qua êm, pane 2 để trống */ }
-
-            syncCharts([chart, c2]);
             financeChartSeriesRegistry[mountId] = registry;
             return chart;
         }
@@ -7383,8 +7388,7 @@
                     if (isFinanceChart) {
                         const total = fsMt.offsetHeight || window.innerHeight - 120;
                         const fn = chartType === 'finpe' ? renderSectorFinPeChart : renderSectorFinPbChart;
-                        // Giữ đúng tỉ lệ 440/600 (pane chính) và 160/600 (pane VNINDEX)
-                        fn('chartFsMount', financeCache[ticker], fsInstances, { h1: Math.round(total * 0.73), h2: Math.round(total * 0.27) });
+                        fn('chartFsMount', financeCache[ticker], fsInstances, { h: total });
                         return;
                     }
                     const renders = {
