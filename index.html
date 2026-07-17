@@ -6306,6 +6306,37 @@
             });
         }
 
+        // ── Đồng bộ theo MỐC THỜI GIAN THẬT (không phải logical/bar-index như
+        // syncCharts() ở trên) — bắt buộc phải dùng bản này khi 2 pane có 2
+        // chuỗi dữ liệu ĐỘ DÀI LỊCH SỬ KHÁC NHAU (VD VNINDEX nhiều năm vs P/E
+        // ngành chỉ vài quý gần đây): sync theo logical range sẽ khớp "nến thứ
+        // N" của pane này với "nến thứ N" của pane kia dù chúng rơi vào 2 NGÀY
+        // khác nhau, gây lệch khung nhìn — sync theo time range luôn khớp
+        // đúng NGÀY thật ở cả 2 pane bất kể độ dài lịch sử. ──
+        function syncChartsByTime(charts) {
+            let busy = false;
+            charts.forEach((c, i) => {
+                c.timeScale().subscribeVisibleTimeRangeChange(range => {
+                    if (busy || !range) return;
+                    busy = true;
+                    charts.forEach((o, j) => {
+                        if (j !== i) try { o.timeScale().setVisibleRange(range); } catch(e){}
+                    });
+                    busy = false;
+                });
+            });
+        }
+
+        // ── Chiều cao mặc định cho chart P/E, P/B ngành khi hiển thị INLINE
+        // (không phải fullscreen — fullscreen tự tính theo modal qua opts.h) —
+        // thu nhỏ khi màn hình đang xoay ngang VÀ thấp (VD điện thoại ngang),
+        // để xem trọn biểu đồ không phải cuộn nhiều; giữ nguyên 600px cho
+        // desktop/tablet/điện thoại dọc như trước. ──
+        function getResponsiveFinanceChartHeight() {
+            const landscapeShort = window.innerWidth > window.innerHeight && window.innerHeight <= 500;
+            return landscapeShort ? Math.max(260, window.innerHeight - 160) : 600;
+        }
+
         // ── Attach resize observer shorthand ──
         function roAttach(chart, el) {
             const ro = new ResizeObserver(() =>
@@ -7028,9 +7059,22 @@
             if (!root) return null;
             root.innerHTML = ''; root.style.display = 'flex'; root.style.flexDirection = 'column';
 
-            const h = opts.h || 600;
-            const d1 = document.createElement('div'); d1.style.cssText = `flex:none;height:${h}px;`;
-            root.appendChild(d1);
+            // 2 pane: pane 1 (chính) = P/E hoặc P/B + Growth/ROE + trung vị;
+            // pane 2 (phụ, nhỏ hơn) = CHỈ đường VNINDEX với trục phải THẬT, có
+            // thể pinch-zoom/kéo độc lập — trước đây lồng chung 1 pane với
+            // trục ẩn nên không co kéo được, xem giải thích chi tiết ở dưới.
+            const totalH = opts.h1 && opts.h2 ? (opts.h1 + opts.h2) : (opts.h || getResponsiveFinanceChartHeight());
+            const h1 = opts.h1 || Math.round(totalH * 0.7);
+            const h2 = opts.h2 || (totalH - h1);
+            // .chart-cell-body có CSS min-height:600px cố định — ghi đè qua
+            // inline style (thắng class theo độ đặc hiệu CSS) để container co
+            // đúng theo totalH khi ở chế độ responsive (màn hình ngang thấp),
+            // nếu không phần khung trống thừa vẫn còn dù 2 pane bên trong đã
+            // nhỏ lại (đúng lỗi từng gặp và sửa ở tab Thống kê giao dịch).
+            root.style.minHeight = totalH + 'px';
+            const d1 = document.createElement('div'); d1.style.cssText = `flex:none;height:${h1}px;`;
+            const d2 = document.createElement('div'); d2.style.cssText = `flex:none;height:${h2}px;border-top:1px solid rgba(255,255,255,0.06);`;
+            root.append(d1, d2);
 
             const daily = (financeData && financeData.daily) || { dates: [] };
             const quarterly = (financeData && financeData.quarterly) || { labels: [] };
@@ -7048,7 +7092,7 @@
             // chỉ số ~1200 nhưng sai hoàn toàn cho tỉ lệ P/B ~1-2.5) — trả về
             // localization rỗng để mỗi series tự dùng priceFormat riêng (P/E,
             // P/B mặc định 2 chữ số thập phân, ROE/G dùng percentFormat).
-            const { chart, ro } = mkChart(d1, h, dDates, {
+            const { chart, ro } = mkChart(d1, h1, dDates, {
                 leftPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.05, bottom: 0.05 } },
                 rightPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.05, bottom: 0.05 } },
                 localization: {},
@@ -7123,34 +7167,41 @@
                 registry.median = medianSeries;
             }
 
-            // Giá VNINDEX (đường trắng đậm) LỒNG NGAY trong cùng pane/cùng
-            // trục thời gian — dùng priceScaleId riêng ('vnindex', không hiện
-            // cột trục — lightweight-charts chỉ hỗ trợ tối đa 2 trục HIỂN THỊ
-            // mỗi pane) để không lẫn đơn vị với P/E, P/B hay ROE/G, nhưng vẫn
-            // đảm bảo khớp tuyệt đối theo thời gian vì là cùng 1 chart instance
-            // (khác với cách dùng 2 pane + syncCharts trước đây, dễ bị lệch
-            // khung khi 2 chuỗi có độ dài lịch sử khác nhau).
-            try {
-                const vnHistory = opts.vnHistory || await fetchHistory('VNINDEX');
-                const vnData = [];
-                for (let i = 0; i < vnHistory.dates.length; i++) {
-                    if (vnHistory.closes[i]) vnData.push({ time: d2ts(vnHistory.dates[i]), value: vnHistory.closes[i] });
-                }
-                registry.vnindex = chart.addLineSeries({
-                    priceScaleId: 'vnindex', color: '#ffffff', lineWidth: 3, priceLineVisible: false, title: '',
-                    visible: financeChartVisibility.vnindex,
-                });
-                registry.vnindex.setData(vnData);
-                chart.priceScale('vnindex').applyOptions({ visible: false, scaleMargins: { top: 0.05, bottom: 0.05 } });
-            } catch (e) { /* Không có lịch sử VNINDEX — bỏ qua êm */ }
-
             // Ẩn hẳn trục nào không có dữ liệu (VD chưa chạy Import Finance nên
             // chưa có P/E, P/B hàng ngày) — tránh 1 trục trống vẫn chiếm không
             // gian/gridline, gây cảm giác "khoảng đen thừa" trên biểu đồ.
             chart.priceScale('left').applyOptions({ visible: segments.length > 0 });
             chart.priceScale('right').applyOptions({ visible: dSeries.length > 0 });
 
-            chart.timeScale().fitContent(); // luôn mặc định all-time
+            // Giá VNINDEX (đường trắng đậm) — PANE RIÊNG (d2), trục phải THẬT
+            // (visible:true) để co kéo/pinch độc lập được như 2 trục kia (yêu
+            // cầu "3 cột đơn vị"). Trước đây lồng chung 1 pane với trục ẩn để
+            // né giới hạn "tối đa 2 trục hiển thị/pane" của lightweight-charts,
+            // nhưng như vậy không kéo được — giờ tách pane, đồng bộ trục thời
+            // gian bằng syncChartsByTime() (theo NGÀY thật, không phải theo
+            // logical/bar-index) để không lệch khung dù VNINDEX có lịch sử dài
+            // hơn nhiều so với chuỗi P/E, P/B ngành.
+            const { chart: chart2, ro: ro2 } = mkChart(d2, h2, dDates, {
+                rightPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.1, bottom: 0.1 } },
+                leftPriceScale: { visible: false },
+            }, null);
+            instances.push({ chart: chart2, ro: ro2 });
+
+            try {
+                const vnHistory = opts.vnHistory || await fetchHistory('VNINDEX');
+                const vnData = [];
+                for (let i = 0; i < vnHistory.dates.length; i++) {
+                    if (vnHistory.closes[i]) vnData.push({ time: d2ts(vnHistory.dates[i]), value: vnHistory.closes[i] });
+                }
+                registry.vnindex = chart2.addLineSeries({
+                    priceScaleId: 'right', color: '#ffffff', lineWidth: 3, priceLineVisible: false, title: '',
+                    visible: financeChartVisibility.vnindex,
+                });
+                registry.vnindex.setData(vnData);
+            } catch (e) { /* Không có lịch sử VNINDEX — bỏ qua êm */ }
+
+            syncChartsByTime([chart, chart2]);
+            chart.timeScale().fitContent(); // luôn mặc định all-time (chart2 tự khớp theo qua sync)
             financeChartSeriesRegistry[mountId] = registry;
             return chart;
         }
