@@ -76,18 +76,18 @@ def _quarter_label(rec):
     return f"Q{length}-{year}"
 
 
-def fetch_ticker_finance(ticker, years_back=None):
+def fetch_ticker_finance(ticker, since_year=None):
     """Trả về {'VCSH': {quý: giá_trị}, 'LNST': {quý: giá_trị}} cho 1 mã, quét
     toàn bộ lịch sử quý Vietcap có. Bỏ qua các bản ghi lengthReport=5 (báo cáo
     năm, nằm trong data['years'] chứ không phải nhu cầu ở đây).
 
-    years_back (tùy chọn): CHỈ giữ lại các quý trong N năm gần nhất tính từ
-    năm hiện tại — dùng cho Update Finance Vietcap để tránh phải cào lại toàn
-    bộ lịch sử (VD chạy năm 2029 mà vẫn cố lấy về tận 2019 là quá xa và không
-    cần thiết). Không set (None) = lấy toàn bộ lịch sử Vietcap có, dùng cho
-    trường hợp cần đầy đủ nhất có thể."""
-    from datetime import date
-    min_year = (date.today().year - years_back) if years_back else None
+    since_year (tùy chọn): CHỈ giữ lại các quý từ năm này trở về sau (mốc CỐ
+    ĐỊNH theo lịch, VD 2016 -> giữ Q1-2016 trở đi) — dùng cho Update Finance
+    Vietcap để luôn có đủ lịch sử từ mốc đã chốt, không phụ thuộc ngày chạy
+    (khác với cách tính "N năm gần nhất tính từ hôm nay" trước đây, vốn tự
+    trôi mốc bắt đầu theo thời gian chạy). Không set (None) = lấy toàn bộ
+    lịch sử Vietcap có, dùng cho trường hợp cần đầy đủ nhất có thể."""
+    min_year = since_year
 
     vcsh = {}
     lnst = {}
@@ -120,14 +120,14 @@ def fetch_ticker_finance(ticker, years_back=None):
     return {"VCSH": vcsh, "LNST": lnst}
 
 
-def fetch_all_tickers_finance(tickers, max_workers=6, years_back=None):
+def fetch_all_tickers_finance(tickers, max_workers=6, since_year=None):
     """Lấy dữ liệu tài chính cho nhiều mã song song (giới hạn số luồng để
     tránh bị Vietcap chặn vì gọi quá dồn dập). Mã nào lỗi thì log & bỏ qua,
     không phá vỡ cả batch. Trả về {ticker: {'VCSH': {...}, 'LNST': {...}}}.
-    years_back: xem fetch_ticker_finance()."""
+    since_year: xem fetch_ticker_finance()."""
     out = {}
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
-        futures = {executor.submit(fetch_ticker_finance, t, years_back): t for t in tickers}
+        futures = {executor.submit(fetch_ticker_finance, t, since_year): t for t in tickers}
         for future in as_completed(futures):
             ticker = futures[future]
             try:

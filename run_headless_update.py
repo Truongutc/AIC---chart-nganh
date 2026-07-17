@@ -1250,12 +1250,16 @@ def run_update_finance_vietcap():
     )
     from tinvest.sector_index_engine import load_sector_groups
 
-    # Chỉ lấy 6 năm gần nhất khi cào từ Vietcap — sau nhiều năm vận hành (VD
-    # chạy năm 2029) thì lấy lại tận 2019 vừa chậm vừa không cần thiết. Dữ
-    # liệu cũ hơn 6 năm đã có sẵn trong workbook (từ Import Finance) vẫn được
-    # GIỮ NGUYÊN — merge_new_quarters() không bao giờ xóa cột cũ, chỉ không
-    # chủ động cào thêm quá khứ xa quá 6 năm nữa thôi.
-    FINANCE_YEARS_BACK = 6
+    # Luôn cào từ mốc CỐ ĐỊNH Q1-2015 trở đi (không phải "N năm gần nhất tính
+    # từ hôm nay" — cách cũ tự trôi mốc bắt đầu theo ngày chạy, VD chạy năm
+    # 2029 sẽ chỉ lấy từ 2023). Lấy dư 1 năm (2015) trước mốc ROE/G mong muốn
+    # (2016) vì tăng trưởng LNST YoY của Q1-2016 cần LNST Q1-2015 để so sánh
+    # cùng kỳ (quarter_shift -4) — nếu chỉ cào từ 2016, quý đầu tiên (2016) sẽ
+    # luôn thiếu YoY do không có quý đối chiếu; cào từ 2015 giúp ROE/G có đủ
+    # dữ liệu tròn 10 năm kể từ 2016. Dữ liệu quý cũ hơn 2015 (nếu có, hiếm
+    # khi cần) vẫn GIỮ NGUYÊN trong workbook — merge_new_quarters() không bao
+    # giờ xóa cột cũ, chỉ không chủ động cào thêm quá khứ trước 2015 nữa thôi.
+    FINANCE_SINCE_YEAR = 2015
 
     output_dir = os.path.join(base_path, "Output")
     os.makedirs(output_dir, exist_ok=True)
@@ -1273,10 +1277,10 @@ def run_update_finance_vietcap():
         need = tickers_needing_update(existing_sheets["VCSH"], existing_sheets["LNST"], universe, expected_q)
     else:
         need = universe
-    logger.info(f"   Số mã cần gọi lại Vietcap: {len(need)}/{len(universe)} (chỉ lấy {FINANCE_YEARS_BACK} năm gần nhất)")
+    logger.info(f"   Số mã cần gọi lại Vietcap: {len(need)}/{len(universe)} (lấy từ Q1-{FINANCE_SINCE_YEAR} tới nay)")
 
     if need:
-        new_data = fetch_all_tickers_finance(need, years_back=FINANCE_YEARS_BACK)
+        new_data = fetch_all_tickers_finance(need, since_year=FINANCE_SINCE_YEAR)
         merged_sheets, new_quarters = merge_new_quarters(existing_sheets, new_data)
         logger.info(f"   Quý mới xuất hiện lần đầu: {new_quarters}")
     else:
