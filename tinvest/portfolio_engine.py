@@ -164,14 +164,17 @@ def analyze_portfolio(portfolio_params: dict, tickers_data: list, storage) -> st
         mcdx_banker = float(last_row.get('Banker', 0)) if 'Banker' in df.columns else 10
         prev_mcdx_banker = float(df.iloc[-2].get('Banker', mcdx_banker)) if len(df) > 1 and 'Banker' in df.columns else mcdx_banker
         adx = float(last_row.get('ADX', 20))
-        ha_color = str(last_row.get('HA_Color', 'Green')) if 'HA_Color' in df.columns else 'Green'
+        # Dùng HK_BarColor (màu nến Heikin-Ashi THẬT hiển thị trên biểu đồ,
+        # hệ Flower/2Trend) thay vì HA_Color (Heikin-Ashi cổ điển, không có
+        # trạng thái trung tính) để cờ "xấu" khớp đúng màu nến thật.
+        hk_bar_color = str(last_row.get('HK_BarColor', 'white')) if 'HK_BarColor' in df.columns else 'white'
         ma20 = float(last_row.get('MA20', p_now_vnd / 1000))
         vol = float(last_row.get('Volume', 0))
         vol_avg = float(last_row.get('AvgVolume20', vol))
 
         mcdx_weak = (mcdx_banker < prev_mcdx_banker) and (mcdx_banker < 15)
         adx_low = adx < 20
-        heikin_red = (ha_color.lower() == 'red')
+        heikin_red = (hk_bar_color.lower() == 'red')
         price_below_ma20 = (p_now_vnd / 1000) < ma20
         tech_weak = mcdx_weak or adx_low or heikin_red or price_below_ma20
 

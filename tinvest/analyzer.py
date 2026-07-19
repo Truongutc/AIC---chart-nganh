@@ -106,6 +106,11 @@ def analyze_stock(ticker: str, df: pd.DataFrame) -> dict:
         heatmap_is_red = bool(last['HM_Flower_Close'] < last['HM_Flower_Open'] and last['HM_MoneyFlow'] == -1)
     ha_color = str(last.get('HA_Color', 'Green'))
     oct_color = str(last.get('OCT_Color', ''))
+    # Màu nến Heikin-Ashi THẬT SỰ hiển thị trên biểu đồ (renderHeikinChart
+    # dùng HK_BarColor, hệ Flower/2Trend 3 trạng thái brightGreen/red/white)
+    # — KHÔNG dùng HA_Color (Heikin-Ashi cổ điển, chỉ Green/Red, không có
+    # trạng thái trung tính) để tránh cờ "xấu" không khớp màu nến thật.
+    hk_bar_color = str(last.get('HK_BarColor', 'white'))
 
     # ── Đồng thuận đa chỉ báo (Dark Color) ──────────────────────────────────
     # Tính tại analyze_stock() để có quyền truy cập df_rich nhiều phiên;
@@ -162,7 +167,7 @@ def analyze_stock(ticker: str, df: pd.DataFrame) -> dict:
         "MACD xấu (hist xấu đi)":      bool(_macd_diag.get('hist_shrinking', False)),
         "MCDX Banker suy yếu":         bool(_mcdx_eval.get('banker_weakening', False)),
         "Heatmap chuyển Đỏ":           heatmap_is_red,
-        "Heikin Ashi Đỏ":              ha_color == 'Red',
+        "Heikin Ashi Đỏ":              hk_bar_color == 'red',
         "Octopus xấu (hồng/đỏ xấu)":  oct_bad,
         "Mất MA20":                    price_now < ma20_now,
         "Mất Kijun 26":                price_now < kijun_now,

@@ -4307,8 +4307,8 @@
         }
 
         // chartType: 'finpe' (P/E + G) hoặc 'finpb' (P/B + ROE) — mỗi loại chỉ
-        // hiện toggle của đúng 2 chỉ số nó vẽ, cộng thêm Trung vị. VNINDEX giờ
-        // là card riêng (renderVnindexSyncChart) nên không còn toggle ở đây.
+        // hiện toggle của đúng 2 chỉ số nó vẽ, cộng thêm Trung vị. Panel giá
+        // (pane 1, nhúng trong cùng card) không có toggle riêng.
         function getFinanceTogglesHtml(chartType) {
             const dailyKey = chartType === 'finpe' ? 'pe' : 'pb';
             const dailyLabel = chartType === 'finpe' ? 'P/E' : 'P/B';
@@ -5691,17 +5691,7 @@
                             <div class="chart-cell-body" id="${containerId}-mount-finpe"></div>
                             <div class="chart-cell-evaluation" id="${containerId}-eval-finpe"></div>
                             <div class="chart-cell-footer">
-                                💡 <strong>Ý nghĩa:</strong> P/E ngành theo phiên (đường, trục phải) so với tăng trưởng LNST cùng kỳ theo quý (đường nối các quý, trục trái, đơn vị %) — đường ngang mờ là trung vị P/E toàn bộ lịch sử. Kéo/pinch trên từng trục để dịch/zoom đúng đường của trục đó. Đối chiếu với VNINDEX ở card ngay bên dưới (đồng bộ khung thời gian). Dữ liệu tài chính cập nhật qua Action "Update finance vietcap".
-                            </div>
-                        </div>
-                        <div class="chart-cell">
-                            <div class="chart-cell-header">
-                                <span class="chart-cell-label">📊 VNINDEX (theo P/E)</span>
-                                <button class="chart-expand-btn" onclick="expandChart('${containerId}','finpevn')">⛶ Mở rộng</button>
-                            </div>
-                            <div class="chart-cell-body" id="${containerId}-mount-finpevn"></div>
-                            <div class="chart-cell-footer">
-                                💡 <strong>Ý nghĩa:</strong> Giá VNINDEX, đồng bộ khung thời gian (cuộn/zoom) với biểu đồ P/E ngành ở trên — để biết P/E đang ở mức nào thì VNINDEX đang ở đoạn nào.
+                                💡 <strong>Ý nghĩa:</strong> Panel nhỏ trên cùng là giá của chính ngành/mã đang xem, đồng bộ khung thời gian với panel P/E ngay bên dưới (để biết P/E đang ở mức nào thì giá đang ở đoạn nào). Panel P/E: P/E ngành theo phiên (đường, trục phải) so với tăng trưởng LNST cùng kỳ theo quý (đường nối các quý, trục trái, đơn vị %) — đường ngang mờ là trung vị P/E toàn bộ lịch sử. Kéo/pinch trên trục P/E để dịch/zoom; trục Growth chỉ zoom được (kéo trực tiếp trên trục đó). Dữ liệu tài chính cập nhật qua Action "Update finance vietcap".
                             </div>
                         </div>
                         <div class="chart-cell">
@@ -5715,17 +5705,7 @@
                             <div class="chart-cell-body" id="${containerId}-mount-finpb"></div>
                             <div class="chart-cell-evaluation" id="${containerId}-eval-finpb"></div>
                             <div class="chart-cell-footer">
-                                💡 <strong>Ý nghĩa:</strong> P/B ngành theo phiên (đường, trục phải) so với ROE theo quý (đường nối các quý, trục trái, đơn vị %) — ROE tính theo LNST 4 quý gần nhất chia VCSH quý hiện tại. Đường ngang mờ là trung vị P/B toàn bộ lịch sử. Kéo/pinch trên từng trục để dịch/zoom đúng đường của trục đó. Đối chiếu với VNINDEX ở card ngay bên dưới (đồng bộ khung thời gian).
-                            </div>
-                        </div>
-                        <div class="chart-cell">
-                            <div class="chart-cell-header">
-                                <span class="chart-cell-label">📊 VNINDEX (theo P/B)</span>
-                                <button class="chart-expand-btn" onclick="expandChart('${containerId}','finpbvn')">⛶ Mở rộng</button>
-                            </div>
-                            <div class="chart-cell-body" id="${containerId}-mount-finpbvn"></div>
-                            <div class="chart-cell-footer">
-                                💡 <strong>Ý nghĩa:</strong> Giá VNINDEX, đồng bộ khung thời gian (cuộn/zoom) với biểu đồ P/B ngành ở trên — để biết P/B đang ở mức nào thì VNINDEX đang ở đoạn nào.
+                                💡 <strong>Ý nghĩa:</strong> Panel nhỏ trên cùng là giá của chính ngành/mã đang xem, đồng bộ khung thời gian với panel P/B ngay bên dưới (để biết P/B đang ở mức nào thì giá đang ở đoạn nào). Panel P/B: P/B ngành theo phiên (đường, trục phải) so với ROE theo quý (đường nối các quý, trục trái, đơn vị %) — ROE tính theo LNST 4 quý gần nhất chia VCSH quý hiện tại. Đường ngang mờ là trung vị P/B toàn bộ lịch sử. Kéo/pinch trên trục P/B để dịch/zoom; trục ROE chỉ zoom được (kéo trực tiếp trên trục đó).
                             </div>
                         </div>
                     </div>
@@ -6139,8 +6119,6 @@
             techreport: '📊 Báo cáo Kỹ thuật',
             finpe:      '💹 P/E ngành + Tăng trưởng LNST',
             finpb:      '📐 P/B ngành + ROE',
-            finpevn:    '📊 VNINDEX (theo P/E)',
-            finpbvn:    '📊 VNINDEX (theo P/B)'
         };
 
         // ── LWC base theme (TradingView dark) ──
@@ -6357,6 +6335,36 @@
         function getResponsiveFinanceChartHeight() {
             const landscapeShort = window.innerWidth > window.innerHeight && window.innerHeight <= 500;
             return landscapeShort ? Math.max(260, window.innerHeight - 160) : 600;
+        }
+
+        // ── Chiều cao 2 pane (giá + P/E-G hoặc P/B-ROE) cho 1 card tài chính.
+        // Đo NGÂN SÁCH THẬT còn lại tới cuối viewport bằng getBoundingClientRect().top
+        // của chính card (thay vì trừ 1 hằng số đoán chừng như "-160") — luôn đúng
+        // bất kể phía trên có bao nhiêu header/tab/sector-selector, tránh bị tràn
+        // khỏi khung hình khi xoay ngang điện thoại (đã gặp: "mất 1/2 biểu đồ").
+        function getResponsiveFinancePaneHeights(root) {
+            const landscapeShort = window.innerWidth > window.innerHeight && window.innerHeight <= 500;
+            let total;
+            if (landscapeShort) {
+                // KHÔNG dùng getBoundingClientRect().top — tại thời điểm render,
+                // card thường đang nằm NGOÀI khung nhìn hiện tại (người dùng
+                // chưa cuộn tới), nên "top" đo được lúc này không phản ánh vị
+                // trí thật khi họ cuộn tới xem (đã kiểm chứng: luôn ra số rất
+                // lớn, khiến công thức rơi về mức sàn bất kể chỉnh gì). Thay
+                // vào đó đo CHIỀU CAO THẬT của header + footer trong CHÍNH
+                // card này (offsetHeight — không phụ thuộc vị trí cuộn) rồi
+                // trừ ra khỏi chiều cao màn hình, để phần thân (2 pane) luôn
+                // vừa đúng 1 màn hình khi card được cuộn tới đúng vị trí.
+                const cell = root.closest('.chart-cell');
+                const header = cell ? cell.querySelector('.chart-cell-header') : null;
+                const footer = cell ? cell.querySelector('.chart-cell-footer') : null;
+                const chrome = (header ? header.offsetHeight : 40) + (footer ? footer.offsetHeight : 90);
+                const margin = 40; // khoảng đệm (viền, padding, gap giữa card, dư cuộn không tuyệt đối)
+                total = Math.max(180, window.innerHeight - chrome - margin);
+            } else {
+                total = 600;
+            }
+            return { total, h1: Math.round(total * 0.28), h2: Math.round(total * 0.72) };
         }
 
         // ── Attach resize observer shorthand ──
@@ -7071,32 +7079,57 @@
             return runs;
         }
 
-        // ── P/E hoặc P/B ngành theo phiên (trục phải, liên tục theo đúng biến
-        // động vốn hóa thực tế) + ROE/tăng trưởng LNST theo quý (trục trái, để
-        // trống hẳn ở quý chưa công bố BCTC) + trung vị NGÀNH ALL-TIME (đường
-        // ngang, trục phải) — pane 1; + giá VNINDEX (đường trắng đậm, trục
-        // riêng có thể co kéo) — pane 2, đồng bộ trục thời gian với pane 1. ──
+        // ── Pane 1 (nhỏ, ~28% chiều cao): giá của chính NGÀNH/MÃ đang xem
+        // (không phải VNINDEX — dùng lại priceHistory đã fetch sẵn ở
+        // renderAll4Charts cho các chart GP/Heikin/Heatmap phía trên).
+        // Pane 2 (lớn, ~72%): P/E hoặc P/B ngành theo phiên (trục phải) +
+        // ROE/tăng trưởng LNST theo quý (trục trái) + trung vị ALL-TIME
+        // (trục phải). 2 pane đồng bộ khung thời gian THẬT qua
+        // syncChartsByTime() (không dùng logical range vì lịch sử giá có
+        // thể dài hơn nhiều lịch sử P/E của ngành mới chạy Import Finance).
+        // ──
         function renderSectorFinanceChart(mountId, financeData, instances, dailyCol, dailyColor, quarterlyCol, quarterlyColor, opts = {}) {
             const root = document.getElementById(mountId);
             if (!root) return null;
             root.innerHTML = ''; root.style.display = 'flex'; root.style.flexDirection = 'column';
 
-            // 1 pane duy nhất, ĐÚNG 2 trục thật (phải = P/E hoặc P/B, trái =
-            // Growth/ROE) — VNINDEX KHÔNG còn lồng ở đây nữa (xem
-            // renderVnindexSyncChart() — tách hẳn thành 1 card riêng, đồng bộ
-            // khung thời gian qua syncChartsByTime(), giống các cụm biểu đồ
-            // kỹ thuật khác trên trang thay vì nhét chung 1 chart). Nhờ vậy cả
-            // 2 trục ở đây giờ đều kéo/pinch dịch đúng đường của chính nó,
-            // không còn bị vướng bởi trục thứ 3.
-            const h = opts.h || getResponsiveFinanceChartHeight();
             // .chart-cell-body có CSS min-height:600px cố định — ghi đè qua
             // inline style (thắng class theo độ đặc hiệu CSS) để container co
-            // đúng theo h khi ở chế độ responsive (màn hình ngang thấp), nếu
-            // không phần khung trống thừa vẫn còn dù pane bên trong đã nhỏ lại
-            // (đúng lỗi từng gặp và sửa ở tab Thống kê giao dịch).
-            root.style.minHeight = h + 'px';
-            const d1 = document.createElement('div'); d1.style.cssText = `flex:none;height:${h}px;`;
-            root.appendChild(d1);
+            // đúng theo tổng 2 pane khi ở chế độ responsive (màn hình ngang
+            // thấp). Chiều cao đo theo vị trí THẬT của card (getBoundingClientRect)
+            // chứ không trừ 1 hằng số đoán chừng — tránh tràn khỏi khung hình.
+            let h1, h2, total;
+            if (opts.h1 && opts.h2) {
+                h1 = opts.h1; h2 = opts.h2; total = h1 + h2; // fullscreen: đã tính sẵn
+            } else {
+                ({ total, h1, h2 } = getResponsiveFinancePaneHeights(root));
+            }
+            root.style.minHeight = total + 'px';
+
+            const d1 = document.createElement('div'); d1.style.cssText = `flex:none;height:${h1}px;border-bottom:1px solid rgba(255,255,255,0.06);`;
+            const d2 = document.createElement('div'); d2.style.cssText = `flex:none;height:${h2}px;`;
+            root.appendChild(d1); root.appendChild(d2);
+
+            // ── Pane 1: giá ngành/mã ──
+            let priceChart = null;
+            const priceHistory = opts.priceHistory;
+            if (priceHistory && priceHistory.dates && priceHistory.dates.length) {
+                const priceData = [];
+                for (let i = 0; i < priceHistory.dates.length; i++) {
+                    if (priceHistory.closes[i]) priceData.push({ time: d2ts(priceHistory.dates[i]), value: priceHistory.closes[i] });
+                }
+                const built1 = mkChart(d1, h1, priceHistory.dates, {
+                    rightPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.1, bottom: 0.1 } },
+                    leftPriceScale: { visible: false },
+                    timeScale: { ...LWC_THEME.timeScale, minBarSpacing: 0.01 },
+                }, null);
+                priceChart = built1.chart;
+                instances.push({ chart: priceChart, ro: built1.ro });
+                priceChart.addLineSeries({ color: '#ffffff', lineWidth: 2, priceLineVisible: false, title: '' }).setData(priceData);
+                if (priceData.length) priceChart.timeScale().setVisibleLogicalRange({ from: -0.5, to: priceData.length - 0.5 });
+            } else {
+                d1.innerHTML = '<div class="lwc-loading" style="font-size:0.7rem;color:#6b7280;">Chưa có dữ liệu giá</div>';
+            }
 
             const daily = (financeData && financeData.daily) || { dates: [] };
             const quarterly = (financeData && financeData.quarterly) || { labels: [] };
@@ -7114,9 +7147,14 @@
             // chỉ số ~1200 nhưng sai hoàn toàn cho tỉ lệ P/B ~1-2.5) — trả về
             // localization rỗng để mỗi series tự dùng priceFormat riêng (P/E,
             // P/B mặc định 2 chữ số thập phân, ROE/G dùng percentFormat).
-            const { chart, ro } = mkChart(d1, h, dDates, {
+            // minBarSpacing 0.01 (thay vì mặc định 1) — nếu không fitContent()/
+            // setVisibleLogicalRange sẽ chỉ hiện được ~90-120 phiên gần nhất dù
+            // lịch sử dài hơn nhiều (đã xác minh bằng test trực tiếp), luôn
+            // "khóa" vào phiên mới nhất bên phải bất kể lịch sử thật dài bao nhiêu.
+            const { chart, ro } = mkChart(d2, h2, dDates, {
                 leftPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.1, bottom: 0.1 } },
                 rightPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.1, bottom: 0.1 } },
+                timeScale: { ...LWC_THEME.timeScale, minBarSpacing: 0.01 },
                 localization: {},
             }, null);
             instances.push({ chart, ro });
@@ -7195,52 +7233,29 @@
             chart.priceScale('left').applyOptions({ visible: segments.length > 0 });
             chart.priceScale('right').applyOptions({ visible: dSeries.length > 0 });
 
-            chart.timeScale().fitContent(); // luôn mặc định all-time
+            // Luôn mặc định xem TOÀN BỘ lịch sử — dùng setVisibleLogicalRange
+            // thay vì fitContent(), vì fitContent() trong lightweight-charts v4
+            // KHÔNG tự co giãn barSpacing để nhét vừa hết dữ liệu: nó chỉ hiện
+            // "bao nhiêu phiên vừa khít ở barSpacing hiện tại" (mặc định 6px),
+            // luôn neo về phiên MỚI NHẤT — đã xác minh trực tiếp: với lịch sử
+            // dài, chart chỉ hiện được ~90-120 phiên gần nhất dù minBarSpacing
+            // đã chỉnh nhỏ, đúng cảm giác "khóa chết vào cột phải" người dùng
+            // gặp phải. setVisibleLogicalRange({from:-0.5, to:N-0.5}) mới thật
+            // sự hiện đủ N phiên (kết hợp minBarSpacing:0.01 ở trên để không bị
+            // kẹp lại ở mức 0.5 mặc định).
+            if (dSeries.length) chart.timeScale().setVisibleLogicalRange({ from: -0.5, to: dSeries.length - 0.5 });
+
+            // Đồng bộ 2 pane theo THỜI GIAN THẬT (không theo logical/bar-index
+            // vì lịch sử giá có thể dài hơn nhiều lịch sử P/E) + căn khung nhìn
+            // MẶC ĐỊNH của pane giá khớp đúng pane P/E ngay từ đầu (không chỉ
+            // khi kéo tay) — đúng yêu cầu "chỉ muốn đồng nhất với pe theo thời gian".
+            if (priceChart) {
+                const peRange = chart.timeScale().getVisibleRange();
+                if (peRange) { try { priceChart.timeScale().setVisibleRange(peRange); } catch (e) {} }
+                syncChartsByTime([priceChart, chart]);
+            }
+
             financeChartSeriesRegistry[mountId] = registry;
-            return chart;
-        }
-
-        // ── Biểu đồ VNINDEX riêng, đồng bộ khung thời gian với 1 chart khác
-        // (P/E hoặc P/B ngành) qua syncChartsByTime() — tách hẳn thành 1 card
-        // độc lập (giống các cụm biểu đồ kỹ thuật khác trên trang) thay vì
-        // nhét chung pane, để: (1) xem trọn cả 2 mà không bị chật màn hình
-        // ngang điện thoại, (2) trục P/E và trục Growth/ROE ở chart kia không
-        // còn bị vướng bởi 1 trục thứ 3 — kéo/pinch dịch đúng đường của nó.
-        // syncPartner (optional): chart instance khác để đồng bộ cuộn/zoom 2
-        // chiều theo đúng ngày thật (không theo logical/bar-index, vì VNINDEX
-        // có lịch sử dài hơn nhiều P/E, P/B ngành). ──
-        async function renderVnindexSyncChart(mountId, instances, opts = {}) {
-            const root = document.getElementById(mountId);
-            if (!root) return null;
-            root.innerHTML = ''; root.style.display = 'flex'; root.style.flexDirection = 'column';
-
-            const h = opts.h || getResponsiveFinanceChartHeight();
-            root.style.minHeight = h + 'px';
-            const d1 = document.createElement('div'); d1.style.cssText = `flex:none;height:${h}px;`;
-            root.appendChild(d1);
-
-            let vnHistory;
-            try {
-                vnHistory = opts.vnHistory || await fetchHistory('VNINDEX');
-            } catch (e) {
-                cellError(mountId, 'Không tải được lịch sử VNINDEX.');
-                return null;
-            }
-
-            const { chart, ro } = mkChart(d1, h, vnHistory.dates, {
-                rightPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.1, bottom: 0.1 } },
-                leftPriceScale: { visible: false },
-            }, null);
-            instances.push({ chart, ro });
-
-            const vnData = [];
-            for (let i = 0; i < vnHistory.dates.length; i++) {
-                if (vnHistory.closes[i]) vnData.push({ time: d2ts(vnHistory.dates[i]), value: vnHistory.closes[i] });
-            }
-            chart.addLineSeries({ color: '#ffffff', lineWidth: 3, priceLineVisible: false, title: '' }).setData(vnData);
-
-            chart.timeScale().fitContent();
-            if (opts.syncPartner) syncChartsByTime([chart, opts.syncPartner]);
             return chart;
         }
 
@@ -7272,7 +7287,7 @@
                 destroyMount(mid);
                 cellLoading(mid, `Tải ${ticker}...`);
             });
-            ['finpe', 'finpevn', 'finpb', 'finpbvn'].forEach(type => {
+            ['finpe', 'finpb'].forEach(type => {
                 const mid = `${mountPrefix}-mount-${type}`;
                 destroyMount(mid);
                 cellLoading(mid, `Tải dữ liệu tài chính ${ticker}...`);
@@ -7308,30 +7323,23 @@
             // lịch sử kỹ thuật ở trên — ngành nào chưa chạy tính năng tài chính
             // vẫn hiện trạng thái rỗng gọn gàng, không lỗi cả dashboard.
             const financeData = await fetchSectorFinance(ticker);
-            // Prefetch VNINDEX 1 lần dùng chung cho cả 2 card VNINDEX (theo P/E
-            // và theo P/B) — tránh gọi fetchHistory('VNINDEX') 2 lần.
-            let vnHistory = null;
-            try { vnHistory = await fetchHistory('VNINDEX'); } catch (e) {}
 
+            // Panel giá nhỏ trong mỗi card P/E, P/B dùng lại CHÍNH `data` (giá
+            // ngành/mã đang xem) đã fetch ở trên cho GP/Heikin/Heatmap — không
+            // fetch VNINDEX riêng nữa.
             const pairs = [
-                { daily: 'finpe', vn: 'finpevn', renderFn: renderSectorFinPeChart },
-                { daily: 'finpb', vn: 'finpbvn', renderFn: renderSectorFinPbChart },
+                { daily: 'finpe', renderFn: renderSectorFinPeChart },
+                { daily: 'finpb', renderFn: renderSectorFinPbChart },
             ];
-            for (const { daily, vn, renderFn } of pairs) {
+            for (const { daily, renderFn } of pairs) {
                 const dailyMid = `${mountPrefix}-mount-${daily}`;
-                const vnMid = `${mountPrefix}-mount-${vn}`;
                 if (!financeData) {
                     cellError(dailyMid, `Ngành ${ticker} chưa có dữ liệu tài chính. Hãy chạy Action "Import Finance" hoặc "Update finance vietcap".`);
-                    cellError(vnMid, `Ngành ${ticker} chưa có dữ liệu tài chính.`);
                     continue;
                 }
                 const dailyInst = [];
                 lwcInstances[dailyMid] = dailyInst;
-                const dailyChart = renderFn(dailyMid, financeData, dailyInst);
-
-                const vnInst = [];
-                lwcInstances[vnMid] = vnInst;
-                await renderVnindexSyncChart(vnMid, vnInst, { vnHistory, syncPartner: dailyChart });
+                renderFn(dailyMid, financeData, dailyInst, { priceHistory: data });
             }
         }
 
@@ -7468,12 +7476,9 @@
                 if (grid && grid.dataset.ticker) ticker = grid.dataset.ticker;
             }
             const isFinanceChart = chartType === 'finpe' || chartType === 'finpb';
-            const isVnindexChart = chartType === 'finpevn' || chartType === 'finpbvn';
             const dataReady = isFinanceChart
                 ? Object.prototype.hasOwnProperty.call(financeCache, ticker) && financeCache[ticker]
-                : isVnindexChart
-                    ? historyCache['VNINDEX']
-                    : historyCache[ticker];
+                : historyCache[ticker];
             if (!ticker || !dataReady) {
                 alert('Dữ liệu chưa được tải. Hãy mở chart thường trước.'); return;
             }
@@ -7509,12 +7514,10 @@
                     if (isFinanceChart) {
                         const total = fsMt.offsetHeight || window.innerHeight - 120;
                         const fn = chartType === 'finpe' ? renderSectorFinPeChart : renderSectorFinPbChart;
-                        fn('chartFsMount', financeCache[ticker], fsInstances, { h: total });
-                        return;
-                    }
-                    if (isVnindexChart) {
-                        const total = fsMt.offsetHeight || window.innerHeight - 120;
-                        renderVnindexSyncChart('chartFsMount', fsInstances, { vnHistory: historyCache['VNINDEX'], h: total });
+                        fn('chartFsMount', financeCache[ticker], fsInstances, {
+                            h1: Math.round(total * 0.28), h2: Math.round(total * 0.72),
+                            priceHistory: historyCache[ticker],
+                        });
                         return;
                     }
                     const renders = {

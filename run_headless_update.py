@@ -584,14 +584,17 @@ def compute_and_export_dashboard(storage, affected_tickers, vietstock_status=Non
         mcdx_banker = float(df['MCDX_Banker'].iloc[-1]) if 'MCDX_Banker' in df.columns else 10
         prev_mcdx_banker = float(df['MCDX_Banker'].iloc[-2]) if len(df) > 1 and 'MCDX_Banker' in df.columns else mcdx_banker
         adx = float(df['ADX'].iloc[-1]) if 'ADX' in df.columns else 20
-        ha_color = str(df['HA_Color'].iloc[-1]) if 'HA_Color' in df.columns else 'Green'
+        # Dùng HK_BarColor (màu nến Heikin-Ashi THẬT hiển thị trên biểu đồ,
+        # hệ Flower/2Trend) thay vì HA_Color (Heikin-Ashi cổ điển, không có
+        # trạng thái trung tính) để cờ "xấu" khớp đúng màu nến thật.
+        hk_bar_color = str(df['HK_BarColor'].iloc[-1]) if 'HK_BarColor' in df.columns else 'white'
         ma20 = float(df['MA20'].iloc[-1]) if 'MA20' in df.columns else current_p
         vol = float(df['Volume'].iloc[-1]) if 'Volume' in df.columns else 0
         vol_avg = float(df['AvgVolume20'].iloc[-1]) if 'AvgVolume20' in df.columns else vol
 
         mcdx_weak = (mcdx_banker < prev_mcdx_banker) and (mcdx_banker < 15)
         adx_low = adx < 20
-        heikin_red = (ha_color.lower() == 'red')
+        heikin_red = (hk_bar_color.lower() == 'red')
         price_below_ma20 = current_p < ma20
         tech_weak = mcdx_weak or adx_low or heikin_red or price_below_ma20
 
