@@ -5690,9 +5690,6 @@
                             </div>
                             <div class="chart-cell-body" id="${containerId}-mount-finpe"></div>
                             <div class="chart-cell-evaluation" id="${containerId}-eval-finpe"></div>
-                            <div class="chart-cell-footer">
-                                💡 <strong>Ý nghĩa:</strong> Panel nhỏ trên cùng là giá của chính ngành/mã đang xem, đồng bộ khung thời gian với panel P/E ngay bên dưới (để biết P/E đang ở mức nào thì giá đang ở đoạn nào). Panel P/E: P/E ngành theo phiên (đường, trục phải) so với tăng trưởng LNST cùng kỳ theo quý (đường nối các quý, trục trái, đơn vị %) — đường ngang mờ là trung vị P/E toàn bộ lịch sử. Kéo/pinch trên trục P/E để dịch/zoom; trục Growth chỉ zoom được (kéo trực tiếp trên trục đó). Dữ liệu tài chính cập nhật qua Action "Update finance vietcap".
-                            </div>
                         </div>
                         <div class="chart-cell">
                             <div class="chart-cell-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
@@ -5704,9 +5701,6 @@
                             </div>
                             <div class="chart-cell-body" id="${containerId}-mount-finpb"></div>
                             <div class="chart-cell-evaluation" id="${containerId}-eval-finpb"></div>
-                            <div class="chart-cell-footer">
-                                💡 <strong>Ý nghĩa:</strong> Panel nhỏ trên cùng là giá của chính ngành/mã đang xem, đồng bộ khung thời gian với panel P/B ngay bên dưới (để biết P/B đang ở mức nào thì giá đang ở đoạn nào). Panel P/B: P/B ngành theo phiên (đường, trục phải) so với ROE theo quý (đường nối các quý, trục trái, đơn vị %) — ROE tính theo LNST 4 quý gần nhất chia VCSH quý hiện tại. Đường ngang mờ là trung vị P/B toàn bộ lịch sử. Kéo/pinch trên trục P/B để dịch/zoom; trục ROE chỉ zoom được (kéo trực tiếp trên trục đó).
-                            </div>
                         </div>
                     </div>
                 </section>
@@ -6306,27 +6300,6 @@
             });
         }
 
-        // ── Đồng bộ theo MỐC THỜI GIAN THẬT (không phải logical/bar-index như
-        // syncCharts() ở trên) — bắt buộc phải dùng bản này khi 2 pane có 2
-        // chuỗi dữ liệu ĐỘ DÀI LỊCH SỬ KHÁC NHAU (VD VNINDEX nhiều năm vs P/E
-        // ngành chỉ vài quý gần đây): sync theo logical range sẽ khớp "nến thứ
-        // N" của pane này với "nến thứ N" của pane kia dù chúng rơi vào 2 NGÀY
-        // khác nhau, gây lệch khung nhìn — sync theo time range luôn khớp
-        // đúng NGÀY thật ở cả 2 pane bất kể độ dài lịch sử. ──
-        function syncChartsByTime(charts) {
-            let busy = false;
-            charts.forEach((c, i) => {
-                c.timeScale().subscribeVisibleTimeRangeChange(range => {
-                    if (busy || !range) return;
-                    busy = true;
-                    charts.forEach((o, j) => {
-                        if (j !== i) try { o.timeScale().setVisibleRange(range); } catch(e){}
-                    });
-                    busy = false;
-                });
-            });
-        }
-
         // ── Chiều cao mặc định cho chart P/E, P/B ngành khi hiển thị INLINE
         // (không phải fullscreen — fullscreen tự tính theo modal qua opts.h) —
         // thu nhỏ khi màn hình đang xoay ngang VÀ thấp (VD điện thoại ngang),
@@ -6357,14 +6330,21 @@
                 // vừa đúng 1 màn hình khi card được cuộn tới đúng vị trí.
                 const cell = root.closest('.chart-cell');
                 const header = cell ? cell.querySelector('.chart-cell-header') : null;
+                // Card finpe/finpb không còn .chart-cell-footer nữa (đã bỏ theo
+                // yêu cầu rút gọn) — fallback 0, không đoán chừng như trước.
                 const footer = cell ? cell.querySelector('.chart-cell-footer') : null;
-                const chrome = (header ? header.offsetHeight : 40) + (footer ? footer.offsetHeight : 90);
+                const chrome = (header ? header.offsetHeight : 40) + (footer ? footer.offsetHeight : 0);
                 const margin = 40; // khoảng đệm (viền, padding, gap giữa card, dư cuộn không tuyệt đối)
                 total = Math.max(180, window.innerHeight - chrome - margin);
             } else {
                 total = 600;
             }
-            return { total, h1: Math.round(total * 0.28), h2: Math.round(total * 0.72) };
+            // Thu nhỏ theo yêu cầu: pane giá (h1) giảm 30%, pane P/E-P/B (h2)
+            // giảm 50% so với tỉ lệ gốc 28%/72% — có sàn tối thiểu tránh co
+            // về gần 0 ở màn hình quá thấp.
+            const h1 = Math.max(40, Math.round(total * 0.28 * 0.7));
+            const h2 = Math.max(70, Math.round(total * 0.72 * 0.5));
+            return { total: h1 + h2, h1, h2 };
         }
 
         // ── Attach resize observer shorthand ──
@@ -7079,14 +7059,14 @@
             return runs;
         }
 
-        // ── Pane 1 (nhỏ, ~28% chiều cao): giá của chính NGÀNH/MÃ đang xem
-        // (không phải VNINDEX — dùng lại priceHistory đã fetch sẵn ở
-        // renderAll4Charts cho các chart GP/Heikin/Heatmap phía trên).
-        // Pane 2 (lớn, ~72%): P/E hoặc P/B ngành theo phiên (trục phải) +
-        // ROE/tăng trưởng LNST theo quý (trục trái) + trung vị ALL-TIME
-        // (trục phải). 2 pane đồng bộ khung thời gian THẬT qua
-        // syncChartsByTime() (không dùng logical range vì lịch sử giá có
-        // thể dài hơn nhiều lịch sử P/E của ngành mới chạy Import Finance).
+        // ── Pane 1 (nhỏ): giá của chính NGÀNH/MÃ đang xem (không phải
+        // VNINDEX — dùng lại priceHistory đã fetch sẵn ở renderAll4Charts
+        // cho các chart GP/Heikin/Heatmap phía trên), CẮT TRÙNG khung thời
+        // gian với P/E (từ đúng ngày P/E bắt đầu có giá trị) ngay khi build
+        // dữ liệu — không đồng bộ runtime với pane 2 (từng gây kéo bị khựng
+        // thành zoom khi 2 pane lệch nhiều năm lịch sử).
+        // Pane 2 (lớn): P/E hoặc P/B ngành theo phiên (trục phải) + ROE/tăng
+        // trưởng LNST theo quý (trục trái) + trung vị ALL-TIME (trục phải).
         // ──
         function renderSectorFinanceChart(mountId, financeData, instances, dailyCol, dailyColor, quarterlyCol, quarterlyColor, opts = {}) {
             const root = document.getElementById(mountId);
@@ -7110,13 +7090,43 @@
             const d2 = document.createElement('div'); d2.style.cssText = `flex:none;height:${h2}px;`;
             root.appendChild(d1); root.appendChild(d2);
 
-            // ── Pane 1: giá ngành/mã ──
+            const daily = (financeData && financeData.daily) || { dates: [] };
+            const quarterly = (financeData && financeData.quarterly) || { labels: [] };
+            const dDates = daily.dates || [];
+
+            const dailyKey = dailyCol;                                   // 'pe' | 'pb' — cũng là key trong registry
+            const metricKey = quarterlyCol === 'roe' ? 'roe' : 'growth';  // key trong registry, khác tên cột JSON (yoy_lnst_growth)
+
+            // Tính dSeries (P/E hoặc P/B hàng ngày, đã lọc bỏ null) TRƯỚC khi
+            // vẽ pane giá — cần mốc ngày ĐẦU TIÊN P/E có giá trị thật để cắt
+            // dữ liệu giá cho khớp (dDates có thể dài hơn NHIỀU vì chứa toàn
+            // null ở các phiên trước khi Import Finance có dữ liệu — đã xác
+            // nhận với BANK: dDates từ 2000 nhưng P/E chỉ có giá trị thật từ
+            // 2019). KHÔNG dùng dDates[0] làm mốc vì sẽ cắt sai (quá sớm).
+            const dValues = daily[dailyCol] || [];
+            const dSeries = [];
+            for (let i = 0; i < dDates.length; i++) {
+                const v = dValues[i];
+                if (v === null || v === undefined) continue;
+                dSeries.push({ time: d2ts(dDates[i]), value: v });
+            }
+
+            // ── Pane 1: giá ngành/mã, CẮT TRÙNG khung thời gian với P/E (từ
+            // đúng ngày P/E bắt đầu có giá trị) — để 2 pane mặc định cùng
+            // khung nhìn mà KHÔNG cần đồng bộ runtime (đã bỏ syncChartsByTime,
+            // xem giải thích dưới chỗ set full-range của pane 2). Nếu P/E
+            // chưa có giá trị nào (dSeries rỗng) thì giữ nguyên toàn bộ giá,
+            // tránh pane trống trơn không có gì để so sánh. ──
             let priceChart = null;
             const priceHistory = opts.priceHistory;
+            const priceStartTs = dSeries.length ? dSeries[0].time : null;
             if (priceHistory && priceHistory.dates && priceHistory.dates.length) {
                 const priceData = [];
                 for (let i = 0; i < priceHistory.dates.length; i++) {
-                    if (priceHistory.closes[i]) priceData.push({ time: d2ts(priceHistory.dates[i]), value: priceHistory.closes[i] });
+                    if (!priceHistory.closes[i]) continue;
+                    const t = d2ts(priceHistory.dates[i]);
+                    if (priceStartTs !== null && t < priceStartTs) continue;
+                    priceData.push({ time: t, value: priceHistory.closes[i] });
                 }
                 const built1 = mkChart(d1, h1, priceHistory.dates, {
                     rightPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.1, bottom: 0.1 } },
@@ -7130,13 +7140,6 @@
             } else {
                 d1.innerHTML = '<div class="lwc-loading" style="font-size:0.7rem;color:#6b7280;">Chưa có dữ liệu giá</div>';
             }
-
-            const daily = (financeData && financeData.daily) || { dates: [] };
-            const quarterly = (financeData && financeData.quarterly) || { labels: [] };
-            const dDates = daily.dates || [];
-
-            const dailyKey = dailyCol;                                   // 'pe' | 'pb' — cũng là key trong registry
-            const metricKey = quarterlyCol === 'roe' ? 'roe' : 'growth';  // key trong registry, khác tên cột JSON (yoy_lnst_growth)
 
             // Margin hẹp (5%) để đường kẻ chiếm gần hết chiều cao pane. Bỏ qua
             // auto-range 90 ngày mặc định của mkChart (autoRangeDays=null) —
@@ -7191,14 +7194,8 @@
                 registry[metricKey].push(s);
             });
 
-            // Đường P/E hoặc P/B hàng ngày (liên tục, theo đúng vốn hóa thực tế) — trục phải
-            const dValues = daily[dailyCol] || [];
-            const dSeries = [];
-            for (let i = 0; i < dDates.length; i++) {
-                const v = dValues[i];
-                if (v === null || v === undefined) continue;
-                dSeries.push({ time: d2ts(dDates[i]), value: v });
-            }
+            // Đường P/E hoặc P/B hàng ngày (liên tục, theo đúng vốn hóa thực tế) — trục
+            // phải. dValues/dSeries đã tính SẴN ở đầu hàm (cần cho mốc cắt pane giá).
             const dailySeries = chart.addLineSeries({
                 priceScaleId: 'right', color: dailyColor, lineWidth: 3, priceLineVisible: false, title: '',
                 visible: financeChartVisibility[dailyKey],
@@ -7213,16 +7210,24 @@
             // tab Thống kê giao dịch (renderStatsRatioChart, dùng lại median()).
             // Nét đứt nhưng đậm/rõ hơn bản đầu (opacity 0.7, lineWidth 1.5).
             const med = median(dValues);
-            if (med !== null && dDates.length > 1) {
+            if (med !== null && dSeries.length > 1) {
                 const medianSeries = chart.addLineSeries({
                     priceScaleId: 'right', color: 'rgba(255,255,255,0.7)', lineWidth: 1.5, lineStyle: 2,
                     priceLineVisible: false, lastValueVisible: false, title: '',
                     visible: financeChartVisibility.median,
                     priceFormat: { type: 'price', precision: 2, minMove: 0.01 },
                 });
+                // Neo 2 đầu đường trung vị đúng ngày ĐẦU/CUỐI dSeries (P/E có
+                // giá trị thật) — KHÔNG dùng dDates[0]/dDates[cuối], vì dDates
+                // là mảng ngày THÔ có thể dài hơn nhiều do chứa toàn null ở
+                // các phiên trước khi có dữ liệu tài chính (đã xác nhận với
+                // BANK: dDates từ 2000 nhưng P/E thật chỉ từ 2019) — dùng
+                // dDates sẽ vô tình kéo dài trục thời gian gộp của cả pane ra
+                // tận ngày đó, làm full-range hiện sai (thấy lại đúng lỗi
+                // "khóa cứng" vì có 1 khoảng trống rất lớn không có gì).
                 medianSeries.setData([
-                    { time: d2ts(dDates[0]), value: med },
-                    { time: d2ts(dDates[dDates.length - 1]), value: med },
+                    { time: dSeries[0].time, value: med },
+                    { time: dSeries[dSeries.length - 1].time, value: med },
                 ]);
                 registry.median = medianSeries;
             }
@@ -7245,15 +7250,13 @@
             // kẹp lại ở mức 0.5 mặc định).
             if (dSeries.length) chart.timeScale().setVisibleLogicalRange({ from: -0.5, to: dSeries.length - 0.5 });
 
-            // Đồng bộ 2 pane theo THỜI GIAN THẬT (không theo logical/bar-index
-            // vì lịch sử giá có thể dài hơn nhiều lịch sử P/E) + căn khung nhìn
-            // MẶC ĐỊNH của pane giá khớp đúng pane P/E ngay từ đầu (không chỉ
-            // khi kéo tay) — đúng yêu cầu "chỉ muốn đồng nhất với pe theo thời gian".
-            if (priceChart) {
-                const peRange = chart.timeScale().getVisibleRange();
-                if (peRange) { try { priceChart.timeScale().setVisibleRange(peRange); } catch (e) {} }
-                syncChartsByTime([priceChart, chart]);
-            }
+            // KHÔNG đồng bộ runtime giữa 2 pane nữa (đã bỏ syncChartsByTime) —
+            // vì pane giá ở trên đã được CẮT TRÙNG khung thời gian với P/E
+            // ngay từ lúc build dữ liệu (cùng bắt đầu từ ngày P/E có giá trị
+            // đầu tiên), nên mặc định đã cùng khung nhìn mà không cần đồng bộ
+            // theo từng frame kéo — tránh 2 pane "giành" setVisibleRange của
+            // nhau khi lịch sử 2 bên lệch, từng gây cảm giác kéo bị khựng rồi
+            // biến thành zoom. Kéo/zoom pane nào giờ chỉ ảnh hưởng đúng pane đó.
 
             financeChartSeriesRegistry[mountId] = registry;
             return chart;
