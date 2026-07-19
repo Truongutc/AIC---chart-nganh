@@ -238,6 +238,12 @@ def analyze_ticker_worker(ticker_df_tuple):
         if 'HM_Flower_Open' in df_rich.columns and 'HM_MoneyFlow' in df_rich.columns:
             _hm_is_red = bool(_last_row['HM_Flower_Close'] < _last_row['HM_Flower_Open'] and _last_row['HM_MoneyFlow'] == -1)
         _ha_color  = str(_last_row.get('HA_Color', 'Green'))
+        # Màu nến Heikin-Ashi THẬT hiển thị trên biểu đồ (renderHeikinChart
+        # dùng HK_BarColor, hệ Flower/2Trend 3 trạng thái brightGreen/red/
+        # white) — KHÔNG dùng HA_Color (Heikin-Ashi cổ điển, chỉ Green/Red,
+        # không có trạng thái trung tính) cho cờ "xấu", tránh không khớp
+        # màu nến thật.
+        _hk_bar_color = str(_last_row.get('HK_BarColor', 'white'))
         _oct_color = str(_last_row.get('OCT_Color', ''))
 
         _adx_val    = float(df_rich['ADX'].iloc[-1])     if 'ADX'      in df_rich.columns else 0
@@ -266,7 +272,7 @@ def analyze_ticker_worker(ticker_df_tuple):
             "MACD xấu (hist xấu đi)":      bool(_macd_diag.get('hist_shrinking', False)),
             "MCDX Banker suy yếu":         bool(_mcdx_eval.get('banker_weakening', False)),
             "Heatmap chuyển Đỏ":           _hm_is_red,
-            "Heikin Ashi Đỏ":              _ha_color == 'Red',
+            "Heikin Ashi Đỏ":              _hk_bar_color == 'red',
             "Octopus xấu (hồng/đỏ xấu)":  _oct_bad,
             "Mất MA20":                    _price_now < _ma20_now,
             "Mất Kijun 26":                _price_now < _kijun_now,
@@ -3272,7 +3278,10 @@ class TinvestApp:
                             _heatmap_is_red = bool(_last['HM_Flower_Close'] < _last['HM_Flower_Open'] and _last['HM_MoneyFlow'] == -1)
                         except Exception:
                             _heatmap_is_red = False
-                    _ha_color = str(_last.get('HA_Color', 'Green')) if 'HA_Color' in df.columns else 'Green'
+                    # HK_BarColor (màu nến Heikin-Ashi THẬT hiển thị trên biểu
+                    # đồ) thay vì HA_Color (cổ điển, không có trạng thái
+                    # trung tính) — khớp đúng màu nến thật cho logic đồng thuận.
+                    _ha_color = str(_last.get('HK_BarColor', 'white')) if 'HK_BarColor' in df.columns else 'white'
                     _oct_color = str(_last.get('OCT_Color', '')) if 'OCT_Color' in df.columns else ''
 
                     report_input = {
@@ -3304,15 +3313,17 @@ class TinvestApp:
                 mcdx_banker = float(df['MCDX_Banker'].iloc[-1]) if 'MCDX_Banker' in df.columns else 10
                 prev_mcdx_banker = float(df['MCDX_Banker'].iloc[-2]) if len(df) > 1 and 'MCDX_Banker' in df.columns else mcdx_banker
                 adx = float(df['ADX'].iloc[-1]) if 'ADX' in df.columns else 20
-                ha_color = str(df['HA_Color'].iloc[-1]) if 'HA_Color' in df.columns else 'Green'
+                # HK_BarColor (màu nến Heikin-Ashi THẬT hiển thị trên biểu đồ)
+                # thay vì HA_Color (cổ điển, không có trạng thái trung tính).
+                hk_bar_color = str(df['HK_BarColor'].iloc[-1]) if 'HK_BarColor' in df.columns else 'white'
                 ma20 = float(df['MA20'].iloc[-1]) if 'MA20' in df.columns else current_p / 1000
                 vol = float(df['Volume'].iloc[-1]) if 'Volume' in df.columns else 0
                 vol_avg = float(df['AvgVolume20'].iloc[-1]) if 'AvgVolume20' in df.columns else vol
                 avg_vol_10 = float(df['Volume'].tail(10).mean()) if 'Volume' in df.columns and len(df) >= 10 else vol
-                
+
                 mcdx_weak = (mcdx_banker < prev_mcdx_banker) and (mcdx_banker < 15)
                 adx_low = adx < 20
-                heikin_red = (ha_color.lower() == 'red')
+                heikin_red = (hk_bar_color.lower() == 'red')
                 price_below_ma20 = (current_p / 1000) < ma20
                 tech_weak = mcdx_weak or adx_low or heikin_red or price_below_ma20
                 
