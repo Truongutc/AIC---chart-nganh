@@ -6300,6 +6300,29 @@
             });
         }
 
+        // ── Sync visible range across charts theo THỜI GIAN thực (không theo
+        // logical/bar-index) — dùng khi 2 chart có 2 mảng ngày KHÁC NHAU (VD
+        // pane giá dùng lịch sử kỹ thuật, pane P/E/P/B dùng lịch sử tài chính
+        // riêng — số phiên/khoảng nghỉ lễ có thể lệch nhau đôi chút), nên đồng
+        // bộ theo bar-index sẽ hiện SAI khung thời gian dù cùng số phiên. Có
+        // cờ "busy" chống lặp vô hạn giống hệt syncCharts() ở trên — thiếu cờ
+        // này từng khiến 2 pane "giành" setVisibleRange của nhau, kéo bị
+        // khựng rồi biến thành zoom (đã gặp, đã gỡ bỏ sync trước đây vì lý do
+        // này — giờ thêm lại đúng cách với cờ chống lặp).
+        function syncChartsByTime(charts) {
+            let busy = false;
+            charts.forEach((c, i) => {
+                c.timeScale().subscribeVisibleTimeRangeChange(range => {
+                    if (busy || !range) return;
+                    busy = true;
+                    charts.forEach((o, j) => {
+                        if (j !== i) try { o.timeScale().setVisibleRange(range); } catch(e){}
+                    });
+                    busy = false;
+                });
+            });
+        }
+
         // ── Chiều cao mặc định cho chart P/E, P/B ngành khi hiển thị INLINE
         // (không phải fullscreen — fullscreen tự tính theo modal qua opts.h) —
         // thu nhỏ khi màn hình đang xoay ngang VÀ thấp (VD điện thoại ngang),
@@ -7112,9 +7135,9 @@
             }
 
             // ── Pane 1: giá ngành/mã, CẮT TRÙNG khung thời gian với P/E (từ
-            // đúng ngày P/E bắt đầu có giá trị) — để 2 pane mặc định cùng
-            // khung nhìn mà KHÔNG cần đồng bộ runtime (đã bỏ syncChartsByTime,
-            // xem giải thích dưới chỗ set full-range của pane 2). Nếu P/E
+            // đúng ngày P/E bắt đầu có giá trị) — để 2 pane mặc định đã cùng
+            // khung nhìn ngay từ đầu; runtime vẫn được đồng bộ thêm bằng
+            // syncChartsByTime() ở cuối hàm để giữ khớp khi kéo/zoom. Nếu P/E
             // chưa có giá trị nào (dSeries rỗng) thì giữ nguyên toàn bộ giá,
             // tránh pane trống trơn không có gì để so sánh. ──
             let priceChart = null;
@@ -7250,13 +7273,13 @@
             // kẹp lại ở mức 0.5 mặc định).
             if (dSeries.length) chart.timeScale().setVisibleLogicalRange({ from: -0.5, to: dSeries.length - 0.5 });
 
-            // KHÔNG đồng bộ runtime giữa 2 pane nữa (đã bỏ syncChartsByTime) —
-            // vì pane giá ở trên đã được CẮT TRÙNG khung thời gian với P/E
-            // ngay từ lúc build dữ liệu (cùng bắt đầu từ ngày P/E có giá trị
-            // đầu tiên), nên mặc định đã cùng khung nhìn mà không cần đồng bộ
-            // theo từng frame kéo — tránh 2 pane "giành" setVisibleRange của
-            // nhau khi lịch sử 2 bên lệch, từng gây cảm giác kéo bị khựng rồi
-            // biến thành zoom. Kéo/zoom pane nào giờ chỉ ảnh hưởng đúng pane đó.
+            // Đồng bộ RUNTIME 2 pane theo thời gian (kéo/zoom pane nào, pane kia
+            // theo cùng) — dùng syncChartsByTime (theo mốc thời gian thực, có
+            // cờ chống lặp) thay vì syncCharts (theo bar-index, dễ lệch khung
+            // vì 2 pane dùng 2 mảng ngày khác nhau). Chỉ đồng bộ ĐÚNG 2 pane
+            // của CHÍNH card này (priceChart/chart cục bộ trong hàm) — card
+            // finpe và card finpb là 2 lần gọi hàm độc lập, không liên quan.
+            if (priceChart) syncChartsByTime([priceChart, chart]);
 
             financeChartSeriesRegistry[mountId] = registry;
             return chart;
