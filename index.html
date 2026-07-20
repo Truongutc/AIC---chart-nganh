@@ -6306,35 +6306,60 @@
         // riêng — số phiên/khoảng nghỉ lễ có thể lệch nhau đôi chút), nên đồng
         // bộ theo bar-index sẽ hiện SAI khung thời gian dù cùng số phiên.
         //
-        // QUAN TRỌNG: một cờ "busy" đơn thuần KHÔNG đủ để chống lặp ở đây —
-        // vì 2 pane có mật độ phiên khác nhau, setVisibleRange(range) ở pane
-        // B sẽ tự "snap" range về giá trị hơi khác range gốc của pane A, làm
-        // pane B tự bắn lại sự kiện đổi range của CHÍNH NÓ; nếu chỉ chặn bằng
-        // cờ busy đồng bộ, sự kiện snap-lại này (bắn ra ngoài lượt gọi đồng
-        // bộ ban đầu) vẫn lọt qua và đồng bộ ngược lại pane A — cứ thế khuếch
-        // đại mỗi vòng, khiến "from" nhảy nhanh còn "to" đứng im (đúng triệu
-        // chứng zoom-dính-mép-phải đã gặp). Fix triệt để: chỉ đồng bộ MỘT
-        // CHIỀU — từ pane người dùng đang thực sự thao tác (chuột/trackpad)
-        // sang pane còn lại — xác định qua sự kiện pointerdown/wheel trên
-        // chính DOM của từng pane, không dựa vào timing của sự kiện đổi
-        // range. Sự kiện đổi range bắn ra ở pane KHÔNG active bị bỏ qua
-        // hoàn toàn (dù là do user hay do echo từ setVisibleRange của chính
-        // mình) nên vòng lặp phản hồi không thể hình thành.
+        // QUAN TRỌNG: đã thử 2 cách gọi setVisibleRange(range) NGAY LẬP TỨC
+        // trên pane còn lại mỗi khi pane đang kéo bắn sự kiện đổi range (busy
+        // flag 2 chiều, rồi tới gating 1 chiều theo pane đang active) — CẢ
+        // HAI đều khiến pane đang kéo bị giật/biến thành zoom giữa chừng,
+        // vì gọi setVisibleRange (bắt pane kia tính lại bar-spacing + vẽ lại
+        // canvas) NHIỀU LẦN MỖI GIÂY, ngay khi pane đang kéo còn đang trong
+        // 1 cử chỉ kéo native của nó, gây tranh chấp/nhiễu giữa 2 lần vẽ lại
+        // đồng thời — không liên quan gì đến vòng lặp phản hồi (feedback
+        // loop), vì ngay cả bản 1 chiều (không thể tự lặp lại) vẫn bị. Fix
+        // triệt để: KHÔNG đụng vào pane còn lại trong lúc đang kéo/zoom —
+        // chỉ ghi nhớ range mới nhất, và chỉ thật sự setVisibleRange() cho
+        // pane kia SAU KHI cử chỉ đã kết thúc hẳn (thả chuột — pointerup —
+        // với kéo chuột; hoặc sau 1 khoảng lặng ngắn không còn sự kiện đổi
+        // range — với lăn chuột/pinch, vốn không có điểm "thả" rõ ràng).
+        // Nhờ vậy, pane đang được thao tác luôn là 1 cử chỉ pan/zoom native,
+        // liền mạch, không có gì bên ngoài can thiệp giữa chừng.
         function syncChartsByTime(pairs) {
             let activeIdx = 0;
+            let pendingRange = null;
+            let dragging = false;
+            let wheelTimer = null;
+
+            function applyPending() {
+                if (!pendingRange) return;
+                const range = pendingRange;
+                pendingRange = null;
+                pairs.forEach((o, j) => {
+                    if (j !== activeIdx) try { o.chart.timeScale().setVisibleRange(range); } catch(e){}
+                });
+            }
+
             pairs.forEach((p, i) => {
-                const markActive = () => { activeIdx = i; };
-                if (p.el) {
-                    p.el.addEventListener('pointerdown', markActive, { passive: true });
-                    p.el.addEventListener('wheel', markActive, { passive: true });
-                }
+                if (!p.el) return;
+                p.el.addEventListener('pointerdown', () => { activeIdx = i; dragging = true; }, { passive: true });
+                p.el.addEventListener('wheel', () => { activeIdx = i; }, { passive: true });
             });
+            // pointerup có thể xảy ra ngoài phạm vi phần tử (chuột kéo ra
+            // ngoài rồi thả) — lắng nghe trên window, không chỉ trên p.el.
+            ['pointerup', 'pointercancel'].forEach(evt => {
+                window.addEventListener(evt, () => {
+                    if (!dragging) return;
+                    dragging = false;
+                    applyPending();
+                }, { passive: true });
+            });
+
             pairs.forEach((p, i) => {
                 p.chart.timeScale().subscribeVisibleTimeRangeChange(range => {
                     if (!range || i !== activeIdx) return;
-                    pairs.forEach((o, j) => {
-                        if (j !== i) try { o.chart.timeScale().setVisibleRange(range); } catch(e){}
-                    });
+                    pendingRange = range;
+                    if (dragging) return; // chờ pointerup mới áp dụng
+                    // Lăn chuột/pinch: không có "thả", debounce theo khoảng lặng.
+                    if (wheelTimer) clearTimeout(wheelTimer);
+                    wheelTimer = setTimeout(applyPending, 150);
                 });
             });
         }
@@ -7183,8 +7208,8 @@
                 priceChart = built1.chart;
                 instances.push({ chart: priceChart, ro: built1.ro });
                 priceChart.addLineSeries({ color: '#ffffff', lineWidth: 2, priceLineVisible: false, title: '' }).setData(priceData);
-                // Mặc định chỉ hiện ~365 phiên gần nhất (giống các chart khác
-                // trên trang, applyDefaultChartRange) — KHÔNG fit toàn bộ lịch
+                // Mặc định chỉ hiện ~5 năm gần nhất (1250 phiên ≈ 5×250
+                // phiên/năm, applyDefaultChartRange) — KHÔNG fit toàn bộ lịch
                 // sử. Lý do: với minBarSpacing:0.01, fit toàn bộ nhiều năm dữ
                 // liệu ép rightOffset (30 "bar") xuống còn <1px — không đủ để
                 // nhận biết là có chỗ kéo, nên kéo trái dù chỉ 1 chút cũng lập
@@ -7193,7 +7218,7 @@
                 // hơn ở barSpacing bình thường thì rightOffset mới thực sự là
                 // vùng trống có thể kéo vào, và kéo trái sẽ lộ dần lịch sử cũ
                 // hơn (pan thật) thay vì zoom.
-                if (priceHistory.dates.length) applyDefaultChartRange(priceChart, priceHistory.dates, 365);
+                if (priceHistory.dates.length) applyDefaultChartRange(priceChart, priceHistory.dates, 1250);
             } else {
                 d1.innerHTML = '<div class="lwc-loading" style="font-size:0.7rem;color:#6b7280;">Chưa có dữ liệu giá</div>';
             }
@@ -7298,15 +7323,15 @@
             chart.priceScale('left').applyOptions({ visible: segments.length > 0 });
             chart.priceScale('right').applyOptions({ visible: dSeries.length > 0 });
 
-            // Mặc định chỉ hiện ~365 phiên gần nhất (applyDefaultChartRange,
-            // giống mọi chart khác trên trang) thay vì fit TOÀN BỘ lịch sử —
-            // xem giải thích chi tiết ở pane giá phía trên (cùng lý do: fit
-            // hết nhiều năm dữ liệu ép barSpacing/rightOffset xuống mức không
-            // còn nhận ra được, khiến kéo trái trông như zoom và cảm giác
-            // "khóa chết cột phải"). minBarSpacing:0.01 vẫn giữ nguyên — chỉ
-            // là NGƯỠNG DƯỚI cho phép người dùng tự zoom out xa hơn nếu muốn
-            // xem toàn bộ lịch sử, không còn là trạng thái mặc định ép buộc.
-            if (dDates.length) applyDefaultChartRange(chart, dDates, 365);
+            // Mặc định chỉ hiện ~5 năm gần nhất (1250 phiên, applyDefaultChartRange)
+            // thay vì fit TOÀN BỘ lịch sử — xem giải thích chi tiết ở pane
+            // giá phía trên (cùng lý do: fit hết nhiều năm dữ liệu ép
+            // barSpacing/rightOffset xuống mức không còn nhận ra được, khiến
+            // kéo trái trông như zoom và cảm giác "khóa chết cột phải").
+            // minBarSpacing:0.01 vẫn giữ nguyên — chỉ là NGƯỠNG DƯỚI cho phép
+            // người dùng tự zoom out xa hơn nếu muốn xem toàn bộ lịch sử,
+            // không còn là trạng thái mặc định ép buộc.
+            if (dDates.length) applyDefaultChartRange(chart, dDates, 1250);
 
             // Đồng bộ RUNTIME 2 pane theo thời gian (kéo/zoom pane nào, pane kia
             // theo cùng) — dùng syncChartsByTime (theo mốc thời gian thực, có
