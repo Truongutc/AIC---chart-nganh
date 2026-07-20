@@ -3247,7 +3247,7 @@
     <div id="sectorPasswordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
         <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; width: 90%; max-width: 360px; text-align: center;">
             <h3 style="margin: 0 0 8px 0; font-family: 'Outfit', sans-serif; color: var(--text-primary);">🔒 Ngành yêu cầu mật khẩu</h3>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">Chỉ số VNINDEX (không VIN) xem miễn phí — các ngành khác cần nhập mật khẩu.</p>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 16px;">Chỉ số VNINDEX và VNINDEX (không VIN) xem miễn phí — các ngành khác cần nhập mật khẩu.</p>
             <input type="password" id="sectorPasswordInput" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-dark); color: white; margin-bottom: 5px; font-size: 1rem; box-sizing: border-box;" placeholder="Nhập mật khẩu..." onkeypress="if(event.key === 'Enter') submitSectorPassword()">
             <p id="sectorPasswordErrorMsg" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px; margin-bottom: 15px; display: none; text-align: left;">Mật khẩu không chính xác!</p>
             <div style="display: flex; gap: 10px; margin-top: 10px;">
@@ -3307,7 +3307,7 @@
         let searchQuery = '';
         let breadthChart = null;
         let currentChartRange = 30;
-        let activeMarketIndex = 'VNINDEX_NONVIN'; // Ngành mặc định miễn phí, xem sectorUnlocked/FREE_SECTOR_CODE bên dưới
+        let activeMarketIndex = 'VNINDEX_NONVIN'; // Ngành mặc định miễn phí, xem sectorUnlocked/FREE_SECTOR_CODES bên dưới
         
         let whatifForecastChartInst = null;
         const whatifChartVisibility = {
@@ -4607,7 +4607,7 @@
         // Ngành xem MIỄN PHÍ, không cần mật khẩu — mọi ngành khác đều bị khoá.
         // (Tab "Thống kê giao dịch" không còn dùng cổng mật khẩu này nữa —
         // dữ liệu Vietcap ở đó miễn phí.)
-        const FREE_SECTOR_CODE = 'VNINDEX_NONVIN';
+        const FREE_SECTOR_CODES = ['VNINDEX', 'VNINDEX_NONVIN'];
         let sectorUnlocked = false; // Mở khoá 1 lần cho cả phiên sau khi nhập đúng mật khẩu
         let pendingSectorCode = null;
 
@@ -4644,7 +4644,7 @@
         // Chọn 1 chỉ số ngành/thị trường để hiển thị dashboard chi tiết.
         // skipGate=true chỉ dùng cho lần render nền lúc tải trang (xem loadData).
         function selectMarketIndex(code, skipGate = false) {
-            if (!skipGate && code !== FREE_SECTOR_CODE && !sectorUnlocked) {
+            if (!skipGate && !FREE_SECTOR_CODES.includes(code) && !sectorUnlocked) {
                 showSectorPasswordModal(code);
                 return; // Dừng lại chờ nhập đúng mật khẩu, chưa hiển thị nội dung ngành
             }
@@ -7155,6 +7155,14 @@
                     rightPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.1, bottom: 0.1 } },
                     leftPriceScale: { visible: false },
                     timeScale: { ...LWC_THEME.timeScale, minBarSpacing: 0.01 },
+                    // Pane cao rất thấp (đã thu nhỏ 30%) — nếu kéo gần đáy pane
+                    // rất dễ vô tình chạm vào dải trục thời gian, và
+                    // axisPressedMouseMove.time (mặc định true ở LWC_THEME) biến
+                    // thao tác kéo đó thành ZOOM thay vì PAN, luôn neo lại đúng
+                    // 1 mép — đúng cảm giác "kéo 1 chút là zoom, vẫn khóa cột
+                    // phải". Tắt hẳn time-axis-drag-zoom cho pane này, chỉ còn
+                    // kéo trong vùng biểu đồ = pan (đúng ý muốn).
+                    handleScale: { mouseWheel: true, pinch: true, axisPressedMouseMove: { time: false, price: true } },
                 }, null);
                 priceChart = built1.chart;
                 instances.push({ chart: priceChart, ro: built1.ro });
@@ -7186,6 +7194,9 @@
                 rightPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.1, bottom: 0.1 } },
                 timeScale: { ...LWC_THEME.timeScale, minBarSpacing: 0.01 },
                 localization: {},
+                // Tắt time-axis-drag-zoom — xem giải thích ở pane giá phía trên
+                // (cùng lý do: pane thấp, dễ vô tình kéo trúng trục thời gian).
+                handleScale: { mouseWheel: true, pinch: true, axisPressedMouseMove: { time: false, price: true } },
             }, null);
             instances.push({ chart, ro });
 
