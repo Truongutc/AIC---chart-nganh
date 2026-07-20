@@ -6304,21 +6304,37 @@
         // logical/bar-index) — dùng khi 2 chart có 2 mảng ngày KHÁC NHAU (VD
         // pane giá dùng lịch sử kỹ thuật, pane P/E/P/B dùng lịch sử tài chính
         // riêng — số phiên/khoảng nghỉ lễ có thể lệch nhau đôi chút), nên đồng
-        // bộ theo bar-index sẽ hiện SAI khung thời gian dù cùng số phiên. Có
-        // cờ "busy" chống lặp vô hạn giống hệt syncCharts() ở trên — thiếu cờ
-        // này từng khiến 2 pane "giành" setVisibleRange của nhau, kéo bị
-        // khựng rồi biến thành zoom (đã gặp, đã gỡ bỏ sync trước đây vì lý do
-        // này — giờ thêm lại đúng cách với cờ chống lặp).
-        function syncChartsByTime(charts) {
-            let busy = false;
-            charts.forEach((c, i) => {
-                c.timeScale().subscribeVisibleTimeRangeChange(range => {
-                    if (busy || !range) return;
-                    busy = true;
-                    charts.forEach((o, j) => {
-                        if (j !== i) try { o.timeScale().setVisibleRange(range); } catch(e){}
+        // bộ theo bar-index sẽ hiện SAI khung thời gian dù cùng số phiên.
+        //
+        // QUAN TRỌNG: một cờ "busy" đơn thuần KHÔNG đủ để chống lặp ở đây —
+        // vì 2 pane có mật độ phiên khác nhau, setVisibleRange(range) ở pane
+        // B sẽ tự "snap" range về giá trị hơi khác range gốc của pane A, làm
+        // pane B tự bắn lại sự kiện đổi range của CHÍNH NÓ; nếu chỉ chặn bằng
+        // cờ busy đồng bộ, sự kiện snap-lại này (bắn ra ngoài lượt gọi đồng
+        // bộ ban đầu) vẫn lọt qua và đồng bộ ngược lại pane A — cứ thế khuếch
+        // đại mỗi vòng, khiến "from" nhảy nhanh còn "to" đứng im (đúng triệu
+        // chứng zoom-dính-mép-phải đã gặp). Fix triệt để: chỉ đồng bộ MỘT
+        // CHIỀU — từ pane người dùng đang thực sự thao tác (chuột/trackpad)
+        // sang pane còn lại — xác định qua sự kiện pointerdown/wheel trên
+        // chính DOM của từng pane, không dựa vào timing của sự kiện đổi
+        // range. Sự kiện đổi range bắn ra ở pane KHÔNG active bị bỏ qua
+        // hoàn toàn (dù là do user hay do echo từ setVisibleRange của chính
+        // mình) nên vòng lặp phản hồi không thể hình thành.
+        function syncChartsByTime(pairs) {
+            let activeIdx = 0;
+            pairs.forEach((p, i) => {
+                const markActive = () => { activeIdx = i; };
+                if (p.el) {
+                    p.el.addEventListener('pointerdown', markActive, { passive: true });
+                    p.el.addEventListener('wheel', markActive, { passive: true });
+                }
+            });
+            pairs.forEach((p, i) => {
+                p.chart.timeScale().subscribeVisibleTimeRangeChange(range => {
+                    if (!range || i !== activeIdx) return;
+                    pairs.forEach((o, j) => {
+                        if (j !== i) try { o.chart.timeScale().setVisibleRange(range); } catch(e){}
                     });
-                    busy = false;
                 });
             });
         }
@@ -7167,11 +7183,17 @@
                 priceChart = built1.chart;
                 instances.push({ chart: priceChart, ro: built1.ro });
                 priceChart.addLineSeries({ color: '#ffffff', lineWidth: 2, priceLineVisible: false, title: '' }).setData(priceData);
-                // +rightOffset: chừa khoảng trống bên phải để kéo thoải mái,
-                // giống hệt các biểu đồ khác (LWC_THEME.timeScale.rightOffset
-                // mặc định 30) — nếu không, to đúng bằng phiên cuối sẽ "khóa
-                // chết" ở cột phải, không kéo được thêm dù handleScroll vẫn bật.
-                if (priceData.length) priceChart.timeScale().setVisibleLogicalRange({ from: -0.5, to: priceData.length - 0.5 + LWC_THEME.timeScale.rightOffset });
+                // Mặc định chỉ hiện ~365 phiên gần nhất (giống các chart khác
+                // trên trang, applyDefaultChartRange) — KHÔNG fit toàn bộ lịch
+                // sử. Lý do: với minBarSpacing:0.01, fit toàn bộ nhiều năm dữ
+                // liệu ép rightOffset (30 "bar") xuống còn <1px — không đủ để
+                // nhận biết là có chỗ kéo, nên kéo trái dù chỉ 1 chút cũng lập
+                // tức "ăn" vào dữ liệu thật và trông như zoom, đúng lỗi "khóa
+                // chết cột phải, kéo là zoom" người dùng gặp. Hiện cửa sổ hẹp
+                // hơn ở barSpacing bình thường thì rightOffset mới thực sự là
+                // vùng trống có thể kéo vào, và kéo trái sẽ lộ dần lịch sử cũ
+                // hơn (pan thật) thay vì zoom.
+                if (priceHistory.dates.length) applyDefaultChartRange(priceChart, priceHistory.dates, 365);
             } else {
                 d1.innerHTML = '<div class="lwc-loading" style="font-size:0.7rem;color:#6b7280;">Chưa có dữ liệu giá</div>';
             }
@@ -7276,20 +7298,15 @@
             chart.priceScale('left').applyOptions({ visible: segments.length > 0 });
             chart.priceScale('right').applyOptions({ visible: dSeries.length > 0 });
 
-            // Luôn mặc định xem TOÀN BỘ lịch sử — dùng setVisibleLogicalRange
-            // thay vì fitContent(), vì fitContent() trong lightweight-charts v4
-            // KHÔNG tự co giãn barSpacing để nhét vừa hết dữ liệu: nó chỉ hiện
-            // "bao nhiêu phiên vừa khít ở barSpacing hiện tại" (mặc định 6px),
-            // luôn neo về phiên MỚI NHẤT — đã xác minh trực tiếp: với lịch sử
-            // dài, chart chỉ hiện được ~90-120 phiên gần nhất dù minBarSpacing
-            // đã chỉnh nhỏ. setVisibleLogicalRange({from:-0.5, to:N-0.5}) mới
-            // thật sự hiện đủ N phiên (kết hợp minBarSpacing:0.01 ở trên để
-            // không bị kẹp lại ở mức 0.5 mặc định). +rightOffset: chừa khoảng
-            // trống bên phải để kéo thoải mái như mọi biểu đồ khác — nếu để
-            // đúng N-0.5 (không cộng thêm), vùng nhìn sẽ dừng CHÍNH XÁC ở
-            // phiên cuối, không còn chỗ để kéo tiếp dù handleScroll vẫn bật,
-            // đúng cảm giác "khóa chết vào cột phải" người dùng gặp phải.
-            if (dSeries.length) chart.timeScale().setVisibleLogicalRange({ from: -0.5, to: dSeries.length - 0.5 + LWC_THEME.timeScale.rightOffset });
+            // Mặc định chỉ hiện ~365 phiên gần nhất (applyDefaultChartRange,
+            // giống mọi chart khác trên trang) thay vì fit TOÀN BỘ lịch sử —
+            // xem giải thích chi tiết ở pane giá phía trên (cùng lý do: fit
+            // hết nhiều năm dữ liệu ép barSpacing/rightOffset xuống mức không
+            // còn nhận ra được, khiến kéo trái trông như zoom và cảm giác
+            // "khóa chết cột phải"). minBarSpacing:0.01 vẫn giữ nguyên — chỉ
+            // là NGƯỠNG DƯỚI cho phép người dùng tự zoom out xa hơn nếu muốn
+            // xem toàn bộ lịch sử, không còn là trạng thái mặc định ép buộc.
+            if (dDates.length) applyDefaultChartRange(chart, dDates, 365);
 
             // Đồng bộ RUNTIME 2 pane theo thời gian (kéo/zoom pane nào, pane kia
             // theo cùng) — dùng syncChartsByTime (theo mốc thời gian thực, có
@@ -7297,7 +7314,7 @@
             // vì 2 pane dùng 2 mảng ngày khác nhau). Chỉ đồng bộ ĐÚNG 2 pane
             // của CHÍNH card này (priceChart/chart cục bộ trong hàm) — card
             // finpe và card finpb là 2 lần gọi hàm độc lập, không liên quan.
-            if (priceChart) syncChartsByTime([priceChart, chart]);
+            if (priceChart) syncChartsByTime([{ chart: priceChart, el: d1 }, { chart, el: d2 }]);
 
             financeChartSeriesRegistry[mountId] = registry;
             return chart;
