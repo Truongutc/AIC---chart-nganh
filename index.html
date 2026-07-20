@@ -6300,70 +6300,6 @@
             });
         }
 
-        // ── Sync visible range across charts theo THỜI GIAN thực (không theo
-        // logical/bar-index) — dùng khi 2 chart có 2 mảng ngày KHÁC NHAU (VD
-        // pane giá dùng lịch sử kỹ thuật, pane P/E/P/B dùng lịch sử tài chính
-        // riêng — số phiên/khoảng nghỉ lễ có thể lệch nhau đôi chút), nên đồng
-        // bộ theo bar-index sẽ hiện SAI khung thời gian dù cùng số phiên.
-        //
-        // QUAN TRỌNG: đã thử 2 cách gọi setVisibleRange(range) NGAY LẬP TỨC
-        // trên pane còn lại mỗi khi pane đang kéo bắn sự kiện đổi range (busy
-        // flag 2 chiều, rồi tới gating 1 chiều theo pane đang active) — CẢ
-        // HAI đều khiến pane đang kéo bị giật/biến thành zoom giữa chừng,
-        // vì gọi setVisibleRange (bắt pane kia tính lại bar-spacing + vẽ lại
-        // canvas) NHIỀU LẦN MỖI GIÂY, ngay khi pane đang kéo còn đang trong
-        // 1 cử chỉ kéo native của nó, gây tranh chấp/nhiễu giữa 2 lần vẽ lại
-        // đồng thời — không liên quan gì đến vòng lặp phản hồi (feedback
-        // loop), vì ngay cả bản 1 chiều (không thể tự lặp lại) vẫn bị. Fix
-        // triệt để: KHÔNG đụng vào pane còn lại trong lúc đang kéo/zoom —
-        // chỉ ghi nhớ range mới nhất, và chỉ thật sự setVisibleRange() cho
-        // pane kia SAU KHI cử chỉ đã kết thúc hẳn (thả chuột — pointerup —
-        // với kéo chuột; hoặc sau 1 khoảng lặng ngắn không còn sự kiện đổi
-        // range — với lăn chuột/pinch, vốn không có điểm "thả" rõ ràng).
-        // Nhờ vậy, pane đang được thao tác luôn là 1 cử chỉ pan/zoom native,
-        // liền mạch, không có gì bên ngoài can thiệp giữa chừng.
-        function syncChartsByTime(pairs) {
-            let activeIdx = 0;
-            let pendingRange = null;
-            let dragging = false;
-            let wheelTimer = null;
-
-            function applyPending() {
-                if (!pendingRange) return;
-                const range = pendingRange;
-                pendingRange = null;
-                pairs.forEach((o, j) => {
-                    if (j !== activeIdx) try { o.chart.timeScale().setVisibleRange(range); } catch(e){}
-                });
-            }
-
-            pairs.forEach((p, i) => {
-                if (!p.el) return;
-                p.el.addEventListener('pointerdown', () => { activeIdx = i; dragging = true; }, { passive: true });
-                p.el.addEventListener('wheel', () => { activeIdx = i; }, { passive: true });
-            });
-            // pointerup có thể xảy ra ngoài phạm vi phần tử (chuột kéo ra
-            // ngoài rồi thả) — lắng nghe trên window, không chỉ trên p.el.
-            ['pointerup', 'pointercancel'].forEach(evt => {
-                window.addEventListener(evt, () => {
-                    if (!dragging) return;
-                    dragging = false;
-                    applyPending();
-                }, { passive: true });
-            });
-
-            pairs.forEach((p, i) => {
-                p.chart.timeScale().subscribeVisibleTimeRangeChange(range => {
-                    if (!range || i !== activeIdx) return;
-                    pendingRange = range;
-                    if (dragging) return; // chờ pointerup mới áp dụng
-                    // Lăn chuột/pinch: không có "thả", debounce theo khoảng lặng.
-                    if (wheelTimer) clearTimeout(wheelTimer);
-                    wheelTimer = setTimeout(applyPending, 150);
-                });
-            });
-        }
-
         // ── Chiều cao mặc định cho chart P/E, P/B ngành khi hiển thị INLINE
         // (không phải fullscreen — fullscreen tự tính theo modal qua opts.h) —
         // thu nhỏ khi màn hình đang xoay ngang VÀ thấp (VD điện thoại ngang),
@@ -7177,10 +7113,11 @@
 
             // ── Pane 1: giá ngành/mã, CẮT TRÙNG khung thời gian với P/E (từ
             // đúng ngày P/E bắt đầu có giá trị) — để 2 pane mặc định đã cùng
-            // khung nhìn ngay từ đầu; runtime vẫn được đồng bộ thêm bằng
-            // syncChartsByTime() ở cuối hàm để giữ khớp khi kéo/zoom. Nếu P/E
-            // chưa có giá trị nào (dSeries rỗng) thì giữ nguyên toàn bộ giá,
-            // tránh pane trống trơn không có gì để so sánh. ──
+            // khung nhìn ngay từ đầu; runtime được đồng bộ thêm bằng
+            // syncCharts() ở cuối hàm (bar-index, giống hệt mọi biểu đồ nhiều
+            // pane khác trên trang) để giữ khớp khi kéo/zoom. Nếu P/E chưa có
+            // giá trị nào (dSeries rỗng) thì giữ nguyên toàn bộ giá, tránh
+            // pane trống trơn không có gì để so sánh. ──
             let priceChart = null;
             const priceHistory = opts.priceHistory;
             const priceStartTs = dSeries.length ? dSeries[0].time : null;
@@ -7196,29 +7133,10 @@
                     rightPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.1, bottom: 0.1 } },
                     leftPriceScale: { visible: false },
                     timeScale: { ...LWC_THEME.timeScale, minBarSpacing: 0.01 },
-                    // Pane cao rất thấp (đã thu nhỏ 30%) — nếu kéo gần đáy pane
-                    // rất dễ vô tình chạm vào dải trục thời gian, và
-                    // axisPressedMouseMove.time (mặc định true ở LWC_THEME) biến
-                    // thao tác kéo đó thành ZOOM thay vì PAN, luôn neo lại đúng
-                    // 1 mép — đúng cảm giác "kéo 1 chút là zoom, vẫn khóa cột
-                    // phải". Tắt hẳn time-axis-drag-zoom cho pane này, chỉ còn
-                    // kéo trong vùng biểu đồ = pan (đúng ý muốn).
-                    handleScale: { mouseWheel: true, pinch: true, axisPressedMouseMove: { time: false, price: true } },
                 }, null);
                 priceChart = built1.chart;
                 instances.push({ chart: priceChart, ro: built1.ro });
                 priceChart.addLineSeries({ color: '#ffffff', lineWidth: 2, priceLineVisible: false, title: '' }).setData(priceData);
-                // Mặc định chỉ hiện ~5 năm gần nhất (1250 phiên ≈ 5×250
-                // phiên/năm, applyDefaultChartRange) — KHÔNG fit toàn bộ lịch
-                // sử. Lý do: với minBarSpacing:0.01, fit toàn bộ nhiều năm dữ
-                // liệu ép rightOffset (30 "bar") xuống còn <1px — không đủ để
-                // nhận biết là có chỗ kéo, nên kéo trái dù chỉ 1 chút cũng lập
-                // tức "ăn" vào dữ liệu thật và trông như zoom, đúng lỗi "khóa
-                // chết cột phải, kéo là zoom" người dùng gặp. Hiện cửa sổ hẹp
-                // hơn ở barSpacing bình thường thì rightOffset mới thực sự là
-                // vùng trống có thể kéo vào, và kéo trái sẽ lộ dần lịch sử cũ
-                // hơn (pan thật) thay vì zoom.
-                if (priceHistory.dates.length) applyDefaultChartRange(priceChart, priceHistory.dates, 1250);
             } else {
                 d1.innerHTML = '<div class="lwc-loading" style="font-size:0.7rem;color:#6b7280;">Chưa có dữ liệu giá</div>';
             }
@@ -7241,9 +7159,6 @@
                 rightPriceScale: { visible: true, borderColor: 'rgba(255,255,255,0.08)', scaleMargins: { top: 0.1, bottom: 0.1 } },
                 timeScale: { ...LWC_THEME.timeScale, minBarSpacing: 0.01 },
                 localization: {},
-                // Tắt time-axis-drag-zoom — xem giải thích ở pane giá phía trên
-                // (cùng lý do: pane thấp, dễ vô tình kéo trúng trục thời gian).
-                handleScale: { mouseWheel: true, pinch: true, axisPressedMouseMove: { time: false, price: true } },
             }, null);
             instances.push({ chart, ro });
 
@@ -7323,23 +7238,25 @@
             chart.priceScale('left').applyOptions({ visible: segments.length > 0 });
             chart.priceScale('right').applyOptions({ visible: dSeries.length > 0 });
 
-            // Mặc định chỉ hiện ~5 năm gần nhất (1250 phiên, applyDefaultChartRange)
-            // thay vì fit TOÀN BỘ lịch sử — xem giải thích chi tiết ở pane
-            // giá phía trên (cùng lý do: fit hết nhiều năm dữ liệu ép
-            // barSpacing/rightOffset xuống mức không còn nhận ra được, khiến
-            // kéo trái trông như zoom và cảm giác "khóa chết cột phải").
-            // minBarSpacing:0.01 vẫn giữ nguyên — chỉ là NGƯỠNG DƯỚI cho phép
-            // người dùng tự zoom out xa hơn nếu muốn xem toàn bộ lịch sử,
-            // không còn là trạng thái mặc định ép buộc.
-            if (dDates.length) applyDefaultChartRange(chart, dDates, 1250);
-
-            // Đồng bộ RUNTIME 2 pane theo thời gian (kéo/zoom pane nào, pane kia
-            // theo cùng) — dùng syncChartsByTime (theo mốc thời gian thực, có
-            // cờ chống lặp) thay vì syncCharts (theo bar-index, dễ lệch khung
-            // vì 2 pane dùng 2 mảng ngày khác nhau). Chỉ đồng bộ ĐÚNG 2 pane
-            // của CHÍNH card này (priceChart/chart cục bộ trong hàm) — card
-            // finpe và card finpb là 2 lần gọi hàm độc lập, không liên quan.
-            if (priceChart) syncChartsByTime([{ chart: priceChart, el: d1 }, { chart, el: d2 }]);
+            // Đồng bộ 2 pane theo bar-index (syncCharts) — ĐÚNG cách mọi biểu
+            // đồ nhiều pane khác trên trang đang dùng (renderGPChart,
+            // renderHeikinChart, ...). Đã thử 3 biến thể đồng bộ theo THỜI
+            // GIAN thực (setVisibleRange) riêng cho pane này — bản nào cũng
+            // phát sinh lỗi kéo=zoom hoặc lệch pha giữa 2 pane khi thao tác
+            // thật (dù test script kéo thô không bắt được). syncCharts dùng
+            // setVisibleLogicalRange (rẻ hơn nhiều, không phải tính lại
+            // barSpacing) và đã chạy ổn định ở ~10 chart khác trên trang.
+            // Pane giá đã CẮT TRÙNG đúng ngày P/E bắt đầu có giá trị lúc dựng
+            // (priceStartTs ở trên) nên 2 mảng ngày thực tế khớp bar-index.
+            // Wire sync TRƯỚC rồi mới set default range trên priceChart — để
+            // pane P/E/P/B tự nhận đúng khung nhìn ban đầu qua sync, không
+            // cần set range riêng (giống hệt thứ tự gọi ở renderGPChart).
+            if (priceChart) {
+                syncCharts([priceChart, chart]);
+                if (priceHistory.dates.length) applyDefaultChartRange(priceChart, priceHistory.dates, 1250);
+            } else if (dDates.length) {
+                applyDefaultChartRange(chart, dDates, 1250);
+            }
 
             financeChartSeriesRegistry[mountId] = registry;
             return chart;
