@@ -7159,7 +7159,11 @@
                 priceChart = built1.chart;
                 instances.push({ chart: priceChart, ro: built1.ro });
                 priceChart.addLineSeries({ color: '#ffffff', lineWidth: 2, priceLineVisible: false, title: '' }).setData(priceData);
-                if (priceData.length) priceChart.timeScale().setVisibleLogicalRange({ from: -0.5, to: priceData.length - 0.5 });
+                // +rightOffset: chừa khoảng trống bên phải để kéo thoải mái,
+                // giống hệt các biểu đồ khác (LWC_THEME.timeScale.rightOffset
+                // mặc định 30) — nếu không, to đúng bằng phiên cuối sẽ "khóa
+                // chết" ở cột phải, không kéo được thêm dù handleScroll vẫn bật.
+                if (priceData.length) priceChart.timeScale().setVisibleLogicalRange({ from: -0.5, to: priceData.length - 0.5 + LWC_THEME.timeScale.rightOffset });
             } else {
                 d1.innerHTML = '<div class="lwc-loading" style="font-size:0.7rem;color:#6b7280;">Chưa có dữ liệu giá</div>';
             }
@@ -7267,11 +7271,14 @@
             // "bao nhiêu phiên vừa khít ở barSpacing hiện tại" (mặc định 6px),
             // luôn neo về phiên MỚI NHẤT — đã xác minh trực tiếp: với lịch sử
             // dài, chart chỉ hiện được ~90-120 phiên gần nhất dù minBarSpacing
-            // đã chỉnh nhỏ, đúng cảm giác "khóa chết vào cột phải" người dùng
-            // gặp phải. setVisibleLogicalRange({from:-0.5, to:N-0.5}) mới thật
-            // sự hiện đủ N phiên (kết hợp minBarSpacing:0.01 ở trên để không bị
-            // kẹp lại ở mức 0.5 mặc định).
-            if (dSeries.length) chart.timeScale().setVisibleLogicalRange({ from: -0.5, to: dSeries.length - 0.5 });
+            // đã chỉnh nhỏ. setVisibleLogicalRange({from:-0.5, to:N-0.5}) mới
+            // thật sự hiện đủ N phiên (kết hợp minBarSpacing:0.01 ở trên để
+            // không bị kẹp lại ở mức 0.5 mặc định). +rightOffset: chừa khoảng
+            // trống bên phải để kéo thoải mái như mọi biểu đồ khác — nếu để
+            // đúng N-0.5 (không cộng thêm), vùng nhìn sẽ dừng CHÍNH XÁC ở
+            // phiên cuối, không còn chỗ để kéo tiếp dù handleScroll vẫn bật,
+            // đúng cảm giác "khóa chết vào cột phải" người dùng gặp phải.
+            if (dSeries.length) chart.timeScale().setVisibleLogicalRange({ from: -0.5, to: dSeries.length - 0.5 + LWC_THEME.timeScale.rightOffset });
 
             // Đồng bộ RUNTIME 2 pane theo thời gian (kéo/zoom pane nào, pane kia
             // theo cùng) — dùng syncChartsByTime (theo mốc thời gian thực, có
