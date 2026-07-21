@@ -7515,17 +7515,20 @@
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     if (isFinanceChart) {
-                        // x0.64 (2 lần giảm 20% liên tiếp, 0.8*0.8): chừa biên an
-                        // toàn — trên iPhone xoay ngang, fsMt.offsetHeight đo theo
-                        // layout viewport (có thể LỚN HƠN vùng thực sự nhìn thấy
-                        // khi thanh địa chỉ Safari còn hiện), khiến pane P/E, P/B
-                        // (h2) bị khuất phía dưới màn hình thật. Giảm cả h1 (giá)
-                        // và h2 (P/E/P/B) cùng tỉ lệ để phần dư luôn là khoảng
-                        // trống an toàn, không phải nội dung biểu đồ quan trọng.
-                        const total = (fsMt.offsetHeight || window.innerHeight - 120) * 0.8 * 0.8;
+                        // Chừa biên an toàn — trên iPhone xoay ngang, fsMt.offsetHeight
+                        // đo theo layout viewport (có thể LỚN HƠN vùng thực sự nhìn
+                        // thấy khi thanh địa chỉ Safari còn hiện), khiến pane P/E, P/B
+                        // (h2) bị khuất phía dưới màn hình thật. Lịch sử giảm dần theo
+                        // yêu cầu người dùng: 2 lần giảm 20% ĐỀU cho cả h1/h2
+                        // (0.8*0.8=0.64), sau đó giảm THÊM RIÊNG h1 10% (còn
+                        // 0.64*0.9=0.576) và h2 20% (còn 0.64*0.8=0.512) — h1/h2
+                        // không còn cùng 1 tỉ lệ như trước.
+                        const base = fsMt.offsetHeight || window.innerHeight - 120;
+                        const h1Scale = 0.8 * 0.8 * 0.9;
+                        const h2Scale = 0.8 * 0.8 * 0.8;
                         const fn = chartType === 'finpe' ? renderSectorFinPeChart : renderSectorFinPbChart;
                         fn('chartFsMount', financeCache[ticker], fsInstances, {
-                            h1: Math.round(total * 0.28), h2: Math.round(total * 0.72),
+                            h1: Math.round(base * 0.28 * h1Scale), h2: Math.round(base * 0.72 * h2Scale),
                             priceHistory: historyCache[ticker],
                         });
                         return;
