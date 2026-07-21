@@ -7515,14 +7515,14 @@
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     if (isFinanceChart) {
-                        // x0.8: chừa 20% chiều cao làm biên an toàn — trên iPhone
-                        // xoay ngang, fsMt.offsetHeight đo theo layout viewport
-                        // (có thể LỚN HƠN vùng thực sự nhìn thấy khi thanh địa
-                        // chỉ Safari còn hiện), khiến pane P/E, P/B (h2) bị
-                        // khuất phía dưới màn hình thật. Giảm cả h1 (giá) và h2
-                        // (P/E/P/B) cùng tỉ lệ 20% để phần dư luôn là khoảng
+                        // x0.64 (2 lần giảm 20% liên tiếp, 0.8*0.8): chừa biên an
+                        // toàn — trên iPhone xoay ngang, fsMt.offsetHeight đo theo
+                        // layout viewport (có thể LỚN HƠN vùng thực sự nhìn thấy
+                        // khi thanh địa chỉ Safari còn hiện), khiến pane P/E, P/B
+                        // (h2) bị khuất phía dưới màn hình thật. Giảm cả h1 (giá)
+                        // và h2 (P/E/P/B) cùng tỉ lệ để phần dư luôn là khoảng
                         // trống an toàn, không phải nội dung biểu đồ quan trọng.
-                        const total = (fsMt.offsetHeight || window.innerHeight - 120) * 0.8;
+                        const total = (fsMt.offsetHeight || window.innerHeight - 120) * 0.8 * 0.8;
                         const fn = chartType === 'finpe' ? renderSectorFinPeChart : renderSectorFinPbChart;
                         fn('chartFsMount', financeCache[ticker], fsInstances, {
                             h1: Math.round(total * 0.28), h2: Math.round(total * 0.72),
