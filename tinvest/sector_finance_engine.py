@@ -10,8 +10,29 @@ Quy ước công thức (đã thống nhất với người dùng):
   - P/E(ngày) = Vốn hóa(ngày) / TTM_LNST(quý đã công bố gần nhất)
   - P/B(ngày) = Vốn hóa(ngày) / VCSH(quý đã công bố gần nhất)
   - Tăng trưởng LNST YoY(quý) = (LNST(quý) - LNST(quý cùng kỳ năm trước)) / |LNST(quý cùng kỳ năm trước)|
-  - "Quý đã công bố" tại 1 ngày bất kỳ = quý gần nhất mà (ngày kết thúc quý +
-    45 ngày) <= ngày đó (giả định độ trễ công bố BCTC hợp nhất).
+
+Quý "đã công bố" — 2 QUY TẮC KHÁC NHAU tuỳ mục đích, dùng 2 hàm riêng biệt
+(quyết định rõ ràng với người dùng, không gộp làm 1 để tránh thay đổi ngoài ý
+muốn số liệu P/E, P/B LỊCH SỬ đã hiển thị từ trước tới nay):
+
+  1. DỮ LIỆU SỐNG (P/E, P/B hôm nay + ROE/tăng trưởng LNST theo quý) — dùng
+     target_quarter_for_date()/effective_quarter_for_live_date(): quý mục
+     tiêu LUÔN LUÔN là quý liền TRƯỚC quý dương lịch hiện tại, KHÔNG chờ thêm
+     ngày nào — VD sang ngày 1/7 (vừa bước sang Q3) thì quý mục tiêu là Q2
+     ngay, dù Q2 gần như chưa mã nào kịp công bố. Mã NÀO CHƯA công bố quý đó
+     thì tạm lấy số liệu quý TRƯỚC của CHÍNH mã đó bù vào (xem
+     carry_forward_missing_quarter(), ghi placeholder=True), rồi tự thay thế
+     bằng số thật ngay khi mã công bố xong (những lần chạy Update finance
+     vietcap sau) — thay vì cả hệ thống cùng chờ 1 mốc thời gian cố định rồi
+     mới tính, chấp nhận vài quý có mẫu quá thiếu (từng gây ROE ảo 750%).
+
+  2. LỊCH SỬ (backfill_daily_sector_finance_history, chỉ chạy khi Import
+     Finance tính lại TOÀN BỘ chuỗi P/E, P/B quá khứ) — VẪN giữ nguyên quy
+     tắc cũ, dùng effective_quarter_for_date(..., lag_days=LAG_DAYS): quý
+     gần nhất mà (ngày kết thúc quý + 45 ngày) <= ngày giao dịch đó. Giữ
+     nguyên có chủ đích — đổi sang quy tắc (1) cho cả lịch sử sẽ làm lệch lại
+     P/E, P/B của MỌI lần chuyển quý đã từng xảy ra (quyết định của người
+     dùng: giữ nguyên lịch sử, chỉ áp quy tắc mới cho dữ liệu hiện tại).
 """
 
 import json
@@ -22,9 +43,19 @@ import pandas as pd
 
 from tinvest.finance_workbook import quarter_sort_key
 
-LAG_DAYS = 45  # giả định độ trễ công bố BCTC hợp nhất (ngày), đã nêu rõ với người dùng
+LAG_DAYS = 45  # giả định độ trễ công bố BCTC hợp nhất (ngày) — CHỈ còn dùng cho backfill lịch sử, xem docstring ở trên
 
 QUARTER_END_MONTH_DAY = {1: (3, 31), 2: (6, 30), 3: (9, 30), 4: (12, 31)}
+
+
+def _as_date(d):
+    """Chuẩn hoá str/datetime/date về đúng kiểu date — dùng chung cho mọi hàm
+    nhận tham số ngày ở module này."""
+    if isinstance(d, str):
+        return datetime.strptime(d[:10], "%Y-%m-%d").date()
+    if hasattr(d, "date") and not isinstance(d, date):
+        return d.date()
+    return d
 
 
 # ── Tiện ích số học theo quý ──
@@ -63,24 +94,90 @@ def effective_quarter_for_date(trading_date, available_quarters, lag_days=LAG_DA
     return best
 
 
-def current_expected_quarter(today=None, lag_days=LAG_DAYS):
-    """Quý tài chính "lẽ ra đã phải có" tính đến hôm nay, tính trực tiếp từ
-    lịch (không cần biết trước danh sách quý nào đã có dữ liệu) — dùng để
-    quyết định 1 mã có CẦN cập nhật hay không trong Update finance vietcap."""
-    if today is None:
-        today = date.today()
-    elif isinstance(today, str):
-        today = datetime.strptime(today[:10], "%Y-%m-%d").date()
-    elif hasattr(today, "date") and not isinstance(today, date):
-        today = today.date()
+def calendar_quarter_label(d):
+    """Nhãn quý dương lịch CHỨA ngày d (không liên quan gì đến việc đã công
+    bố BCTC hay chưa) — VD 2026-07-22 -> 'Q3-2026'."""
+    q_num = (d.month - 1) // 3 + 1
+    return f"Q{q_num}-{d.year}"
 
-    q_num = (today.month - 1) // 3 + 1
-    candidate = f"Q{q_num}-{today.year}"
-    for _ in range(8):  # lùi tối đa 8 quý (2 năm) — đủ an toàn cho mọi trường hợp thực tế
-        if quarter_end_date(candidate) + timedelta(days=lag_days) <= today:
-            return candidate
-        candidate = quarter_shift(candidate, -1)
-    return None
+
+def target_quarter_for_date(today=None):
+    """Quý tài chính CẦN có dữ liệu tính đến `today`, cho DỮ LIỆU SỐNG (xem
+    quy tắc (1) ở docstring đầu module) — LUÔN LUÔN là quý liền TRƯỚC quý
+    dương lịch đang chứa `today`, KHÔNG cộng thêm độ trễ chờ công bố nào
+    nữa. VD hôm nay là bất kỳ ngày nào trong Q3 (dù mới 1/7 hay đã 30/9) thì
+    quý cần dữ liệu luôn là Q2 — vì Q3 chưa kết thúc nên chắc chắn chưa thể
+    có báo cáo Q3. Mã nào CHƯA công bố xong quý mục tiêu được xử lý riêng ở
+    carry_forward_missing_quarter() (tạm lấy số quý trước của chính mã đó bù
+    vào), không phải bằng cách lùi cả hệ thống thêm 1 quý như LAG_DAYS cũ.
+
+    Thay thế hoàn toàn current_expected_quarter() (đã xoá) — dùng cho
+    tickers_needing_update() và quarter_due gate của
+    compute_sector_quarterly_summary()."""
+    today = _as_date(today) if today is not None else date.today()
+    return quarter_shift(calendar_quarter_label(today), -1)
+
+
+def _latest_quarter_at_or_before(target_quarter, available_quarters):
+    """Quý mới nhất trong available_quarters mà <= target_quarter (theo thứ
+    tự thời gian), hoặc None nếu không quý nào đủ điều kiện."""
+    target_key = quarter_sort_key(target_quarter)
+    best = None
+    for q in sorted(available_quarters, key=quarter_sort_key):
+        if quarter_sort_key(q) <= target_key:
+            best = q
+        else:
+            break
+    return best
+
+
+def effective_quarter_for_live_date(trading_date, available_quarters):
+    """Quý hiệu lực cho DỮ LIỆU SỐNG (P/E, P/B của ngày đang chạy — xem quy
+    tắc (1) ở docstring đầu module) — KHÁC effective_quarter_for_date() (quy
+    tắc (2), vẫn giữ độ trễ 45 ngày cũ, CHỈ dùng cho
+    backfill_daily_sector_finance_history) ở chỗ không chờ thêm ngày nào,
+    dựa thẳng vào target_quarter_for_date()."""
+    trading_date = _as_date(trading_date)
+    target = target_quarter_for_date(trading_date)
+    return _latest_quarter_at_or_before(target, available_quarters)
+
+
+def carry_forward_missing_quarter(vcsh_df, lnst_df, vcsh_placeholder_df, lnst_placeholder_df,
+                                   universe, target_quarter):
+    """Với ĐÚNG 1 quý `target_quarter` (quý vừa kết thúc, đang cần dữ liệu) —
+    KHÔNG đụng tới bất kỳ quý nào khác (tránh vô tình sửa lại các khoảng
+    trống lịch sử cũ không liên quan) — với mọi mã trong `universe` chưa có
+    số liệu THẬT cho quý này (kể cả sau khi đã merge dữ liệu mới nhất từ
+    Vietcap): tạm lấy số liệu của quý LIỀN TRƯỚC (target_quarter lùi 1) của
+    CHÍNH mã đó áp vào, đánh dấu placeholder=True. Mã đã có số thật
+    (placeholder=False) cho quý này thì giữ nguyên, không đụng vào. Mã không
+    có cả số liệu quý trước để mà lấy (VD mã mới niêm yết) thì để nguyên
+    thiếu — không có gì để bù, giống hệt hành vi hiện tại cho các mã đó.
+
+    Sửa TRỰC TIẾP (mutate) cả 4 DataFrame truyền vào, đồng thời trả về chúng
+    cho tiện dùng luôn kết quả. Phải gọi SAU merge_new_quarters() (để không
+    ghi đè số liệu mới thật vừa cào về) và TRƯỚC
+    compute_per_ticker_roe_and_growth()/save_workbook_to_path() (để ROE/G và
+    file Excel đều phản ánh đúng số liệu đã bù)."""
+    prev_q = quarter_shift(target_quarter, -1)
+    for df, ph in ((vcsh_df, vcsh_placeholder_df), (lnst_df, lnst_placeholder_df)):
+        if target_quarter not in df.columns:
+            df[target_quarter] = float("nan")
+        if target_quarter not in ph.columns:
+            ph[target_quarter] = False
+        for t in universe:
+            if t not in df.index:
+                continue
+            cur_val = df.at[t, target_quarter]
+            cur_is_placeholder = bool(ph.at[t, target_quarter]) if t in ph.index else False
+            cur_is_real = pd.notna(cur_val) and not cur_is_placeholder
+            if cur_is_real:
+                continue
+            if prev_q in df.columns and t in df.index and pd.notna(df.at[t, prev_q]):
+                df.at[t, target_quarter] = df.at[t, prev_q]
+                ph.at[t, target_quarter] = True
+            # else: quý trước cũng không có gì để bù — để nguyên thiếu.
+    return vcsh_df, lnst_df, vcsh_placeholder_df, lnst_placeholder_df
 
 
 # ── Phân giải danh sách mã theo ngành (đảm bảo KHÔNG đếm trùng mã) ──
@@ -268,17 +365,19 @@ def compute_sector_quarterly_summary(vcsh_df, lnst_df, sector_groups, today=None
     LNST/VCSH, TTM LNST, ROE, tăng trưởng YoY cho MỌI ngành (kể cả VNINDEX,
     VNINDEX_NONVIN) x MỌI quý có trong workbook.
 
-    ROE/yoy_lnst_growth CHỈ được tính cho quý đã "đến hạn công bố" (đã qua
-    LAG_DAYS ngày kể từ ngày kết thúc quý, xem quarter_end_date/LAG_DAYS) —
-    nếu không, dù workbook đã có vài mã báo cáo sớm cho quý đó (VD chỉ 5/302
-    mã), tổng lnst_sum/vcsh_sum của quý đó vẫn phản ánh 1 tập hợp cực kỳ
-    thiếu, chia ra sẽ cho ROE/G sai lệch nghiêm trọng (đã xác nhận thực tế:
-    VNINDEX Q2-2026 từng ra roe=7.5, yoy_lnst_growth=-0.98 do quý đó chưa
-    đến hạn công bố nhưng đã có vài mã báo cáo sớm). lnst_sum/vcsh_sum/
-    ttm_lnst của quý chưa đến hạn vẫn giữ nguyên (dữ liệu thô, có thể cần
-    dùng sau khi quý đó chín muồi), chỉ ROE/G bị ép về None."""
+    ROE/yoy_lnst_growth CHỈ được tính cho quý <= target_quarter_for_date(today)
+    (quý liền trước quý dương lịch hiện tại — xem docstring đầu module) — quý
+    ĐANG DIỄN RA (chưa kết thúc) luôn bị ép None vì chắc chắn chưa thể có báo
+    cáo. Từ khi có carry_forward_missing_quarter() (gọi TRƯỚC hàm này, ở
+    run_headless_update.py), quý mục tiêu luôn có đủ dữ liệu cho MỌI mã
+    (thật hoặc tạm bù từ quý trước) nên không còn rủi ro mẫu quá thiếu như
+    trước đây (đã từng gặp thật: VNINDEX Q2-2026 ra roe=7.5,
+    yoy_lnst_growth=-0.98 do quý đó chỉ 5/302 mã báo cáo sớm, dưới cơ chế
+    LAG_DAYS cũ). lnst_sum/vcsh_sum/ttm_lnst luôn tính cho MỌI quý có trong
+    dữ liệu (không gate), chỉ ROE/G bị ép về None cho quý đang diễn ra."""
     if today is None:
         today = date.today()
+    target_quarter_key = quarter_sort_key(target_quarter_for_date(today))
     all_quarters = sorted(set(vcsh_df.columns) | set(lnst_df.columns), key=quarter_sort_key)
 
     sectors_out = {}
@@ -310,7 +409,7 @@ def compute_sector_quarterly_summary(vcsh_df, lnst_df, sector_groups, today=None
             ttm = None if any(v is None for v in trailing_vals) else sum(trailing_vals)
             quarterly[q]["ttm_lnst"] = ttm
 
-            quarter_due = (quarter_end_date(q) + timedelta(days=LAG_DAYS)) <= today
+            quarter_due = quarter_sort_key(q) <= target_quarter_key
             if quarter_due:
                 quarterly[q]["roe"] = sector_roe(ttm, vcsh_sums.get(q))
                 quarterly[q]["yoy_lnst_growth"] = yoy_growth(lnst_sums.get(q), lnst_sums.get(quarter_shift(q, -4)))
@@ -398,7 +497,7 @@ def compute_and_append_daily_sector_finance(storage, sector_groups, output_dir, 
     finance_dir = os.path.join(output_dir, "finance")
     os.makedirs(finance_dir, exist_ok=True)
 
-    eff_q = effective_quarter_for_date(trading_date, quarters_sorted)
+    eff_q = effective_quarter_for_live_date(trading_date, quarters_sorted)
 
     for code, sector_data in summary.get("sectors", {}).items():
         group_def = sector_groups.get(code, {})
@@ -526,17 +625,26 @@ def log_finance_coverage_gaps(sector_groups, vcsh_df, lnst_df, expected_quarter)
         print(f"[SectorFinance] Thiếu LNST {expected_quarter} ({len(missing_lnst)} mã): {missing_lnst}")
 
 
-def tickers_needing_update(vcsh_df, lnst_df, tickers, expected_quarter, earliest_quarter=None):
+def tickers_needing_update(vcsh_df, lnst_df, tickers, expected_quarter, earliest_quarter=None,
+                            vcsh_placeholder_df=None, lnst_placeholder_df=None):
     """Trả về danh sách con của `tickers` CẦN gọi lại Vietcap trong Update
-    finance vietcap — thiếu 1 trong 2 điều kiện:
-      1. Chưa có đủ VCSH/LNST cho `expected_quarter` (quý mới nhất đã đến
-         hạn công bố) — mã có tin tức tài chính mới cần cập nhật.
+    finance vietcap — thiếu 1 trong 3 điều kiện:
+      1. Chưa có VCSH/LNST THẬT (không tính giá trị carry-forward tạm, xem
+         carry_forward_missing_quarter()) cho `expected_quarter` (quý mục
+         tiêu, target_quarter_for_date()) — mã có tin tức tài chính mới cần
+         cập nhật, hoặc đang tạm dùng số bù nên vẫn cần thử lại.
       2. Chưa có đủ VCSH/LNST cho `earliest_quarter` (mốc lịch sử xa nhất
          đang chốt, VD FINANCE_SINCE_YEAR trong run_headless_update.py) —
          mã còn thiếu dữ liệu lịch sử (VD sau khi tăng độ sâu lịch sử cần
          cào, những mã đã có sẵn quý mới nhất vẫn phải cào lại để bổ sung
          phần lịch sử còn thiếu, không thì sẽ bị bỏ sót vĩnh viễn).
-    Mã đã có đủ CẢ HAI mốc thì bỏ qua, không gọi lại API (tiết kiệm request).
+      3. (Chỉ khi truyền vcsh_placeholder_df/lnst_placeholder_df) Còn CỜ
+         placeholder=True ở BẤT KỲ quý nào trong lịch sử của mã đó — chi phí
+         gọi Vietcap là theo MÃ (trả về toàn bộ lịch sử), không theo quý, nên
+         tiện thể thử lại luôn cho mọi ô còn đang tạm bù, không chỉ riêng
+         quý mục tiêu — tránh 1 mã lỡ bỏ lỡ đúng 1 quý cũ rồi báo cáo lại
+         bình thường sau đó bị kẹt vĩnh viễn ở giá trị tạm.
+    Mã đã có đủ CẢ 3 mốc thì bỏ qua, không gọi lại API (tiết kiệm request).
     earliest_quarter=None thì bỏ qua điều kiện 2 (giữ hành vi cũ)."""
     need = []
     for t in tickers:
@@ -546,6 +654,17 @@ def tickers_needing_update(vcsh_df, lnst_df, tickers, expected_quarter, earliest
             and t in lnst_df.index and expected_quarter in lnst_df.columns
             and pd.notna(lnst_df.at[t, expected_quarter])
         )
+        if has_expected and vcsh_placeholder_df is not None:
+            has_expected = has_expected and not (
+                t in vcsh_placeholder_df.index and expected_quarter in vcsh_placeholder_df.columns
+                and bool(vcsh_placeholder_df.at[t, expected_quarter])
+            )
+        if has_expected and lnst_placeholder_df is not None:
+            has_expected = has_expected and not (
+                t in lnst_placeholder_df.index and expected_quarter in lnst_placeholder_df.columns
+                and bool(lnst_placeholder_df.at[t, expected_quarter])
+            )
+
         has_earliest = True
         if earliest_quarter is not None:
             has_earliest = (
@@ -554,7 +673,14 @@ def tickers_needing_update(vcsh_df, lnst_df, tickers, expected_quarter, earliest
                 and t in lnst_df.index and earliest_quarter in lnst_df.columns
                 and pd.notna(lnst_df.at[t, earliest_quarter])
             )
-        if not (has_expected and has_earliest):
+
+        has_no_stale_placeholder = True
+        if vcsh_placeholder_df is not None and t in vcsh_placeholder_df.index:
+            has_no_stale_placeholder = has_no_stale_placeholder and not bool(vcsh_placeholder_df.loc[t].any())
+        if lnst_placeholder_df is not None and t in lnst_placeholder_df.index:
+            has_no_stale_placeholder = has_no_stale_placeholder and not bool(lnst_placeholder_df.loc[t].any())
+
+        if not (has_expected and has_earliest and has_no_stale_placeholder):
             need.append(t)
     return need
 

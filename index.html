@@ -7036,11 +7036,14 @@
 
         // Gom các quý LIÊN TỤC có dữ liệu thành từng "run" riêng — mỗi run vẽ
         // bằng 1 line series độc lập, 1 điểm/quý (mốc cuối quý), nối mượt
-        // (lineType Curved) sang quý kế tiếp thay vì bậc thang. Quý CHƯA công
-        // bố BCTC (giá trị null) NGẮT run và để trống hẳn trên biểu đồ — dù
-        // P/E, P/B ngày vẫn tạm dùng số liệu quý liền trước (xem
-        // effective_quarter_for_date ở backend), đường ROE/G không "mượn" số
-        // quý trước để tránh nhìn nhầm là số liệu thật của quý đang hiện.
+        // (lineType Curved) sang quý kế tiếp thay vì bậc thang. Quý ĐANG DIỄN
+        // RA (chưa kết thúc, giá trị null — xem target_quarter_for_date/
+        // compute_sector_quarterly_summary ở backend) NGẮT run và để trống
+        // hẳn trên biểu đồ. Quý VỪA kết thúc (quý mục tiêu) thì CÓ giá trị
+        // ngay, kể cả khi 1 số mã chưa công bố xong — backend đã tạm bù số
+        // liệu quý trước cho các mã đó (carry_forward_missing_quarter) rồi
+        // tự thay bằng số thật khi có, nên đường ROE/G không còn phải chờ
+        // hẳn tới lúc mọi mã công bố xong mới hiện điểm của quý đó.
         function buildQuarterlySegments(labels, values) {
             const runs = [];
             let current = [];

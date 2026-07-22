@@ -20,7 +20,7 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Set base path to import local modules
@@ -1185,7 +1185,8 @@ def run_import_finance():
     from tinvest.gdrive_client import download_file_by_name, upload_file
     from tinvest.sector_finance_engine import (
         compute_sector_quarterly_summary, overwrite_quarterly_block, backfill_daily_sector_finance_history,
-        compute_per_ticker_roe_and_growth, current_expected_quarter, log_finance_coverage_gaps,
+        compute_per_ticker_roe_and_growth, target_quarter_for_date, carry_forward_missing_quarter,
+        get_finance_ticker_universe, log_finance_coverage_gaps,
     )
     from tinvest.sector_index_engine import load_sector_groups
 
@@ -1203,6 +1204,23 @@ def run_import_finance():
         return
     logger.info(f"   Workbook có {len(sheets['VCSH'].index)} mã (VCSH), {len(sheets['LNST'].index)} mã (LNST).")
 
+    # sector_groups cần có SỚM (trước bước carry-forward ngay dưới đây) để
+    # lấy universe — chuyển lên trước khối tính ROE (khác thứ tự cũ).
+    sector_groups = load_sector_groups()
+    universe = sorted(get_finance_ticker_universe(sector_groups))
+    today = date.today()
+    target_quarter = target_quarter_for_date(today)
+
+    # Bù tạm số liệu quý trước cho mã CHƯA công bố xong quý mục tiêu — giữ
+    # nhất quán với Update finance vietcap (xem giải thích ở đó), để Import
+    # Finance tự đứng độc lập được nếu chạy mà không có 1 lần Update finance
+    # vietcap nào chạy trước đó.
+    if target_quarter:
+        carry_forward_missing_quarter(
+            sheets["VCSH"], sheets["LNST"], sheets["VCSH_PLACEHOLDER"], sheets["LNST_PLACEHOLDER"],
+            universe, target_quarter,
+        )
+
     logger.info("   Tính ROE, tăng trưởng LNST theo từng mã (sheet ROE, LNST_YOY)...")
     roe_df, growth_df = compute_per_ticker_roe_and_growth(sheets["VCSH"], sheets["LNST"])
     sheets["ROE"] = roe_df
@@ -1216,15 +1234,14 @@ def run_import_finance():
     else:
         logger.warning("   ⚠️ Không tải được lên Drive (xem chi tiết lỗi ::error:: [GDrive] phía trên) — vẫn tiếp tục tính toán cục bộ.")
 
-    sector_groups = load_sector_groups()
-    summary = compute_sector_quarterly_summary(sheets["VCSH"], sheets["LNST"], sector_groups)
+    summary = compute_sector_quarterly_summary(sheets["VCSH"], sheets["LNST"], sector_groups, today=today)
     summary_path = os.path.join(output_dir, "sector_finance_quarterly.json")
     with open(summary_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False)
     logger.info(f"   ✅ Đã ghi {summary_path} ({len(summary['sectors'])} ngành, {len(summary['quarters'])} quý)")
 
     overwrite_quarterly_block(sector_groups, summary, output_dir)
-    log_finance_coverage_gaps(sector_groups, sheets["VCSH"], sheets["LNST"], current_expected_quarter())
+    log_finance_coverage_gaps(sector_groups, sheets["VCSH"], sheets["LNST"], target_quarter)
 
     storage = StorageManager()
     backfill_daily_sector_finance_history(storage, sector_groups, output_dir)
@@ -1248,8 +1265,8 @@ def run_update_finance_vietcap():
     from tinvest.vietcap_finance_client import fetch_all_tickers_finance
     from tinvest.sector_finance_engine import (
         compute_sector_quarterly_summary, overwrite_quarterly_block,
-        get_finance_ticker_universe, tickers_needing_update, current_expected_quarter,
-        compute_per_ticker_roe_and_growth, log_finance_coverage_gaps,
+        get_finance_ticker_universe, tickers_needing_update, target_quarter_for_date,
+        carry_forward_missing_quarter, compute_per_ticker_roe_and_growth, log_finance_coverage_gaps,
     )
     from tinvest.sector_index_engine import load_sector_groups
 
@@ -1273,15 +1290,21 @@ def run_update_finance_vietcap():
 
     existing_sheets = load_workbook_from_bytes(download_file_by_name(WORKBOOK_NAME))
 
-    expected_q = current_expected_quarter()
+    today = date.today()
+    target_quarter = target_quarter_for_date(today)
     earliest_q = f"Q1-{FINANCE_SINCE_YEAR}"
-    logger.info(f"   Quý kỳ vọng đã công bố tính đến hôm nay: {expected_q} | Mốc lịch sử xa nhất: {earliest_q}")
+    logger.info(f"   Quý mục tiêu (quý liền trước quý hiện tại, không chờ công bố): {target_quarter} | Mốc lịch sử xa nhất: {earliest_q}")
 
-    if expected_q:
-        # Cần cả 2 điều kiện: có quý mới nhất VÀ có đủ lịch sử tới earliest_q —
-        # đảm bảo khi tăng độ sâu lịch sử (đổi FINANCE_SINCE_YEAR), các mã dù
-        # đã có sẵn quý mới nhất vẫn được cào bổ sung phần lịch sử còn thiếu.
-        need = tickers_needing_update(existing_sheets["VCSH"], existing_sheets["LNST"], universe, expected_q, earliest_quarter=earliest_q)
+    if target_quarter:
+        # Cần cả 3 điều kiện (xem tickers_needing_update): có quý mục tiêu THẬT
+        # (không phải carry-forward tạm), có đủ lịch sử tới earliest_q, và
+        # không còn ô placeholder nào tồn đọng ở quý cũ hơn.
+        need = tickers_needing_update(
+            existing_sheets["VCSH"], existing_sheets["LNST"], universe, target_quarter,
+            earliest_quarter=earliest_q,
+            vcsh_placeholder_df=existing_sheets["VCSH_PLACEHOLDER"],
+            lnst_placeholder_df=existing_sheets["LNST_PLACEHOLDER"],
+        )
     else:
         need = universe
     logger.info(f"   Số mã cần gọi lại Vietcap: {len(need)}/{len(universe)} (lấy từ Q1-{FINANCE_SINCE_YEAR} tới nay)")
@@ -1293,6 +1316,18 @@ def run_update_finance_vietcap():
     else:
         merged_sheets = existing_sheets
         logger.info("   Không có mã nào cần cập nhật — bỏ qua gọi Vietcap.")
+
+    # Bù tạm số liệu quý trước cho mã CHƯA công bố xong quý mục tiêu — LUÔN
+    # chạy (kể cả khi không có mã nào vừa được fetch ở trên), vì 1 quý có thể
+    # vẫn cần bù thêm ở những lần chạy sau, không chỉ lần đầu tiên quý đó xuất
+    # hiện. Ghi placeholder=True vào đúng 2 sheet cờ, để lần chạy sau tự biết
+    # đường thay thế bằng số thật khi Vietcap đã có (xem merge_new_quarters).
+    if target_quarter:
+        carry_forward_missing_quarter(
+            merged_sheets["VCSH"], merged_sheets["LNST"],
+            merged_sheets["VCSH_PLACEHOLDER"], merged_sheets["LNST_PLACEHOLDER"],
+            universe, target_quarter,
+        )
 
     logger.info("   Tính lại ROE, tăng trưởng LNST theo từng mã (sheet ROE, LNST_YOY)...")
     roe_df, growth_df = compute_per_ticker_roe_and_growth(merged_sheets["VCSH"], merged_sheets["LNST"])
@@ -1307,14 +1342,14 @@ def run_update_finance_vietcap():
     else:
         logger.warning("   ⚠️ Không tải được lên Drive (xem chi tiết lỗi ::error:: [GDrive] phía trên) — vẫn tiếp tục tính toán cục bộ.")
 
-    summary = compute_sector_quarterly_summary(merged_sheets["VCSH"], merged_sheets["LNST"], sector_groups)
+    summary = compute_sector_quarterly_summary(merged_sheets["VCSH"], merged_sheets["LNST"], sector_groups, today=today)
     summary_path = os.path.join(output_dir, "sector_finance_quarterly.json")
     with open(summary_path, "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False)
     logger.info(f"   ✅ Đã ghi {summary_path}")
 
     overwrite_quarterly_block(sector_groups, summary, output_dir)
-    log_finance_coverage_gaps(sector_groups, merged_sheets["VCSH"], merged_sheets["LNST"], expected_q)
+    log_finance_coverage_gaps(sector_groups, merged_sheets["VCSH"], merged_sheets["LNST"], target_quarter)
 
     logger.info("✅ HOÀN TẤT UPDATE FINANCE VIETCAP")
     logger.info("==================================================")
