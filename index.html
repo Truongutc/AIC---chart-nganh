@@ -6563,7 +6563,7 @@
             // pane 2 — đặt góc trên-trái (chỗ trống, không đè trục giá bên
             // phải), ẩn mặc định, chỉ hiện khi hover đúng 1 nến.
             const pctTooltip = document.createElement('div');
-            pctTooltip.style.cssText = 'position:absolute;top:6px;left:10px;font-size:0.8rem;font-weight:700;padding:2px 8px;border-radius:4px;background:rgba(0,0,0,0.55);pointer-events:none;z-index:5;display:none;';
+            pctTooltip.style.cssText = 'position:absolute;top:6px;left:10px;font-size:0.8rem;font-weight:700;padding:2px 8px;border-radius:4px;background:rgba(0,0,0,0.55);pointer-events:none;z-index:5;display:none;white-space:nowrap;';
             d2.appendChild(pctTooltip);
             const timeToIndex = {};
             data.dates.forEach((dt, i) => { timeToIndex[d2ts(dt)] = i; });
@@ -6668,7 +6668,7 @@
             });
             cs2.setData(ohlcv(data));
 
-            // Tooltip %thay đổi so với phiên trước — chỉ trên pane 2 (2Trend)
+            // Tooltip ngày/Close/%thay đổi so với phiên trước/Vol — chỉ trên pane 2 (2Trend)
             c2.subscribeCrosshairMove(param => {
                 const i = param.time !== undefined ? timeToIndex[param.time] : undefined;
                 if (i === undefined || i === null || i < 1 || data.closes[i-1] === null || data.closes[i-1] === undefined || !data.closes[i-1]) {
@@ -6676,7 +6676,10 @@
                     return;
                 }
                 const pct = (data.closes[i] - data.closes[i-1]) / data.closes[i-1] * 100;
-                pctTooltip.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%';
+                const [yy, mm, dd] = data.dates[i].split('-');
+                const closeStr = data.closes[i].toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const volStr = formatVolume(data.volumes ? data.volumes[i] : 0);
+                pctTooltip.textContent = `${dd}/${mm}/${yy}, Close: ${closeStr} ${pct >= 0 ? '+' : ''}${pct.toFixed(1)}% Vol: ${volStr}`;
                 pctTooltip.style.color = pct >= 0 ? '#00ff6a' : '#ff3b3b';
                 pctTooltip.style.display = 'block';
             });
@@ -7716,7 +7719,7 @@
             const d1=mk(h1,false),d2=mk(h2),d3=mk(h3);
             d2.style.position='relative';
             const pctTooltip=document.createElement('div');
-            pctTooltip.style.cssText='position:absolute;top:6px;left:10px;font-size:0.8rem;font-weight:700;padding:2px 8px;border-radius:4px;background:rgba(0,0,0,0.55);pointer-events:none;z-index:5;display:none;';
+            pctTooltip.style.cssText='position:absolute;top:6px;left:10px;font-size:0.8rem;font-weight:700;padding:2px 8px;border-radius:4px;background:rgba(0,0,0,0.55);pointer-events:none;z-index:5;display:none;white-space:nowrap;';
             d2.appendChild(pctTooltip);
             const timeToIndex={};
             data.dates.forEach((dt,i)=>{timeToIndex[d2ts(dt)]=i;});
@@ -7795,7 +7798,10 @@
                     return;
                 }
                 const pct = (data.closes[i] - data.closes[i-1]) / data.closes[i-1] * 100;
-                pctTooltip.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%';
+                const [yy, mm, dd] = data.dates[i].split('-');
+                const closeStr = data.closes[i].toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                const volStr = formatVolume(data.volumes ? data.volumes[i] : 0);
+                pctTooltip.textContent = `${dd}/${mm}/${yy}, Close: ${closeStr} ${pct >= 0 ? '+' : ''}${pct.toFixed(1)}% Vol: ${volStr}`;
                 pctTooltip.style.color = pct >= 0 ? '#00ff6a' : '#ff3b3b';
                 pctTooltip.style.display = 'block';
             });
