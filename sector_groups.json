@@ -2,22 +2,22 @@
   "BANK": {
     "name": "Ngân hàng",
     "icon": "🏦",
-    "tickers": ["VCB", "BID", "CTG", "MBB", "TCB", "ACB", "STB", "HDB", "SHB", "LPB", "VIB", "MSB", "TPB", "EIB", "OCB", "SSB", "NAB", "ABB", "BAB", "BVB", "KLB", "NVB", "PGB", "SGB", "VAB", "VBB"]
+    "tickers": ["VCB", "BID", "CTG", "TCB", "MBB", "LPB", "HDB", "STB", "ACB", "SHB", "SSB", "VIB", "MSB", "TPB", "EIB", "OCB", "NAB", "NVB", "ABB", "BAB", "VAB", "BVB", "PGB", "KLB", "SGB", "VBB"]
   },
   "CHUNGKHOAN": {
     "name": "Chứng khoán",
     "icon": "📈",
-    "tickers": ["SSI", "VCI", "HCM", "VIX", "SHS", "MBS", "VND", "FTS", "BSI", "CTS", "AGR", "BVS", "TVS", "VDS", "ORS", "APS", "AAS", "EVS", "WSS", "VIG", "IVS", "DSC", "SBS", "CSI", "HBS", "PSI", "PHS", "VCK", "VPX", "TCX"]
+    "tickers": ["TCX", "VCK", "SSI", "VPX", "VIX", "HCM", "VCI", "VND", "MBS", "SHS", "FTS", "BSI", "ORS", "CTS", "VDS", "DSC", "TVS", "AGR", "BVS", "PHS", "AAS", "EVS", "IVS", "SBS", "PSI", "APS", "WSS", "CSI", "VIG", "HBS"]
   },
   "BAOHIEM": {
     "name": "Bảo hiểm",
     "icon": "🛡️",
-    "tickers": ["BVH", "BMI", "MIG", "BIC", "PGI", "PTI", "ABI", "PRE", "VNR", "AIC", "BHI"]
+    "tickers": ["BVH", "BIC", "VNR", "MIG", "PTI", "PRE", "BMI", "ABI", "PGI", "AIC", "BHI"]
   },
   "PHANBON": {
     "name": "Phân bón",
     "icon": "🌱",
-    "tickers": ["DCM", "DPM", "DDV", "LAS", "BFC", "SFG", "PSW", "PSE", "PMB"]
+    "tickers": ["DCM", "DPM", "DDV", "BFC", "LAS", "SFG", "PSE", "PSW", "PMB"]
   },
   "HOACHAT": {
     "name": "Hóa chất",
@@ -27,132 +27,132 @@
   "THEP": {
     "name": "Thép & Vật liệu",
     "icon": "🔩",
-    "tickers": ["HPG", "HSG", "NKG", "SMC", "TVN", "TLH", "POM", "VIS", "VGS", "TIS"]
+    "tickers": ["HPG", "HSG", "TVN", "NKG", "VGS", "POM", "TIS", "SMC", "TLH", "VIS"]
   },
   "XIMANG": {
     "name": "Xi măng",
     "icon": "🏗️",
-    "tickers": ["HT1", "BCC", "BTS", "HOM", "SCJ", "TXM", "YBC", "CLH"]
+    "tickers": ["HT1", "BCC", "BTS", "HOM", "CLH", "SCJ", "YBC", "TXM"]
   },
   "DAXAYDUNG": {
     "name": "Đá xây dựng",
     "icon": "🪨",
-    "tickers": ["KSB", "DHA", "C32", "NNC", "BMC", "VLB"]
+    "tickers": ["VLB", "KSB", "NNC", "DHA", "C32", "BMC"]
   },
   "THAN": {
     "name": "Than",
     "icon": "⛏️",
-    "tickers": ["TC6", "TVD", "THT", "NBC", "MDC", "TDN", "HLC", "TMB"]
+    "tickers": ["TMB", "TVD", "NBC", "HLC", "THT", "MDC", "TC6", "TDN"]
   },
   "DAUKHI": {
     "name": "Dầu khí",
     "icon": "🛢️",
-    "tickers": ["GAS", "PLX", "BSR", "PVS", "PVD", "PVC", "PVB", "PVT", "PVP", "PVO", "OIL", "PSH", "CNG", "PGC"]
+    "tickers": ["GAS", "BSR", "PLX", "PVS", "PVD", "OIL", "PVT", "PVP", "PVC", "CNG", "PGC", "PVB", "PSH", "PVO"]
   },
   "DIEN": {
     "name": "Điện",
     "icon": "⚡",
-    "tickers": ["POW", "REE", "NT2", "PPC", "QTP", "GEG", "VSH", "TMP", "SHP", "CHP", "SJD", "TTA", "TV2", "BTP"]
+    "tickers": ["POW", "REE", "VSH", "NT2", "GEG", "QTP", "CHP", "SHP", "TMP", "PPC", "TTA", "TV2", "SJD", "BTP"]
   },
   "NUOCSACH": {
     "name": "Nước sạch",
     "icon": "💧",
-    "tickers": ["BWE", "TDM", "NBW", "BTW", "CLW", "DNW", "GDW", "NAW"]
+    "tickers": ["BWE", "TDM", "DNW", "CLW", "BTW", "NBW", "GDW", "NAW"]
   },
   "BDS": {
     "name": "Bất động sản",
     "icon": "🏢",
-    "tickers": ["NVL", "KDH", "NLG", "PDR", "DXG", "DIG", "HDG", "KBC", "IDC", "SZC", "VPI", "SCR", "CEO", "HDC", "AGG", "HQC", "HPX", "LDG", "QCG", "DRH", "CII", "CRE", "TCH", "NTL"]
+    "tickers": ["NVL", "KBC", "KDH", "VPI", "DXG", "IDC", "PDR", "TCH", "NLG", "CII", "DIG", "CEO", "HDG", "SZC", "QCG", "CRE", "HDC", "SCR", "AGG", "NTL", "HQC", "HPX", "LDG", "DRH"]
   },
   "KCN": {
     "name": "Khu công nghiệp",
     "icon": "🏭",
-    "tickers": ["BCM", "KBC", "IDC", "SZC", "SIP", "NTC", "D2D", "LHG", "TIP", "SNZ"]
+    "tickers": ["BCM", "KBC", "IDC", "SIP", "SNZ", "SZC", "NTC", "LHG", "TIP", "D2D"]
   },
   "XAYDUNG": {
     "name": "Xây dựng",
     "icon": "🏘️",
-    "tickers": ["CTD", "HBC", "VCG", "FCN", "HHV", "LCG", "C4G", "DPG", "PC1", "SCG", "HTN", "CDC"]
+    "tickers": ["VCG", "PC1", "CTD", "HHV", "SCG", "DPG", "C4G", "CDC", "FCN", "LCG", "HBC", "HTN"]
   },
   "LOGISTICS": {
     "name": "Logistics",
     "icon": "🚚",
-    "tickers": ["HAH", "TMS", "MVN", "VTP"]
+    "tickers": ["MVN", "VTP", "HAH", "TMS"]
   },
   "CANGBIEN": {
     "name": "Cảng biển",
     "icon": "⚓",
-    "tickers": ["PHP", "PDN", "SGP", "DVP", "CDN", "GMD", "VSC"]
+    "tickers": ["GMD", "PHP", "VSC", "PDN", "SGP", "DVP", "CDN"]
   },
   "HANGKHONG": {
     "name": "Hàng không",
     "icon": "✈️",
-    "tickers": ["HVN", "VJC", "ACV", "AST", "SAS", "NCT", "SGN"]
+    "tickers": ["ACV", "VJC", "HVN", "SAS", "AST", "NCT", "SGN"]
   },
   "THUYSAN": {
     "name": "Thủy sản",
     "icon": "🐟",
-    "tickers": ["VHC", "ANV", "FMC", "IDI", "CMX", "ACL", "MPC", "ABT"]
+    "tickers": ["VHC", "MPC", "ANV", "FMC", "IDI", "ACL", "ABT", "CMX"]
   },
   "NONGNGHIEP": {
     "name": "Nông nghiệp",
     "icon": "🌾",
-    "tickers": ["DBC", "BAF", "HAG", "HNG", "LTG", "PAN", "NSC", "TAR", "AFX"]
+    "tickers": ["HAG", "BAF", "HNG", "DBC", "PAN", "NSC", "LTG", "AFX", "TAR"]
   },
   "THUCPHAM": {
     "name": "Thực phẩm",
     "icon": "🍚",
-    "tickers": ["VNM", "MSN", "MCH", "QNS", "SBT", "KDC", "VOC", "BBC", "MML"]
+    "tickers": ["MCH", "VNM", "MSN", "SBT", "QNS", "KDC", "MML", "VOC", "BBC"]
   },
   "BANLE": {
     "name": "Bán lẻ",
     "icon": "🛒",
-    "tickers": ["MWG", "FRT", "DGW", "PET", "PSD", "PNJ"]
+    "tickers": ["MWG", "PNJ", "FRT", "DGW", "PET", "PSD"]
   },
   "DUOCPHAM": {
     "name": "Dược phẩm",
     "icon": "💊",
-    "tickers": ["DHG", "IMP", "DBD", "TRA", "DHT", "DCL", "DVN", "MKP", "LDP", "PMC"]
+    "tickers": ["DHG", "IMP", "DHT", "DBD", "DVN", "TRA", "DCL", "PMC", "MKP", "LDP"]
   },
   "DETMAY": {
     "name": "Dệt may",
     "icon": "🧵",
-    "tickers": ["TCM", "MSH", "STK", "GIL", "VGT", "TNG", "ADS", "M10"]
+    "tickers": ["VGT", "MSH", "TNG", "TCM", "STK", "GIL", "M10", "ADS"]
   },
   "GONOITHAT": {
     "name": "Gỗ & Nội thất",
     "icon": "🪑",
-    "tickers": ["PTB", "SAV", "TTF", "GDT"]
+    "tickers": ["PTB", "TTF", "GDT", "SAV"]
   },
   "CAOSU": {
     "name": "Cao su",
     "icon": "🌳",
-    "tickers": ["GVR", "PHR", "DPR", "DRI", "TRC", "RTB"]
+    "tickers": ["GVR", "PHR", "DPR", "TRC", "RTB", "DRI"]
   },
   "NHUA": {
     "name": "Nhựa",
     "icon": "🧴",
-    "tickers": ["BMP", "NTP", "AAA", "APH", "RDP", "TPC"]
+    "tickers": ["BMP", "NTP", "AAA", "APH", "TPC", "RDP"]
   },
   "CONGNGHE": {
     "name": "Công nghệ",
     "icon": "💻",
-    "tickers": ["FPT", "CMG", "ELC", "ITD", "SAM", "SMT"]
+    "tickers": ["FPT", "CMG", "SAM", "ELC", "ITD", "SMT"]
   },
   "VIENTHONG": {
     "name": "Viễn thông",
     "icon": "📡",
-    "tickers": ["CTR", "VGI", "FOX", "MFS"]
+    "tickers": ["VGI", "FOX", "CTR", "MFS"]
   },
   "KHAIKHOANG": {
     "name": "Khai khoáng",
     "icon": "⛰️",
-    "tickers": ["KSV", "BMC", "MTA", "MIC", "THT", "TVD", "NBC", "HGM"]
+    "tickers": ["KSV", "HGM", "MTA", "TVD", "NBC", "THT", "BMC", "MIC"]
   },
   "VANTAI": {
     "name": "Vận tải",
     "icon": "🚢",
-    "tickers": ["VTO", "VIP", "VOS", "GSP", "PVT", "HAH"]
+    "tickers": ["HAH", "PVT", "VOS", "VTO", "GSP", "VIP"]
   },
   "THIETBIDIEN": {
     "name": "Thiết bị điện",
@@ -162,12 +162,12 @@
   "HOVIN": {
     "name": "Họ VIN",
     "icon": "🏙️",
-    "tickers": ["VHM", "VIC", "VRE", "VPL"]
+    "tickers": ["VIC", "VHM", "VPL", "VRE"]
   },
   "HOMUOT": {
     "name": "Họ Mượt",
     "icon": "🔷",
-    "tickers": ["GEX", "GEE", "VSC", "GEL", "VIX", "EIB"]
+    "tickers": ["GEE", "VIX", "EIB", "GEX", "GEL", "VSC"]
   },
   "VNINDEX_NONVIN": {
     "name": "VNINDEX (không VIN)",
@@ -185,16 +185,16 @@
   "CHUNGKHOAN_NHO": {
     "name": "Chứng khoán nhỏ",
     "icon": "🔸",
-    "tickers": ["MBS", "FTS", "BSI", "CTS", "AGR", "BVS", "TVS", "VDS", "ORS", "APS", "AAS", "EVS", "WSS", "VIG", "IVS", "DSC", "SBS", "CSI", "HBS", "PSI"]
+    "tickers": ["MBS", "FTS", "BSI", "ORS", "CTS", "VDS", "DSC", "TVS", "AGR", "BVS", "AAS", "EVS", "IVS", "SBS", "PSI", "APS", "WSS", "CSI", "VIG", "HBS"]
   },
   "BANK_NHO": {
     "name": "Ngân hàng nhỏ",
     "icon": "🏧",
-    "tickers": ["VIB", "MSB", "TPB", "EIB", "OCB", "SSB", "NAB", "ABB", "BAB", "BVB", "KLB", "PGB", "SGB", "VAB", "VBB", "LPB"]
+    "tickers": ["LPB", "SSB", "VIB", "MSB", "TPB", "EIB", "OCB", "NAB", "ABB", "BAB", "VAB", "BVB", "PGB", "KLB", "SGB", "VBB"]
   },
   "BANK_MEDIUM": {
     "name": "Ngân hàng vừa",
     "icon": "🏛️",
-    "tickers": ["MBB", "TCB", "ACB", "STB", "HDB", "SHB"]
+    "tickers": ["TCB", "MBB", "HDB", "STB", "ACB", "SHB"]
   }
 }
