@@ -6553,10 +6553,20 @@
 
             const data = getHistoricalDataOnly(rawDataInput);
 
-            const h1 = 320, h2 = 280;
+            const h1 = 320, h2 = 280, h3 = 100;
             const d1 = document.createElement('div'); d1.style.cssText = `flex:none;height:${h1}px;`;
-            const d2 = document.createElement('div'); d2.style.cssText = `flex:none;height:${h2}px;border-top:1px solid rgba(255,255,255,0.04);`;
-            root.append(d1, d2);
+            const d2 = document.createElement('div'); d2.style.cssText = `flex:none;height:${h2}px;border-top:1px solid rgba(255,255,255,0.04);position:relative;`;
+            const d3 = document.createElement('div'); d3.style.cssText = `flex:none;height:${h3}px;border-top:1px solid rgba(255,255,255,0.04);`;
+            root.append(d1, d2, d3);
+
+            // Tooltip %thay đổi (so với phiên trước) khi trỏ chuột vào nến ở
+            // pane 2 — đặt góc trên-trái (chỗ trống, không đè trục giá bên
+            // phải), ẩn mặc định, chỉ hiện khi hover đúng 1 nến.
+            const pctTooltip = document.createElement('div');
+            pctTooltip.style.cssText = 'position:absolute;top:6px;left:10px;font-size:0.8rem;font-weight:700;padding:2px 8px;border-radius:4px;background:rgba(0,0,0,0.55);pointer-events:none;z-index:5;display:none;';
+            d2.appendChild(pctTooltip);
+            const timeToIndex = {};
+            data.dates.forEach((dt, i) => { timeToIndex[d2ts(dt)] = i; });
 
             // Pane 1: Heikin-Ashi candles + Hull + NW stop + TC trend + TC cloud
             const {chart: c1, ro: ro1} = mkChart(d1, h1, data.dates, { crosshair: { horzLine: { visible: false, labelVisible: false } } });
@@ -6658,6 +6668,19 @@
             });
             cs2.setData(ohlcv(data));
 
+            // Tooltip %thay đổi so với phiên trước — chỉ trên pane 2 (2Trend)
+            c2.subscribeCrosshairMove(param => {
+                const i = param.time !== undefined ? timeToIndex[param.time] : undefined;
+                if (i === undefined || i === null || i < 1 || data.closes[i-1] === null || data.closes[i-1] === undefined || !data.closes[i-1]) {
+                    pctTooltip.style.display = 'none';
+                    return;
+                }
+                const pct = (data.closes[i] - data.closes[i-1]) / data.closes[i-1] * 100;
+                pctTooltip.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%';
+                pctTooltip.style.color = pct >= 0 ? '#00ff6a' : '#ff3b3b';
+                pctTooltip.style.display = 'block';
+            });
+
             // 2Trend SMA with color per-bar based on trend state
             if (data.T2_SMA && data.T2_SMA_Trend) {
                 const smaColorData = [];
@@ -6695,7 +6718,31 @@
                 if (t2Markers.length) cs2.setMarkers(t2Markers.sort((a,b)=>a.time-b.time));
             }
 
-            syncCharts([c1,c2]);
+            // Pane 3: Khối lượng giao dịch — cột xanh/đỏ theo đúng chiều nến
+            // pane 2 (close>=open → xanh, giống quy ước mặc định lightweight-
+            // charts đang tô cho cs2) + đường MA20 khối lượng (trắng).
+            const {chart: c3, ro: ro3} = mkChart(d3, h3, null, { crosshair: { horzLine: { visible: false, labelVisible: false } } });
+            instances.push({chart:c3,ro:ro3});
+            if (data.volumes) {
+                const volArr = [];
+                for (let i = 0; i < data.dates.length; i++) {
+                    const v = data.volumes[i];
+                    if (v === null || v === undefined) continue;
+                    const up = data.closes[i] >= data.opens[i];
+                    volArr.push({ time: d2ts(data.dates[i]), value: v, color: up ? 'rgba(0,255,106,0.6)' : 'rgba(255,59,59,0.6)' });
+                }
+                c3.addHistogramSeries({ priceFormat: { type: 'volume' }, priceLineVisible: false, lastValueVisible: false, title: '' }).setData(volArr);
+
+                const volMA20 = sma(data.volumes, 20);
+                const maArr = [];
+                for (let i = 0; i < data.dates.length; i++) {
+                    if (volMA20[i] === null || volMA20[i] === undefined) continue;
+                    maArr.push({ time: d2ts(data.dates[i]), value: volMA20[i] });
+                }
+                c3.addLineSeries({ color: '#ffffff', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, title: '' }).setData(maArr);
+            }
+
+            syncCharts([c1,c2,c3]);
             applyDefaultChartRange(c1, data.dates, 90);
             return c1;
         }
@@ -7664,9 +7711,15 @@
             root.innerHTML=''; root.style.display='flex'; root.style.flexDirection='column';
             const data = getHistoricalDataOnly(rawDataInput);
             const total=root.offsetHeight||window.innerHeight-120;
-            const h1=Math.round(total*0.55),h2=Math.round(total*0.45);
+            const h1=Math.round(total*0.50),h2=Math.round(total*0.30),h3=Math.round(total*0.20);
             const mk=(h,b=true)=>{const d=document.createElement('div');d.style.cssText=`flex:none;height:${h}px;${b?'border-top:1px solid rgba(255,255,255,0.04);':''}`;root.appendChild(d);return d;};
-            const d1=mk(h1,false),d2=mk(h2);
+            const d1=mk(h1,false),d2=mk(h2),d3=mk(h3);
+            d2.style.position='relative';
+            const pctTooltip=document.createElement('div');
+            pctTooltip.style.cssText='position:absolute;top:6px;left:10px;font-size:0.8rem;font-weight:700;padding:2px 8px;border-radius:4px;background:rgba(0,0,0,0.55);pointer-events:none;z-index:5;display:none;';
+            d2.appendChild(pctTooltip);
+            const timeToIndex={};
+            data.dates.forEach((dt,i)=>{timeToIndex[d2ts(dt)]=i;});
             const {chart:c1,ro:r1}=mkChart(d1,h1,data.dates, { crosshair: { horzLine: { visible: false, labelVisible: false } } }); instances.push({chart:c1,ro:r1});
             // TC Cloud
             if(data.TC_Trend&&data.TC_StopLine){
@@ -7735,11 +7788,43 @@
             const {chart:c2,ro:r2}=mkChart(d2,h2, null, { crosshair: { horzLine: { visible: false, labelVisible: false } } }); instances.push({chart:c2,ro:r2});
             const cs2fs=c2.addCandlestickSeries({upColor:'#00ff6a',downColor:'#ff3b3b',borderUpColor:'#00ff6a',borderDownColor:'#ff3b3b',wickUpColor:'#00ff6a',wickDownColor:'#ff3b3b',priceLineVisible:false,lastValueVisible:false});
             cs2fs.setData(ohlcv(data));
+            c2.subscribeCrosshairMove(param => {
+                const i = param.time !== undefined ? timeToIndex[param.time] : undefined;
+                if (i === undefined || i === null || i < 1 || !data.closes[i-1]) {
+                    pctTooltip.style.display = 'none';
+                    return;
+                }
+                const pct = (data.closes[i] - data.closes[i-1]) / data.closes[i-1] * 100;
+                pctTooltip.textContent = (pct >= 0 ? '+' : '') + pct.toFixed(1) + '%';
+                pctTooltip.style.color = pct >= 0 ? '#00ff6a' : '#ff3b3b';
+                pctTooltip.style.display = 'block';
+            });
             if(data.T2_SMA&&data.T2_SMA_Trend){const scd=[],sc2=priceScale(data);for(let i=0;i<data.dates.length;i++){const v=data.T2_SMA[i],s=data.T2_SMA_Trend[i];if(v===null||v===undefined)continue;scd.push({time:d2ts(data.dates[i]),value:v*sc2,color:s>0?'#00ffaa':s<0?'#ff3b3b':'#888888'});}c2.addLineSeries({lineWidth:2.5,priceLineVisible:false}).setData(scd);}else if(data.T2_SMA)c2.addLineSeries({color:'#00ffaa',lineWidth:3}).setData(lineData(data,'T2_SMA'));
             if(data.T2_ST_Lower)c2.addLineSeries({color:'rgba(0,255,170,0.4)',lineWidth:1,lineStyle:2}).setData(lineData(data,'T2_ST_Lower'));
             if(data.T2_ST_Upper)c2.addLineSeries({color:'rgba(255,59,59,0.4)',lineWidth:1,lineStyle:2}).setData(lineData(data,'T2_ST_Upper'));
             if(data.T2_SMA_Trend&&data.T2_SMA){const t2m=[];for(let i=1;i<data.dates.length;i++){const p=data.T2_SMA_Trend[i-1],c=data.T2_SMA_Trend[i];if(p===null||c===null)continue;if(p<=0&&c>0)t2m.push({time:d2ts(data.dates[i]),position:'belowBar',color:'#00ffaa',shape:'triangleUp',text:'𝑳'});if(p>=0&&c<0)t2m.push({time:d2ts(data.dates[i]),position:'aboveBar',color:'#ff3b3b',shape:'triangleDown',text:'𝑺'});}if(t2m.length)cs2fs.setMarkers(t2m.sort((a,b)=>a.time-b.time));}
-            syncCharts([c1,c2]); applyDefaultChartRange(c1, data.dates, 90);
+
+            // Pane 3: Khối lượng giao dịch + MA20
+            const {chart:c3,ro:r3}=mkChart(d3,h3,null, { crosshair: { horzLine: { visible: false, labelVisible: false } } }); instances.push({chart:c3,ro:r3});
+            if (data.volumes) {
+                const volArr = [];
+                for (let i = 0; i < data.dates.length; i++) {
+                    const v = data.volumes[i];
+                    if (v === null || v === undefined) continue;
+                    const up = data.closes[i] >= data.opens[i];
+                    volArr.push({ time: d2ts(data.dates[i]), value: v, color: up ? 'rgba(0,255,106,0.6)' : 'rgba(255,59,59,0.6)' });
+                }
+                c3.addHistogramSeries({ priceFormat: { type: 'volume' }, priceLineVisible: false, lastValueVisible: false, title: '' }).setData(volArr);
+                const volMA20 = sma(data.volumes, 20);
+                const maArr = [];
+                for (let i = 0; i < data.dates.length; i++) {
+                    if (volMA20[i] === null || volMA20[i] === undefined) continue;
+                    maArr.push({ time: d2ts(data.dates[i]), value: volMA20[i] });
+                }
+                c3.addLineSeries({ color: '#ffffff', lineWidth: 1.5, priceLineVisible: false, lastValueVisible: false, title: '' }).setData(maArr);
+            }
+
+            syncCharts([c1,c2,c3]); applyDefaultChartRange(c1, data.dates, 90);
         }
 
         function renderHeatmapChartFs(mountId, rawDataInput, instances) {
