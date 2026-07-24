@@ -144,6 +144,11 @@
     "icon": "📡",
     "tickers": ["VGI", "FOX", "CTR", "MFS"]
   },
+  "HOVIETTEL": {
+    "name": "Họ Viettel",
+    "icon": "📶",
+    "tickers": ["VGI", "VTP", "CTR", "VTK"]
+  },
   "KHAIKHOANG": {
     "name": "Khai khoáng",
     "icon": "⛰️",
