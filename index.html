@@ -6430,12 +6430,13 @@
             // Filter out projected future dates
             const data = getHistoricalDataOnly(rawDataInput);
 
-            const h1 = 360, h2 = 120, h3 = 120;
+            const h1 = Math.round(360 * 0.7), h2 = 120, h3 = 120, h4 = 120;
 
             const d1 = document.createElement('div'); d1.style.cssText = `flex:none;height:${h1}px;`;
             const d2 = document.createElement('div'); d2.style.cssText = `flex:none;height:${h2}px;border-top:1px solid rgba(255,255,255,0.04);`;
             const d3 = document.createElement('div'); d3.style.cssText = `flex:none;height:${h3}px;border-top:1px solid rgba(255,255,255,0.04);`;
-            root.append(d1, d2, d3);
+            const d4 = document.createElement('div'); d4.style.cssText = `flex:none;height:${h4}px;border-top:1px solid rgba(255,255,255,0.04);`;
+            root.append(d1, d2, d3, d4);
 
             // Pane 1: Candles + GreenPink cloud + xFast/xSlow + BB
             const {chart: c1, ro: ro1} = mkChart(d1, h1, data.dates, { crosshair: { horzLine: { visible: false, labelVisible: false } } });
@@ -6527,18 +6528,30 @@
                   .setData([{time:d2ts(data.dates[0]),value:0},{time:d2ts(data.dates[data.dates.length-1]),value:0}]);
             }
 
-            // Pane 3: RS14 / RS52
+            // Pane 3: RSI 14 (đường trắng, mốc tham chiếu 70 quá mua / 30 quá bán)
             const {chart: c3, ro: ro3} = mkChart(d3, h3, null, { crosshair: { horzLine: { visible: false, labelVisible: false } } });
             instances.push({chart: c3, ro: ro3});
-            if (data.RS14) c3.addLineSeries({color:'#ffffff',lineWidth:1.5,title: '',priceLineVisible:false,lastValueVisible:true}).setData(lineData(data,'RS14',1));
-            if (data.RS52) c3.addLineSeries({color:'#fbbf24',lineWidth:1.5,title: '',priceLineVisible:true,lastValueVisible:true}).setData(lineData(data,'RS52',1));
+            if (data.RSI) c3.addLineSeries({color:'#ffffff',lineWidth:1.5,title: '',priceLineVisible:false,lastValueVisible:true}).setData(lineData(data,'RSI',1));
+            if (data.dates.length > 0) {
+                const rsiT0 = d2ts(data.dates[0]), rsiT1 = d2ts(data.dates[data.dates.length-1]);
+                c3.addLineSeries({color:'rgba(239,68,68,0.4)',lineWidth:1,lineStyle:1,priceLineVisible:false,lastValueVisible:false})
+                  .setData([{time:rsiT0,value:70},{time:rsiT1,value:70}]);
+                c3.addLineSeries({color:'rgba(34,197,94,0.4)',lineWidth:1,lineStyle:1,priceLineVisible:false,lastValueVisible:false})
+                  .setData([{time:rsiT0,value:30},{time:rsiT1,value:30}]);
+            }
+
+            // Pane 4: RS14 / RS52
+            const {chart: c4, ro: ro4} = mkChart(d4, h4, null, { crosshair: { horzLine: { visible: false, labelVisible: false } } });
+            instances.push({chart: c4, ro: ro4});
+            if (data.RS14) c4.addLineSeries({color:'#ffffff',lineWidth:1.5,title: '',priceLineVisible:false,lastValueVisible:true}).setData(lineData(data,'RS14',1));
+            if (data.RS52) c4.addLineSeries({color:'#fbbf24',lineWidth:1.5,title: '',priceLineVisible:true,lastValueVisible:true}).setData(lineData(data,'RS52',1));
             // 50 reference
             if (data.dates.length > 0) {
-                c3.addLineSeries({color:'rgba(239,68,68,0.4)',lineWidth:1,lineStyle:1,priceLineVisible:false,lastValueVisible:false})
+                c4.addLineSeries({color:'rgba(239,68,68,0.4)',lineWidth:1,lineStyle:1,priceLineVisible:false,lastValueVisible:false})
                   .setData([{time:d2ts(data.dates[0]),value:50},{time:d2ts(data.dates[data.dates.length-1]),value:50}]);
             }
 
-            syncCharts([c1,c2,c3]);
+            syncCharts([c1,c2,c3,c4]);
             applyDefaultChartRange(c1, data.dates, 90);
             return c1;
         }
@@ -7620,9 +7633,9 @@
             const data = getHistoricalDataOnly(rawDataInput);
             
             const total = root.offsetHeight || window.innerHeight - 120;
-            const h1=Math.round(total*0.55), h2=Math.round(total*0.225), h3=Math.round(total*0.225);
+            const h1=Math.round(total*0.55*0.7), h2=Math.round(total*0.225), h3=Math.round(total*0.165), h4=Math.round(total*0.225);
             const mk=(h,b=true)=>{const d=document.createElement('div');d.style.cssText=`flex:none;height:${h}px;${b?'border-top:1px solid rgba(255,255,255,0.04);':''}`;root.appendChild(d);return d;};
-            const d1=mk(h1,false),d2=mk(h2),d3=mk(h3);
+            const d1=mk(h1,false),d2=mk(h2),d3=mk(h3),d4=mk(h4);
             const {chart:c1,ro:r1}=mkChart(d1,h1,data.dates, { crosshair: { horzLine: { visible: false, labelVisible: false } } }); instances.push({chart:c1,ro:r1});
             
             // GP cloud fill
@@ -7701,12 +7714,21 @@
 
             if(data.dates.length>0)c2.addLineSeries({color:'rgba(255,255,255,0.12)',lineWidth:1,priceLineVisible:false,lastValueVisible:false}).setData([{time:d2ts(data.dates[0]),value:0},{time:d2ts(data.dates[data.dates.length-1]),value:0}]);
             
-            // RS pane
+            // RSI 14 pane
             const {chart:c3,ro:r3}=mkChart(d3,h3, null, { crosshair: { horzLine: { visible: false, labelVisible: false } } }); instances.push({chart:c3,ro:r3});
-            if(data.RS14)c3.addLineSeries({color:'#ffffff',lineWidth:1.5,title: '',priceLineVisible:false,lastValueVisible:true}).setData(lineData(data,'RS14',1));
-            if(data.RS52)c3.addLineSeries({color:'#fbbf24',lineWidth:1.5,title: '',priceLineVisible:false,lastValueVisible:true}).setData(lineData(data,'RS52',1));
-            if(data.dates.length>0)c3.addLineSeries({color:'rgba(239,68,68,0.4)',lineWidth:1,lineStyle:1,priceLineVisible:false,lastValueVisible:false}).setData([{time:d2ts(data.dates[0]),value:50},{time:d2ts(data.dates[data.dates.length-1]),value:50}]);
-            syncCharts([c1,c2,c3]); applyDefaultChartRange(c1, data.dates, 90);
+            if(data.RSI)c3.addLineSeries({color:'#ffffff',lineWidth:1.5,title: '',priceLineVisible:false,lastValueVisible:true}).setData(lineData(data,'RSI',1));
+            if(data.dates.length>0){
+                const rsiT0=d2ts(data.dates[0]), rsiT1=d2ts(data.dates[data.dates.length-1]);
+                c3.addLineSeries({color:'rgba(239,68,68,0.4)',lineWidth:1,lineStyle:1,priceLineVisible:false,lastValueVisible:false}).setData([{time:rsiT0,value:70},{time:rsiT1,value:70}]);
+                c3.addLineSeries({color:'rgba(34,197,94,0.4)',lineWidth:1,lineStyle:1,priceLineVisible:false,lastValueVisible:false}).setData([{time:rsiT0,value:30},{time:rsiT1,value:30}]);
+            }
+
+            // RS pane
+            const {chart:c4,ro:r4}=mkChart(d4,h4, null, { crosshair: { horzLine: { visible: false, labelVisible: false } } }); instances.push({chart:c4,ro:r4});
+            if(data.RS14)c4.addLineSeries({color:'#ffffff',lineWidth:1.5,title: '',priceLineVisible:false,lastValueVisible:true}).setData(lineData(data,'RS14',1));
+            if(data.RS52)c4.addLineSeries({color:'#fbbf24',lineWidth:1.5,title: '',priceLineVisible:false,lastValueVisible:true}).setData(lineData(data,'RS52',1));
+            if(data.dates.length>0)c4.addLineSeries({color:'rgba(239,68,68,0.4)',lineWidth:1,lineStyle:1,priceLineVisible:false,lastValueVisible:false}).setData([{time:d2ts(data.dates[0]),value:50},{time:d2ts(data.dates[data.dates.length-1]),value:50}]);
+            syncCharts([c1,c2,c3,c4]); applyDefaultChartRange(c1, data.dates, 90);
         }
 
         function renderHeikinChartFs(mountId, rawDataInput, instances) {
