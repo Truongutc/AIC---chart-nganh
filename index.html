@@ -3150,6 +3150,103 @@
             width: 65px;
             text-align: right;
         }
+
+        /* ===================== TopRS: bảng sức mạnh giá theo ngành ===================== */
+        .toprs-section {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+        }
+        .toprs-table-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: 0 0 12px 0;
+            color: var(--text-primary);
+        }
+        .toprs-legend {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        .toprs-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .toprs-legend-swatch {
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .toprs-table-wrap {
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+        .toprs-loading, .toprs-table-wrap .empty-state {
+            padding: 30px 16px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        table.toprs-table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+            font-size: 0.78rem;
+            background: #0d1321;
+        }
+        table.toprs-table th, table.toprs-table td {
+            padding: 8px 10px;
+            text-align: center;
+            white-space: nowrap;
+        }
+        table.toprs-table thead th {
+            background: #10182b;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 0.72rem;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        table.toprs-table .toprs-sticky-col {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            background: #0d1321;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            box-shadow: 2px 0 4px rgba(0,0,0,0.35);
+        }
+        table.toprs-table thead th.toprs-sticky-col {
+            z-index: 3;
+            background: #10182b;
+        }
+        table.toprs-table tbody tr:nth-child(even) .toprs-sticky-col {
+            background: #101728;
+        }
+        td.toprs-cell {
+            font-weight: 700;
+            color: #e5e7eb;
+        }
+        /* Thang màu theo độ tăng của RS: xám -> xanh nhạt -> xanh đậm -> tím nhạt -> tím đậm */
+        .rs-c0 { background: #4b5563; color: #d1d5db; }
+        .rs-c1 { background: #6ee7b7; color: #064e3b; }
+        .rs-c2 { background: #059669; color: #ecfdf5; }
+        .rs-c3 { background: #c4b5fd; color: #3b0764; }
+        .rs-c4 { background: #6d28d9; color: #f5f3ff; }
+        .rs-cna { background: transparent; color: var(--text-secondary); font-weight: 400; }
     </style>
 
 </head>
@@ -3192,6 +3289,7 @@
         <div id="menuContent" class="menu-content">
             <button class="menu-item active" data-tab="home-tab" onclick="selectMenuTab('home-tab')">🏠 Trang chủ</button>
             <button class="menu-item" data-tab="stats-tab" onclick="selectMenuTab('stats-tab')">📉 Thống kê giao dịch</button>
+            <button class="menu-item" data-tab="toprs-tab" onclick="selectMenuTab('toprs-tab')">🏆 TopRS</button>
         </div>
     </nav>
 
@@ -3232,6 +3330,41 @@
             <div id="statsResultArea"></div>
         </div>
 
+        <!-- Tab 3: TopRS — bảng xếp hạng RS14 / RS52 của tất cả chỉ số ngành -->
+        <div class="tab-content" id="toprs-tab">
+            <section class="card home-hero">
+                <h2 class="home-title">Top RS theo ngành</h2>
+                <p class="home-subtitle">Sức mạnh giá (RS14 &amp; RS52) của toàn bộ chỉ số ngành trong 30 phiên gần nhất, ngành mạnh nhất xếp trên cùng.</p>
+            </section>
+
+            <div class="toprs-section">
+                <h3 class="toprs-table-title">📗 RS14 — 30 phiên gần nhất</h3>
+                <div class="toprs-legend">
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c0"></span>0–20 Yếu</span>
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c1"></span>21–40</span>
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c2"></span>41–60</span>
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c3"></span>61–80</span>
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c4"></span>81–100 Rất mạnh</span>
+                </div>
+                <div class="toprs-table-wrap" id="topRs14TableWrap">
+                    <div class="toprs-loading">Đang tải dữ liệu...</div>
+                </div>
+            </div>
+
+            <div class="toprs-section">
+                <h3 class="toprs-table-title">📘 RS52 — 30 phiên gần nhất</h3>
+                <div class="toprs-legend">
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c0"></span>0–20 Yếu</span>
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c1"></span>21–40</span>
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c2"></span>41–60</span>
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c3"></span>61–80</span>
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c4"></span>81–100 Rất mạnh</span>
+                </div>
+                <div class="toprs-table-wrap" id="topRs52TableWrap">
+                    <div class="toprs-loading">Đang tải dữ liệu...</div>
+                </div>
+            </div>
+        </div>
 
     </main>
 
@@ -4374,6 +4507,111 @@
 
         function selectMenuTab(tabId) {
             switchTab(tabId);
+            if (tabId === 'toprs-tab') renderTopRsTab();
+        }
+
+        // ============ TopRS: sức mạnh giá RS14/RS52 theo ngành ============
+        let topRsCache = null; // { dates: [...30 phiên...], rows: [{code,name,icon,rs14:[],rs52:[]}] }
+
+        async function loadTopRsData() {
+            if (topRsCache) return topRsCache;
+
+            const codes = Object.keys(sectorGroups);
+            const results = await Promise.all(codes.map(async code => {
+                try {
+                    const r = await fetch(`./Output/history/${code}.json?t=` + new Date().getTime());
+                    if (!r.ok) return null;
+                    const d = await r.json();
+                    return { code, data: d };
+                } catch (e) {
+                    return null;
+                }
+            }));
+            const valid = results.filter(v => v && v.data && Array.isArray(v.data.dates));
+
+            // Hợp nhất lịch giao dịch từ tất cả ngành rồi lấy 30 phiên gần nhất chung,
+            // đề phòng vài ngành cập nhật lệch ngày so với các ngành còn lại.
+            const dateSet = new Set();
+            valid.forEach(v => v.data.dates.slice(-40).forEach(dt => dateSet.add(dt)));
+            const dates = Array.from(dateSet).sort().slice(-30);
+
+            const rows = valid.map(v => {
+                const g = sectorGroups[v.code] || {};
+                const idxByDate = {};
+                v.data.dates.forEach((dt, i) => { idxByDate[dt] = i; });
+                const pick = (arr) => dates.map(dt => {
+                    const i = idxByDate[dt];
+                    return (i === undefined || !arr) ? null : arr[i];
+                });
+                return {
+                    code: v.code,
+                    name: g.name || v.code,
+                    icon: g.icon || '📁',
+                    rs14: pick(v.data.RS14),
+                    rs52: pick(v.data.RS52)
+                };
+            });
+
+            topRsCache = { dates, rows };
+            return topRsCache;
+        }
+
+        function rsColorClass(v) {
+            if (v === null || v === undefined || isNaN(v)) return 'rs-cna';
+            if (v < 20) return 'rs-c0';
+            if (v < 40) return 'rs-c1';
+            if (v < 60) return 'rs-c2';
+            if (v < 80) return 'rs-c3';
+            return 'rs-c4';
+        }
+
+        function formatTopRsDate(iso) {
+            const parts = iso.split('-');
+            return parts.length === 3 ? `${parts[2]}/${parts[1]}` : iso;
+        }
+
+        function buildTopRsTableHtml(rows, dates, field) {
+            const sorted = [...rows].sort((a, b) => {
+                const av = a[field][a[field].length - 1];
+                const bv = b[field][b[field].length - 1];
+                return (bv ?? -1) - (av ?? -1);
+            });
+            const headerCells = dates.map(dt => `<th>${formatTopRsDate(dt)}</th>`).join('');
+            const bodyRows = sorted.map(row => {
+                const cells = row[field].map(v => {
+                    const cls = rsColorClass(v);
+                    const label = (v === null || v === undefined || isNaN(v)) ? '' : Math.round(v);
+                    return `<td class="toprs-cell ${cls}">${label}</td>`;
+                }).join('');
+                return `<tr><td class="toprs-sticky-col">${row.icon} ${row.name}</td>${cells}</tr>`;
+            }).join('');
+            return `
+                <table class="toprs-table">
+                    <thead><tr><th class="toprs-sticky-col">Ngành</th>${headerCells}</tr></thead>
+                    <tbody>${bodyRows}</tbody>
+                </table>
+            `;
+        }
+
+        async function renderTopRsTab() {
+            const rs14Wrap = document.getElementById('topRs14TableWrap');
+            const rs52Wrap = document.getElementById('topRs52TableWrap');
+            try {
+                const { dates, rows } = await loadTopRsData();
+                if (!rows.length) {
+                    const msg = '<div class="empty-state">Chưa có dữ liệu ngành nào.</div>';
+                    rs14Wrap.innerHTML = msg;
+                    rs52Wrap.innerHTML = msg;
+                    return;
+                }
+                rs14Wrap.innerHTML = buildTopRsTableHtml(rows, dates, 'rs14');
+                rs52Wrap.innerHTML = buildTopRsTableHtml(rows, dates, 'rs52');
+            } catch (e) {
+                console.error('Lỗi tải dữ liệu TopRS:', e);
+                const msg = '<div class="empty-state">Không thể tải dữ liệu TopRS.</div>';
+                rs14Wrap.innerHTML = msg;
+                rs52Wrap.innerHTML = msg;
+            }
         }
 
         // Tự thu gọn thanh nav khi cuộn trang xuống, mở lại khi về gần đầu
