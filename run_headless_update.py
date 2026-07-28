@@ -422,6 +422,16 @@ def compute_and_export_dashboard(storage, affected_tickers, vietstock_status=Non
     df_vn = data_dict.get("VNINDEX")
     df_vn_indexed = df_vn.set_index('Date') if df_vn is not None and not df_vn.empty else None
 
+    # FTD (Follow-Through Day) / Số ngày phân phối — trước đây chỉ tính cho
+    # VNINDEX/HNX-INDEX (qua AICcode.py, không nằm trong pipeline headless
+    # này) — giờ tính cho MỌI chỉ số ngành/thị trường trong affected_tickers,
+    # dùng lại đúng engine sẵn có (tinvest/market_engine.py), không đổi thuật
+    # toán. Chỉ cần Close/High/Low/Volume của df (đã có sẵn, không phụ thuộc
+    # breadth/momentum — 2 tham số đó chỉ ảnh hưởng "regime"/"action", vốn
+    # KHÔNG được lưu lại ở đây vì mang ý nghĩa "toàn thị trường", không hợp lý
+    # khi tính riêng cho 1 ngành/nhóm mã con).
+    from tinvest.market_engine import analyze_market_index
+
     for ticker, data in list(analysis_cache.items()):
         df = data.get("df")
         if df is None or df.empty:
@@ -444,6 +454,12 @@ def compute_and_export_dashboard(storage, affected_tickers, vietstock_status=Non
                 logger.warning(f"Error calculating RS for {ticker}: {e_rs}")
 
         current_vol = int(df['Volume'].iloc[-1]) if 'Volume' in df.columns else 0
+
+        try:
+            ftd_res = analyze_market_index(df)
+        except Exception as e_ftd:
+            logger.warning(f"⚠️ Lỗi tính FTD/phân phối cho {ticker}: {e_ftd}")
+            ftd_res = {}
 
         res = data.get("adv") or {}
         accum = data.get("accum") or {}
@@ -706,6 +722,16 @@ def compute_and_export_dashboard(storage, affected_tickers, vietstock_status=Non
                        "action": str(val.get("tech_health", {}).get("diagnostics", {}).get("ma", {}).get("action", "N/A"))},
                 "vsa": {"status": f"VSA Dominant: {vsa_dominant.upper()}",
                         "action": f"VSA Score: {vsa_score}/4"}
+            },
+
+            "FTD": {
+                "ftd_active": bool(ftd_res.get("ftd_active", False)),
+                "ftd_quality": ftd_res.get("ftd_quality"),
+                "ftd_date": ftd_res.get("ftd_date"),
+                "ra_day": int(ftd_res.get("ra_day", 0)),
+                "distribution_count": int(ftd_res.get("distribution_count", 0)),
+                "distribution_dates": ftd_res.get("distribution_dates", []),
+                "decline_from_peak_pct": ftd_res.get("decline_from_peak_pct", 0),
             },
 
             "History": history
