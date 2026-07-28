@@ -234,9 +234,19 @@ def analyze_market_index(df_index: pd.DataFrame, breadth_pct_ma20: float = 50.0,
 
         if ftd_active:
 
-            # Điều kiện 1: Giá thủng mức thấp nhất của phiên RA1 (Thay vì phiên FTD)
+            # Điều kiện 1: Giá thủng mức THẤP NHẤT của CHÍNH phiên FTD (ftd_low,
 
-            if l < ra_low:
+            # gán tại thời điểm FTD kích hoạt bên dưới) — KHÔNG PHẢI low của
+
+            # phiên RA1 (ra_low có thể thấp hơn NHIỀU, vì RA1 thường là đáy sâu
+
+            # nhất của cả đợt điều chỉnh, còn phiên FTD đã hồi phục được vài
+
+            # phiên nên đứng ở mức giá cao hơn — dùng nhầm ra_low khiến ngưỡng
+
+            # huỷ FTD quá lỏng, đã sửa lại đúng theo yêu cầu).
+
+            if l < ftd_low:
 
                 ftd_active = False
 
@@ -248,7 +258,15 @@ def analyze_market_index(df_index: pd.DataFrame, breadth_pct_ma20: float = 50.0,
 
                 ra_low = float('inf')
 
-            # Điều kiện 2: Thị trường giảm trên 10% từ đỉnh
+                ftd_low = float('inf')
+
+            # Điều kiện 2: Giá đóng cửa giảm trên 10% từ đỉnh (đỉnh = high cao
+
+            # nhất tính từ phiên FTD — rolling_peak được reset về high phiên
+
+            # FTD lúc kích hoạt, xem bên dưới, rồi tự cập nhật mỗi khi có đỉnh
+
+            # mới cao hơn ở đầu vòng lặp).
 
             elif decline_pct >= 0.10:
 
@@ -261,6 +279,8 @@ def analyze_market_index(df_index: pd.DataFrame, breadth_pct_ma20: float = 50.0,
                 ra_day = 0
 
                 ra_low = float('inf')
+
+                ftd_low = float('inf')
 
 
 
@@ -316,6 +336,10 @@ def analyze_market_index(df_index: pd.DataFrame, breadth_pct_ma20: float = 50.0,
 
                         ftd_date = str(df['Date'].iloc[i])
 
+                    # Lưu Low của CHÍNH phiên FTD — mốc huỷ FTD điều kiện 1 ở trên.
+
+                    ftd_low = l
+
                     # Reset rolling_peak để tính toán 10% từ Đỉnh Mới kể từ khi có FTD
 
                     rolling_peak = h
@@ -340,21 +364,19 @@ def analyze_market_index(df_index: pd.DataFrame, breadth_pct_ma20: float = 50.0,
 
 
 
-        # Khởi tạo RA Day 1 – CHỈ KHI ĐÃ GIẢM > 10%
+        # Khởi tạo RA Day 1 – CHỈ KHI ĐÃ GIẢM > 10%. Điều kiện đơn giản: bất kể
+
+        # phiên nào có close > close phiên trước (pct_change > 0) đều tính là
+
+        # phiên nỗ lực hồi phục số 1 — bỏ điều kiện hình nến "rút chân đóng
+
+        # cửa nửa trên" trước đây (candle_body_upper), chỉ cần đóng cửa tăng.
 
         if ra_day == 0 and decline_triggered_10:
 
-            # Điều kiện 1: Tạo đáy mới nhưng rút chân đóng cửa ở nửa trên thanh nến
-
-            candle_body_upper = (c - l) / tr > 0.5 and c > (h + l) / 2
-
-            # Điều kiện 2: Phiên tăng điểm sau chuỗi giảm (Chỉ cần pct_change > 0)
-
             is_positive_day = pct_change > 0
 
-
-
-            if candle_body_upper or is_positive_day:
+            if is_positive_day:
 
                 ra_day = 1
 
