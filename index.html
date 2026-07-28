@@ -5506,6 +5506,10 @@
                                 <strong class="${t.FTD.ftd_active ? 'text-green' : ''}">${t.FTD.ftd_active ? `CÓ (Ngày ${t.FTD.ftd_date || 'N/A'}${t.FTD.ftd_quality ? ' — ' + t.FTD.ftd_quality : ''})` : 'CHƯA'}</strong>
                             </div>
                             <div class="detail-metric-row">
+                                <span>Số phiên nỗ lực hồi phục (RA):</span>
+                                <strong>${t.FTD.ra_day > 0 ? t.FTD.ra_day + ' phiên' : 'Chưa có'}</strong>
+                            </div>
+                            <div class="detail-metric-row">
                                 <span>Số ngày phân phối (25 phiên):</span>
                                 <strong class="${t.FTD.distribution_count >= 4 ? 'text-red' : ''}">${t.FTD.distribution_count} ngày</strong>
                             </div>
