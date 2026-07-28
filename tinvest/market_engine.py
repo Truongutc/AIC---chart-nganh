@@ -358,9 +358,17 @@ def analyze_market_index(df_index: pd.DataFrame, breadth_pct_ma20: float = 50.0,
 
                     
 
-                    # Xóa một phần phân phối cũ
+                    # Mỗi khi có FTD MỚI, xoá TOÀN BỘ phân phối cũ và đếm lại
 
-                    dist_days = [d for d in dist_days if i - d['index'] <= 10]
+                    # từ đầu (không giữ lại 10 phiên gần nhất như trước) — FTD
+
+                    # cũ mất hiệu lực thì phân phối vẫn tiếp tục đếm bình
+
+                    # thường (không đụng gì ở đây, chỉ khối FTD MỚI kích hoạt
+
+                    # mới xoá), chỉ khi có FTD mới thật sự mới xoá sạch.
+
+                    dist_days = []
 
 
 
