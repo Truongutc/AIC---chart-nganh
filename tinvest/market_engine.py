@@ -266,13 +266,25 @@ def analyze_market_index(df_index: pd.DataFrame, breadth_pct_ma20: float = 50.0,
 
         # 4. RALLY ATTEMPT & FOLLOW-THROUGH DAY
 
-        # CHỈ BẮT ĐẦU TÌM RA SAU KHI GIẢM > 10%
+        # CHỈ BẮT ĐẦU TÌM RA SAU KHI GIẢM > 10%. "not ftd_active" ở điều
+
+        # kiện dưới đây đã tự dừng đếm ra_day ngay khi có FTD (khối này bị
+
+        # bỏ qua hoàn toàn khi ftd_active=True).
 
         if ra_day > 0 and not ftd_active:
 
-            # Tiếp tục đếm RA nếu Close > Low(RA1)
+            # Reset về 0 nếu phiên này THỦNG Low(RA1) — dùng Low, không
 
-            if c < ra_low:
+            # dùng Close, để khớp đúng với điều kiện huỷ FTD ở mục 3 phía
+
+            # trên (điều kiện 1, cũng dùng "l < ra_low") — trước đây dùng
+
+            # Close nên 1 phiên chỉ rút chân xuống dưới Low(RA1) rồi đóng
+
+            # cửa hồi lại vẫn không bị tính là phá vỡ, không nhất quán.
+
+            if l < ra_low:
 
                 ra_day = 0
 
