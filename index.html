@@ -6655,6 +6655,21 @@
             return histData;
         }
 
+        // Chuỗi "neo ngày" vô hình (whitespace — không có "value") phủ đủ MỌI
+        // ngày trong `dates`, không vẽ gì cả — đảm bảo thang thời gian (time
+        // scale) của pane này LUÔN có đủ bar cho MỌI ngày trong mảng, bất kể
+        // series thực tế trên cùng pane có bị thiếu/null rải rác ở ngày nào.
+        // Cần thiết khi đồng bộ 2 pane theo bar-index (syncCharts): nếu 1
+        // pane "rớt" (bỏ qua hẳn) 1 vài ngày do dữ liệu null mà pane kia
+        // không rớt đúng NHỮNG NGÀY ĐÓ (2 trường dữ liệu độc lập, null không
+        // nhất thiết trùng ngày), số bar thực tế của 2 pane lệch nhau — cùng
+        // 1 bar-index nhưng ứng với 2 ngày khác nhau ở mỗi pane, đúng hiện
+        // tượng "dóng lên không cùng ngày" giữa giá và khối lượng/dòng tiền.
+        function addDateAnchorSeries(chart, dates) {
+            chart.addLineSeries({ lineVisible: false, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: '' })
+                 .setData(dates.map(dt => ({ time: d2ts(dt) })));
+        }
+
         function addColoredLineSegments(chart, dates, values, colors, scaleFactor = 1, lineWidth = 2) {
             let currentSegment = [];
             let currentColor = null;
@@ -9093,6 +9108,7 @@
             // 1 phiên để tránh đổi màu chỉ vì 1 phiên nhiễu đơn lẻ.
             const { chart: c1, ro: ro1 } = mkChart(d1, h1, data.dates);
             instances.push({ chart: c1, ro: ro1 });
+            addDateAnchorSeries(c1, data.dates);
             const diffArrC1 = data.dates.map((_, i) => {
                 const b = data.totalBuyUnmatchedVolume[i], s = data.totalSellUnmatchedVolume[i];
                 return (b !== null && b !== undefined && s !== null && s !== undefined) ? b - s : null;
@@ -9110,6 +9126,7 @@
             // dưới đường 0 (báo dư bán áp đảo) — không vẽ riêng cột dư bán nữa.
             const { chart: c2, ro: ro2 } = mkChart(d2, h2, data.dates);
             instances.push({ chart: c2, ro: ro2 });
+            addDateAnchorSeries(c2, data.dates);
             const buyData = [], diffData = [];
             for (let i = 0; i < data.dates.length; i++) {
                 const t = d2ts(data.dates[i]);
@@ -9155,6 +9172,7 @@
             const diffMA5C2 = sma(diffArrC2, 5);
             const { chart: c1, ro: ro1 } = mkChart(d1, h1, data.dates);
             instances.push({ chart: c1, ro: ro1 });
+            addDateAnchorSeries(c1, data.dates);
             const priceColors = data.dates.map((_, i) => {
                 const d5 = diffMA5C2[i];
                 if (d5 === null || d5 === undefined) return '#ffffff';
@@ -9171,6 +9189,7 @@
             // ngưỡng "khối lượng mạnh" dùng để tô màu đường giá ở trên.
             const { chart: c2, ro: ro2 } = mkChart(d2, h2, data.dates);
             instances.push({ chart: c2, ro: ro2 });
+            addDateAnchorSeries(c2, data.dates);
             const kltbBuyData = [], kltbDiffData = [], kltbMA20Data = [];
             for (let i = 0; i < data.dates.length; i++) {
                 const t = d2ts(data.dates[i]);
@@ -9206,6 +9225,7 @@
             const ma5 = sma(data.foreignNetValueTotal, 5);
             const { chart: c1, ro: ro1 } = mkChart(d1, h1, data.dates);
             instances.push({ chart: c1, ro: ro1 });
+            addDateAnchorSeries(c1, data.dates);
             const priceColorsC3 = data.dates.map((_, i) => {
                 const v = ma5[i];
                 return (v !== null && v !== undefined && v < 0) ? '#f59e0b' : '#ffffff';
@@ -9214,6 +9234,7 @@
 
             const { chart: c2, ro: ro2 } = mkChart(d2, h2, data.dates);
             instances.push({ chart: c2, ro: ro2 });
+            addDateAnchorSeries(c2, data.dates);
             const histData = [];
             for (let i = 0; i < data.dates.length; i++) {
                 const v = ma5[i];
