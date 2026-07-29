@@ -3249,12 +3249,8 @@
             font-weight: 700;
             color: #e5e7eb;
         }
-        /* Thang màu theo độ tăng của RS: xám -> xanh nhạt -> xanh đậm -> tím nhạt -> tím đậm */
-        .rs-c0 { background: #4b5563; color: #d1d5db; }
-        .rs-c1 { background: #6ee7b7; color: #064e3b; }
-        .rs-c2 { background: #059669; color: #ecfdf5; }
-        .rs-c3 { background: #c4b5fd; color: #3b0764; }
-        .rs-c4 { background: #6d28d9; color: #f5f3ff; }
+        /* Thang màu RS (gradient liên tục theo giá trị, xem rsColorStyle()):
+           <70 xám nhạt->đậm, 70-90 xanh lá nhạt->đậm, 90-100 tím nhạt->đậm. */
         .rs-cna { background: transparent; color: var(--text-secondary); font-weight: 400; }
     </style>
 
@@ -3352,11 +3348,9 @@
                     <button class="chart-expand-btn" onclick="expandTopRsTable('rs14')">⛶ Mở rộng</button>
                 </div>
                 <div class="toprs-legend">
-                    <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c0"></span>0–20 Yếu</span>
-                    <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c1"></span>21–40</span>
-                    <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c2"></span>41–60</span>
-                    <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c3"></span>61–80</span>
-                    <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c4"></span>81–100 Rất mạnh</span>
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch" style="background:rgb(132,139,150);"></span>&lt;70 Yếu</span>
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch" style="background:rgb(96,184,148);"></span>70–90</span>
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch" style="background:rgb(149,122,202);"></span>90–100 Rất mạnh</span>
                 </div>
                 <div class="toprs-table-wrap" id="topRs14TableWrap">
                     <div class="toprs-loading">Đang tải dữ liệu...</div>
@@ -3369,11 +3363,9 @@
                     <button class="chart-expand-btn" onclick="expandTopRsTable('rs52')">⛶ Mở rộng</button>
                 </div>
                 <div class="toprs-legend">
-                    <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c0"></span>0–20 Yếu</span>
-                    <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c1"></span>21–40</span>
-                    <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c2"></span>41–60</span>
-                    <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c3"></span>61–80</span>
-                    <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c4"></span>81–100 Rất mạnh</span>
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch" style="background:rgb(132,139,150);"></span>&lt;70 Yếu</span>
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch" style="background:rgb(96,184,148);"></span>70–90</span>
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch" style="background:rgb(149,122,202);"></span>90–100 Rất mạnh</span>
                 </div>
                 <div class="toprs-table-wrap" id="topRs52TableWrap">
                     <div class="toprs-loading">Đang tải dữ liệu...</div>
@@ -4590,13 +4582,32 @@
             return topRsCache;
         }
 
-        function rsColorClass(v) {
-            if (v === null || v === undefined || isNaN(v)) return 'rs-cna';
-            if (v < 20) return 'rs-c0';
-            if (v < 40) return 'rs-c1';
-            if (v < 60) return 'rs-c2';
-            if (v < 80) return 'rs-c3';
-            return 'rs-c4';
+        function lerpRgb(c1, c2, t) {
+            return [0, 1, 2].map(i => Math.round(c1[i] + (c2[i] - c1[i]) * t));
+        }
+
+        // Gradient liên tục theo giá trị RS (không chia bucket rời rạc nữa):
+        //   <70   : xám,  nhạt dần khi RS thấp -> đậm dần khi RS tiến gần 70
+        //   70-90 : xanh lá, nhạt ở 70 -> đậm ở gần 90
+        //   90-100: tím, nhạt ở 90 -> đậm nhất ở 100
+        function rsColorStyle(v) {
+            if (v === null || v === undefined || isNaN(v)) return null;
+            const GRAY_LIGHT = [209, 213, 219], GRAY_DARK = [55, 65, 81];
+            const GREEN_LIGHT = [187, 247, 208], GREEN_DARK = [4, 120, 87];
+            const PURPLE_LIGHT = [221, 214, 254], PURPLE_DARK = [76, 29, 149];
+            let rgb, t;
+            if (v < 70) {
+                t = Math.max(0, Math.min(1, v / 70));
+                rgb = lerpRgb(GRAY_LIGHT, GRAY_DARK, t);
+            } else if (v < 90) {
+                t = (v - 70) / 20;
+                rgb = lerpRgb(GREEN_LIGHT, GREEN_DARK, t);
+            } else {
+                t = Math.max(0, Math.min(1, (v - 90) / 10));
+                rgb = lerpRgb(PURPLE_LIGHT, PURPLE_DARK, t);
+            }
+            const fg = t > 0.55 ? '#f8fafc' : '#0b1220';
+            return { bg: `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`, fg };
         }
 
         function formatTopRsDate(iso) {
@@ -4613,9 +4624,10 @@
             const headerCells = dates.map(dt => `<th>${formatTopRsDate(dt)}</th>`).join('');
             const bodyRows = sorted.map(row => {
                 const cells = row[field].map(v => {
-                    const cls = rsColorClass(v);
+                    const style = rsColorStyle(v);
                     const label = (v === null || v === undefined || isNaN(v)) ? '' : Math.round(v);
-                    return `<td class="toprs-cell ${cls}">${label}</td>`;
+                    if (!style) return `<td class="toprs-cell rs-cna">${label}</td>`;
+                    return `<td class="toprs-cell" style="background:${style.bg};color:${style.fg};">${label}</td>`;
                 }).join('');
                 return `<tr><td class="toprs-sticky-col">${row.icon} ${row.name}</td>${cells}</tr>`;
             }).join('');
