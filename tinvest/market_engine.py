@@ -78,7 +78,9 @@ def analyze_market_index(df_index: pd.DataFrame, breadth_pct_ma20: float = 50.0,
 
             "action": "STANDBY",
 
-            "decline_from_peak_pct": 0
+            "decline_from_peak_pct": 0,
+
+            "ftd_events": []
 
         }
 
@@ -123,6 +125,17 @@ def analyze_market_index(df_index: pd.DataFrame, breadth_pct_ma20: float = 50.0,
     ftd_date = "N/A"
 
     dist_days = []
+
+    # Lịch sử toàn bộ các phiên FTD kích hoạt và các phiên xác nhận FTD mất
+    # hiệu lực trong suốt chuỗi dữ liệu (không chỉ FTD hiện tại) — dùng để vẽ
+    # mũi tên đánh dấu trên biểu đồ 2Trend ở frontend.
+    ftd_events = []
+
+    def _date_str(d):
+        try:
+            return str(d.date()) if hasattr(d, 'date') else str(d)
+        except Exception:
+            return str(d)
 
 
 
@@ -248,6 +261,8 @@ def analyze_market_index(df_index: pd.DataFrame, breadth_pct_ma20: float = 50.0,
 
             if l < ftd_low:
 
+                ftd_events.append({"date": _date_str(df['Date'].iloc[i]), "type": "ftd_invalidated"})
+
                 ftd_active = False
 
                 ftd_quality = None
@@ -269,6 +284,8 @@ def analyze_market_index(df_index: pd.DataFrame, breadth_pct_ma20: float = 50.0,
             # mới cao hơn ở đầu vòng lặp).
 
             elif decline_pct >= 0.10:
+
+                ftd_events.append({"date": _date_str(df['Date'].iloc[i]), "type": "ftd_invalidated"})
 
                 ftd_active = False
 
@@ -369,6 +386,8 @@ def analyze_market_index(df_index: pd.DataFrame, breadth_pct_ma20: float = 50.0,
                     # mới xoá), chỉ khi có FTD mới thật sự mới xoá sạch.
 
                     dist_days = []
+
+                    ftd_events.append({"date": ftd_date, "type": "ftd", "quality": ftd_quality})
 
 
 
@@ -576,6 +595,8 @@ def analyze_market_index(df_index: pd.DataFrame, breadth_pct_ma20: float = 50.0,
         "distribution_count": dist_count,
 
         "distribution_dates": [d['date'].strftime("%Y-%m-%d") for d in dist_days],
+
+        "ftd_events": ftd_events,
 
         "action": action,
 

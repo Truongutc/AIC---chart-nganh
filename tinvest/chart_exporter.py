@@ -719,10 +719,19 @@ def export_ticker_history_json(data_dict, analysis_cache, output_dir):
                     df['RS52'] = 50.0
             
             df_extended = df.copy()
- 
+
             def clean_nan_list(series):
                 return [None if (pd.isna(x) or (isinstance(x, float) and np.isnan(x))) else x for x in series.tolist()]
- 
+
+            # Toàn bộ lịch sử các phiên FTD kích hoạt / mất hiệu lực trên chuỗi
+            # dữ liệu này — dùng để vẽ mũi tên đánh dấu trên biểu đồ 2Trend.
+            try:
+                from tinvest.market_engine import analyze_market_index
+                ftd_events = analyze_market_index(df).get('ftd_events', [])
+            except Exception as e_ftd:
+                logger.warning(f"Could not compute FTD events for {t}: {e_ftd}")
+                ftd_events = []
+
             record = {
                 "ticker": t,
                 "dates": df_extended['Date'].dt.strftime("%Y-%m-%d").tolist(),
@@ -731,6 +740,7 @@ def export_ticker_history_json(data_dict, analysis_cache, output_dir):
                 "lows":    clean_nan_list(df_extended['Low'].round(6)),
                 "closes":  clean_nan_list(df_extended['Close'].round(6)),
                 "volumes": clean_nan_list(df_extended['Volume'].round(6)),
+                "FTD_events": ftd_events,
             }
             
             for col in ALL_INDICATOR_COLS:

@@ -6539,6 +6539,26 @@
             return out;
         }
 
+        // ── Đánh dấu phiên FTD (Follow-Through Day) và phiên xác nhận FTD mất
+        // hiệu lực trên toàn bộ lịch sử — dùng cho pane 2Trend (candlestick
+        // series của biểu đồ Heikin). data.FTD_events: [{date, type, quality}]
+        // với type là 'ftd' hoặc 'ftd_invalidated'.
+        function buildFtdMarkers(data) {
+            if (!data.FTD_events || !data.FTD_events.length) return [];
+            const out = [];
+            data.FTD_events.forEach(ev => {
+                if (!ev || !ev.date) return;
+                const t = d2ts(ev.date);
+                if (ev.type === 'ftd') {
+                    out.push({ time: t, position: 'belowBar', color: '#00ff6a', shape: 'arrowUp', text: 'FTD' });
+                } else if (ev.type === 'ftd_invalidated') {
+                    // Chữ "FTD" gạch ngang (combining strikethrough) để báo hiệu FTD đã bị xoá bỏ.
+                    out.push({ time: t, position: 'aboveBar', color: '#ff3b3b', shape: 'arrowDown', text: 'F̶T̶D̶' });
+                }
+            });
+            return out;
+        }
+
         // ── Build line series data from a named column ──
         // defaultScale: 1000 for stocks (price/1000 units), auto-overridden for indices
         function lineData(data, col, defaultScale = 1000) {
@@ -7143,20 +7163,22 @@
             if (data.T2_ST_Upper) c2.addLineSeries({color:'rgba(255,59,59,0.4)',lineWidth:1,lineStyle:2,priceLineVisible:false,lastValueVisible:false}).setData(lineData(data,'T2_ST_Upper'));
 
             // 2Trend Buy/Sell signal markers (crossover of trend_state through 0)
-            if (data.T2_SMA_Trend && data.T2_SMA) {
-                const t2Markers = [];
-                const sc2m = priceScale(data);
-                for (let i = 1; i < data.dates.length; i++) {
-                    const prev = data.T2_SMA_Trend[i-1], curr = data.T2_SMA_Trend[i];
-                    const smaV = data.T2_SMA[i];
-                    if (prev === null || curr === null || smaV === null) continue;
-                    // crossover: -1 or 0 → 1 = Buy
-                    if (prev <= 0 && curr > 0) {
-                        t2Markers.push({time: d2ts(data.dates[i]), position:'belowBar', color:'#00ffaa', shape:'triangleUp', text:'𝑳'});
-                    }
-                    // crossunder: 1 or 0 → -1 = Sell
-                    if (prev >= 0 && curr < 0) {
-                        t2Markers.push({time: d2ts(data.dates[i]), position:'aboveBar', color:'#ff3b3b', shape:'triangleDown', text:'𝑺'});
+            // + mũi tên đánh dấu phiên FTD / phiên FTD mất hiệu lực trên toàn bộ lịch sử
+            {
+                const t2Markers = buildFtdMarkers(data);
+                if (data.T2_SMA_Trend && data.T2_SMA) {
+                    for (let i = 1; i < data.dates.length; i++) {
+                        const prev = data.T2_SMA_Trend[i-1], curr = data.T2_SMA_Trend[i];
+                        const smaV = data.T2_SMA[i];
+                        if (prev === null || curr === null || smaV === null) continue;
+                        // crossover: -1 or 0 → 1 = Buy
+                        if (prev <= 0 && curr > 0) {
+                            t2Markers.push({time: d2ts(data.dates[i]), position:'belowBar', color:'#00ffaa', shape:'triangleUp', text:'𝑳'});
+                        }
+                        // crossunder: 1 or 0 → -1 = Sell
+                        if (prev >= 0 && curr < 0) {
+                            t2Markers.push({time: d2ts(data.dates[i]), position:'aboveBar', color:'#ff3b3b', shape:'triangleDown', text:'𝑺'});
+                        }
                     }
                 }
                 if (t2Markers.length) cs2.setMarkers(t2Markers.sort((a,b)=>a.time-b.time));
@@ -8262,7 +8284,7 @@
             if(data.T2_SMA&&data.T2_SMA_Trend){const scd=[],sc2=priceScale(data);for(let i=0;i<data.dates.length;i++){const v=data.T2_SMA[i],s=data.T2_SMA_Trend[i];if(v===null||v===undefined)continue;scd.push({time:d2ts(data.dates[i]),value:v*sc2,color:s>0?'#00ffaa':s<0?'#ff3b3b':'#888888'});}c2.addLineSeries({lineWidth:2.5,priceLineVisible:false}).setData(scd);}else if(data.T2_SMA)c2.addLineSeries({color:'#00ffaa',lineWidth:3}).setData(lineData(data,'T2_SMA'));
             if(data.T2_ST_Lower)c2.addLineSeries({color:'rgba(0,255,170,0.4)',lineWidth:1,lineStyle:2}).setData(lineData(data,'T2_ST_Lower'));
             if(data.T2_ST_Upper)c2.addLineSeries({color:'rgba(255,59,59,0.4)',lineWidth:1,lineStyle:2}).setData(lineData(data,'T2_ST_Upper'));
-            if(data.T2_SMA_Trend&&data.T2_SMA){const t2m=[];for(let i=1;i<data.dates.length;i++){const p=data.T2_SMA_Trend[i-1],c=data.T2_SMA_Trend[i];if(p===null||c===null)continue;if(p<=0&&c>0)t2m.push({time:d2ts(data.dates[i]),position:'belowBar',color:'#00ffaa',shape:'triangleUp',text:'𝑳'});if(p>=0&&c<0)t2m.push({time:d2ts(data.dates[i]),position:'aboveBar',color:'#ff3b3b',shape:'triangleDown',text:'𝑺'});}if(t2m.length)cs2fs.setMarkers(t2m.sort((a,b)=>a.time-b.time));}
+            {const t2m=buildFtdMarkers(data);if(data.T2_SMA_Trend&&data.T2_SMA){for(let i=1;i<data.dates.length;i++){const p=data.T2_SMA_Trend[i-1],c=data.T2_SMA_Trend[i];if(p===null||c===null)continue;if(p<=0&&c>0)t2m.push({time:d2ts(data.dates[i]),position:'belowBar',color:'#00ffaa',shape:'triangleUp',text:'𝑳'});if(p>=0&&c<0)t2m.push({time:d2ts(data.dates[i]),position:'aboveBar',color:'#ff3b3b',shape:'triangleDown',text:'𝑺'});}}if(t2m.length)cs2fs.setMarkers(t2m.sort((a,b)=>a.time-b.time));}
 
             // Pane 3: Khối lượng giao dịch + MA20
             const {chart:c3,ro:r3}=mkChart(d3,h3,null, { crosshair: { horzLine: { visible: false, labelVisible: false } } }); instances.push({chart:c3,ro:r3});
