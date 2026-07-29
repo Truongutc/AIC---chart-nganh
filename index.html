@@ -3160,6 +3160,15 @@
             backdrop-filter: var(--glass-blur);
             -webkit-backdrop-filter: var(--glass-blur);
         }
+        .toprs-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .toprs-section-header .toprs-table-title { margin-bottom: 0; }
         .toprs-table-title {
             font-family: 'Outfit', sans-serif;
             font-size: 1.05rem;
@@ -3338,7 +3347,10 @@
             </section>
 
             <div class="toprs-section">
-                <h3 class="toprs-table-title">📗 RS14 — 30 phiên gần nhất</h3>
+                <div class="toprs-section-header">
+                    <h3 class="toprs-table-title">📗 RS14 — 30 phiên gần nhất</h3>
+                    <button class="chart-expand-btn" onclick="expandTopRsTable('rs14')">⛶ Mở rộng</button>
+                </div>
                 <div class="toprs-legend">
                     <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c0"></span>0–20 Yếu</span>
                     <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c1"></span>21–40</span>
@@ -3352,7 +3364,10 @@
             </div>
 
             <div class="toprs-section">
-                <h3 class="toprs-table-title">📘 RS52 — 30 phiên gần nhất</h3>
+                <div class="toprs-section-header">
+                    <h3 class="toprs-table-title">📘 RS52 — 30 phiên gần nhất</h3>
+                    <button class="chart-expand-btn" onclick="expandTopRsTable('rs52')">⛶ Mở rộng</button>
+                </div>
                 <div class="toprs-legend">
                     <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c0"></span>0–20 Yếu</span>
                     <span class="toprs-legend-item"><span class="toprs-legend-swatch rs-c1"></span>21–40</span>
@@ -3399,6 +3414,22 @@
         </div>
         <div class="chart-fs-body">
             <div id="chartFsMount"></div>
+        </div>
+    </div>
+
+    <!-- Fullscreen TopRS Table Modal — bảng RS14/RS52 phóng to toàn màn hình,
+         chủ yếu để xem thoải mái trên điện thoại (màn hình hẹp chỉ lọt ~2
+         cột ngày ở chế độ thường). Tái dùng CSS .chart-fs-* cho đồng bộ giao
+         diện, nhưng KHÔNG dùng chung #chartFsModal — bảng RS là HTML tĩnh,
+         không phải chart lightweight-charts cần khởi tạo/huỷ như các modal
+         kia, nên tách hẳn 1 modal riêng cho đơn giản. -->
+    <div id="topRsFsModal" class="chart-fs-modal">
+        <div class="chart-fs-header">
+            <span class="chart-fs-title" id="topRsFsTitle">📗 RS14 — 30 phiên gần nhất</span>
+            <button class="chart-fs-close" onclick="closeTopRsFullscreen()">✕ Đóng (Esc)</button>
+        </div>
+        <div class="chart-fs-body" style="overflow:auto;">
+            <div class="toprs-table-wrap" id="topRsFsTableWrap" style="border:none;"></div>
         </div>
     </div>
 
@@ -4615,6 +4646,33 @@
                 rs14Wrap.innerHTML = msg;
                 rs52Wrap.innerHTML = msg;
             }
+        }
+
+        // Mở rộng toàn màn hình bảng RS14 hoặc RS52 — dùng lại đúng
+        // topRsCache/buildTopRsTableHtml (không cần tải lại dữ liệu), chỉ
+        // đổi nơi render sang modal to hơn. Chủ yếu để xem thoải mái trên
+        // điện thoại (chế độ thường màn hình hẹp chỉ lọt ~2 cột ngày).
+        async function expandTopRsTable(field) {
+            const modal = document.getElementById('topRsFsModal');
+            const title = document.getElementById('topRsFsTitle');
+            const wrap = document.getElementById('topRsFsTableWrap');
+            if (!modal || !wrap) return;
+            title.textContent = field === 'rs14' ? '📗 RS14 — 30 phiên gần nhất' : '📘 RS52 — 30 phiên gần nhất';
+            wrap.innerHTML = '<div class="toprs-loading">Đang tải dữ liệu...</div>';
+            modal.classList.add('open');
+            try {
+                const { dates, rows } = await loadTopRsData();
+                wrap.innerHTML = rows.length
+                    ? buildTopRsTableHtml(rows, dates, field)
+                    : '<div class="empty-state">Chưa có dữ liệu ngành nào.</div>';
+            } catch (e) {
+                console.error('Lỗi tải dữ liệu TopRS:', e);
+                wrap.innerHTML = '<div class="empty-state">Không thể tải dữ liệu TopRS.</div>';
+            }
+        }
+
+        function closeTopRsFullscreen() {
+            document.getElementById('topRsFsModal')?.classList.remove('open');
         }
 
         // Tự thu gọn thanh nav khi cuộn trang xuống, mở lại khi về gần đầu
@@ -7916,7 +7974,11 @@
         }
 
         // ESC to close
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeChartFullscreen(); });
+        document.addEventListener('keydown', e => {
+            if (e.key !== 'Escape') return;
+            closeChartFullscreen();
+            closeTopRsFullscreen();
+        });
 
         // ── Fullscreen variants (larger heights) ──
         function renderGPChartFs(mountId, rawDataInput, instances) {
