@@ -6550,11 +6550,11 @@
                 if (!ev || !ev.date) return;
                 const t = d2ts(ev.date);
                 if (ev.type === 'ftd') {
-                    out.push({ time: t, position: 'belowBar', color: '#00ff6a', shape: 'arrowUp', text: 'FTD', size: 1.3 });
+                    out.push({ time: t, position: 'belowBar', color: '#00ff6a', shape: 'arrowUp', text: 'FTD', size: 1.69 });
                 } else if (ev.type === 'ftd_invalidated') {
                     // Chữ "FTD" gạch ngang (combining strikethrough) để báo hiệu FTD đã bị xoá bỏ.
                     // Màu xanh dương để tách bạch với các mũi tên đỏ (Sell/𝑺) khác trên cùng pane.
-                    out.push({ time: t, position: 'aboveBar', color: '#3b82f6', shape: 'arrowDown', text: 'F̶T̶D̶', size: 1.3 });
+                    out.push({ time: t, position: 'aboveBar', color: '#3b82f6', shape: 'arrowDown', text: 'F̶T̶D̶', size: 1.69 });
                 }
             });
             return out;

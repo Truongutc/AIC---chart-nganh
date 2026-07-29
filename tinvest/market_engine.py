@@ -247,9 +247,12 @@ def analyze_market_index(df_index: pd.DataFrame, breadth_pct_ma20: float = 50.0,
 
         if ftd_active:
 
-            # Điều kiện 1: Giá thủng mức THẤP NHẤT của CHÍNH phiên FTD (ftd_low,
-
-            # gán tại thời điểm FTD kích hoạt bên dưới) — KHÔNG PHẢI low của
+            # Điều kiện 1: Giá ĐÓNG CỬA thủng mức THẤP NHẤT của CHÍNH phiên FTD
+            # (ftd_low, gán tại thời điểm FTD kích hoạt bên dưới) — dùng Close
+            # thay vì Low. Thực tế có nhiều phiên chỉ rút chân xuống dưới
+            # ftd_low rồi đóng cửa hồi phục lại ngay và tiếp tục tăng — nếu
+            # huỷ FTD theo Low sẽ bị "bẫy" bởi những cây nến rút chân này,
+            # đếm sai một FTD thực chất vẫn còn hiệu lực. KHÔNG PHẢI low của
 
             # phiên RA1 (ra_low có thể thấp hơn NHIỀU, vì RA1 thường là đáy sâu
 
@@ -259,7 +262,7 @@ def analyze_market_index(df_index: pd.DataFrame, breadth_pct_ma20: float = 50.0,
 
             # huỷ FTD quá lỏng, đã sửa lại đúng theo yêu cầu).
 
-            if l < ftd_low:
+            if c < ftd_low:
 
                 ftd_events.append({"date": _date_str(df['Date'].iloc[i]), "type": "ftd_invalidated"})
 
@@ -274,6 +277,12 @@ def analyze_market_index(df_index: pd.DataFrame, breadth_pct_ma20: float = 50.0,
                 ra_low = float('inf')
 
                 ftd_low = float('inf')
+
+                # Huỷ xong thì tiếp tục đi tìm FTD mới NGAY, không chờ thêm một
+                # đợt giảm 10% mới từ đỉnh khác — thị trường vẫn đang trong quá
+                # trình hồi phục sau đợt giảm ban đầu, chỉ là lần hồi phục này
+                # (FTD này) thất bại, nên vẫn cần tiếp tục dò RA1 → FTD kế tiếp.
+                decline_triggered_10 = True
 
             # Điều kiện 2: Giá đóng cửa giảm trên 10% từ đỉnh (đỉnh = high cao
 
@@ -299,11 +308,18 @@ def analyze_market_index(df_index: pd.DataFrame, breadth_pct_ma20: float = 50.0,
 
                 ftd_low = float('inf')
 
+                decline_triggered_10 = True
+
 
 
         # 4. RALLY ATTEMPT & FOLLOW-THROUGH DAY
 
-        # CHỈ BẮT ĐẦU TÌM RA SAU KHI GIẢM > 10%. "not ftd_active" ở điều
+        # CHỈ BẮT ĐẦU TÌM RA SAU KHI GIẢM > 10% TỪ ĐỈNH GẦN NHẤT, HOẶC NGAY SAU
+        # KHI MỘT FTD TRƯỚC ĐÓ VỪA MẤT HIỆU LỰC (mục 3 phía trên tự set lại
+        # decline_triggered_10 = True khi huỷ FTD, nên điều kiện dưới đây tự
+        # thoả mà không cần chờ thêm một đợt giảm 10% độc lập khác — nếu không
+        # thị trường có thể không bao giờ giảm đủ 10% lần nữa dù FTD đã hỏng,
+        # khiến hệ thống không bao giờ dò lại FTD mới). "not ftd_active" ở điều
 
         # kiện dưới đây đã tự dừng đếm ra_day ngay khi có FTD (khối này bị
 
@@ -311,15 +327,13 @@ def analyze_market_index(df_index: pd.DataFrame, breadth_pct_ma20: float = 50.0,
 
         if ra_day > 0 and not ftd_active:
 
-            # Reset về 0 nếu phiên này THỦNG Low(RA1) — dùng Low, không
+            # Reset về 0 nếu phiên này THỦNG Low(RA1) — dùng Low của RA1
 
-            # dùng Close, để khớp đúng với điều kiện huỷ FTD ở mục 3 phía
+            # (ra_low), một mốc riêng biệt với ftd_low ở mục 3 phía trên (mục 3
 
-            # trên (điều kiện 1, cũng dùng "l < ra_low") — trước đây dùng
+            # dùng Close để tránh bị bẫy bởi nến rút chân, còn ở đây RA1 chưa
 
-            # Close nên 1 phiên chỉ rút chân xuống dưới Low(RA1) rồi đóng
-
-            # cửa hồi lại vẫn không bị tính là phá vỡ, không nhất quán.
+            # có gì để "hồi phục" nên vẫn giữ Low làm mốc phá vỡ ngay khi thủng).
 
             if l < ra_low:
 
