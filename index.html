@@ -4511,28 +4511,31 @@
         }
 
         // ============ TopRS: sức mạnh giá RS14/RS52 theo ngành ============
+        // Đọc từ Output/top_rs.json — 1 file DUY NHẤT, GỌN (chỉ RS14/RS52 ~40
+        // phiên gần nhất của mọi ngành, xem tinvest/chart_exporter.py
+        // export_top_rs_json). TRƯỚC ĐÂY tab này tự tải riêng từng file
+        // Output/history/{CODE}.json cho MỌI ngành (mỗi file chứa TOÀN BỘ
+        // lịch sử nhiều năm + hàng chục cột chỉ báo khác) chỉ để lấy đúng 30
+        // phiên RS14/RS52 gần nhất — thực đo ~40 file, tổng ~140MB tải đồng
+        // thời mỗi lần mở tab, khiến máy tính rất chậm và điện thoại (mạng
+        // yếu + ít RAM parse JSON hơn) không tải nổi/đứng hình luôn.
         let topRsCache = null; // { dates: [...30 phiên...], rows: [{code,name,icon,rs14:[],rs52:[]}] }
 
         async function loadTopRsData() {
             if (topRsCache) return topRsCache;
 
-            const codes = Object.keys(sectorGroups);
-            const results = await Promise.all(codes.map(async code => {
-                try {
-                    const r = await fetch(`./Output/history/${code}.json?t=` + new Date().getTime());
-                    if (!r.ok) return null;
-                    const d = await r.json();
-                    return { code, data: d };
-                } catch (e) {
-                    return null;
-                }
-            }));
-            const valid = results.filter(v => v && v.data && Array.isArray(v.data.dates));
+            const r = await fetch('./Output/top_rs.json?t=' + new Date().getTime());
+            if (!r.ok) throw new Error(`Không tải được top_rs.json (HTTP ${r.status})`);
+            const payload = await r.json();
+            const sectors = payload.sectors || {};
+            const valid = Object.keys(sectors)
+                .map(code => ({ code, data: sectors[code] }))
+                .filter(v => v.data && Array.isArray(v.data.dates));
 
             // Hợp nhất lịch giao dịch từ tất cả ngành rồi lấy 30 phiên gần nhất chung,
             // đề phòng vài ngành cập nhật lệch ngày so với các ngành còn lại.
             const dateSet = new Set();
-            valid.forEach(v => v.data.dates.slice(-40).forEach(dt => dateSet.add(dt)));
+            valid.forEach(v => v.data.dates.forEach(dt => dateSet.add(dt)));
             const dates = Array.from(dateSet).sort().slice(-30);
 
             const rows = valid.map(v => {

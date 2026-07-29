@@ -830,3 +830,54 @@ def export_ticker_history_json(data_dict, analysis_cache, output_dir):
     errors = len(all_tickers_to_export) - exported
     logger.info(f"✅ Đã xuất history JSON: {exported} mã thành công, {errors} lỗi → {history_dir}")
 
+
+def export_top_rs_json(data_dict, sector_codes, output_dir, days=40):
+    """Xuất Output/top_rs.json — bảng RS14/RS52 ~ {days} phiên gần nhất của
+    MỌI mã ngành trong 1 file DUY NHẤT, GỌN (chỉ Date/RS14/RS52).
+
+    Tab "TopRS" trên web trước đây tự tải riêng từng file
+    Output/history/{CODE}.json cho MỌI ngành chỉ để lấy 30 phiên RS14/RS52
+    gần nhất — nhưng mỗi file history đó chứa TOÀN BỘ lịch sử nhiều năm +
+    hàng chục cột chỉ báo khác (đã đo thực tế: ~40 file, tổng ~140MB, có
+    file >4.5MB) — tải hết ~140MB đồng thời mỗi lần mở tab TopRS khiến máy
+    tính chậm và điện thoại (mạng yếu hơn, ít RAM hơn để parse JSON) không
+    tải nổi/đứng hình. File này thay thế đúng phần dữ liệu tab đó thực sự
+    cần, nhẹ hơn nhiều bậc (vài chục KB thay vì hàng trăm MB)."""
+    import json
+    sectors_out = {}
+    for code in sector_codes:
+        df = data_dict.get(code)
+        if df is None or df.empty or 'Date' not in df.columns or 'RS14' not in df.columns:
+            continue
+        try:
+            tail = df.tail(days)
+            dates = pd.to_datetime(tail['Date']).dt.strftime("%Y-%m-%d").tolist()
+
+            def clean_nan_list(series):
+                return [None if (pd.isna(x) or (isinstance(x, float) and np.isnan(x))) else round(float(x), 2) for x in series.tolist()]
+
+            sectors_out[code] = {
+                "dates": dates,
+                "RS14": clean_nan_list(tail['RS14']) if 'RS14' in tail.columns else [None] * len(dates),
+                "RS52": clean_nan_list(tail['RS52']) if 'RS52' in tail.columns else [None] * len(dates),
+            }
+        except Exception as e:
+            logger.warning(f"   ! Lỗi xuất top_rs cho {code}: {e}")
+
+    out_path = os.path.join(output_dir, "top_rs.json")
+    import tempfile
+    temp_fd, temp_path = tempfile.mkstemp(dir=output_dir, prefix="top_rs_tmp_")
+    try:
+        with os.fdopen(temp_fd, 'w', encoding='utf-8') as f:
+            json.dump({"sectors": sectors_out}, f, ensure_ascii=False, separators=(',', ':'))
+        if os.path.exists(out_path):
+            os.replace(temp_path, out_path)
+        else:
+            os.rename(temp_path, out_path)
+    except Exception as e_write:
+        if os.path.exists(temp_path):
+            try: os.remove(temp_path)
+            except: pass
+        raise e_write
+    logger.info(f"✅ Đã xuất top_rs.json: {len(sectors_out)}/{len(sector_codes)} ngành → {out_path}")
+

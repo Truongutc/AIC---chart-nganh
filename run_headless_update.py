@@ -840,7 +840,15 @@ def compute_and_export_dashboard(storage, affected_tickers, vietstock_status=Non
     # 10. Export History JSON for each ticker (used by web charts — replaces PNG exports)
     logger.info("📊 Đang xuất dữ liệu lịch sử JSON cho Web Dashboard (thay thế xuất ảnh PNG)...")
     export_ticker_history_json(data_dict, analysis_cache, output_dir)
-    
+
+    # Xuất riêng 1 file GỌN top_rs.json (chỉ RS14/RS52 ~40 phiên gần nhất mọi
+    # ngành) cho tab TopRS — tránh tab đó phải tải TOÀN BỘ ~140MB history của
+    # mọi ngành (đã đo thực tế) chỉ để lấy 30 phiên gần nhất, nguyên nhân
+    # khiến tab TopRS tải rất chậm trên máy tính và không tải nổi trên
+    # điện thoại (mạng yếu + ít RAM parse JSON hơn).
+    from tinvest.chart_exporter import export_top_rs_json
+    export_top_rs_json(data_dict, sector_groups.keys(), output_dir)
+
     logger.info("==================================================")
 
 
