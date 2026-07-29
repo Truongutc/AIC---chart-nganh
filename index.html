@@ -3348,9 +3348,9 @@
                     <button class="chart-expand-btn" onclick="expandTopRsTable('rs14')">⛶ Mở rộng</button>
                 </div>
                 <div class="toprs-legend">
-                    <span class="toprs-legend-item"><span class="toprs-legend-swatch" style="background:rgb(132,139,150);"></span>&lt;70 Yếu</span>
-                    <span class="toprs-legend-item"><span class="toprs-legend-swatch" style="background:rgb(96,184,148);"></span>70–90</span>
-                    <span class="toprs-legend-item"><span class="toprs-legend-swatch" style="background:rgb(149,122,202);"></span>90–100 Rất mạnh</span>
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch" style="background:rgb(132,139,150);"></span>&lt;60 Yếu</span>
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch" style="background:rgb(96,184,148);"></span>60–85</span>
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch" style="background:rgb(149,122,202);"></span>85–100 Rất mạnh</span>
                 </div>
                 <div class="toprs-table-wrap" id="topRs14TableWrap">
                     <div class="toprs-loading">Đang tải dữ liệu...</div>
@@ -3363,9 +3363,9 @@
                     <button class="chart-expand-btn" onclick="expandTopRsTable('rs52')">⛶ Mở rộng</button>
                 </div>
                 <div class="toprs-legend">
-                    <span class="toprs-legend-item"><span class="toprs-legend-swatch" style="background:rgb(132,139,150);"></span>&lt;70 Yếu</span>
-                    <span class="toprs-legend-item"><span class="toprs-legend-swatch" style="background:rgb(96,184,148);"></span>70–90</span>
-                    <span class="toprs-legend-item"><span class="toprs-legend-swatch" style="background:rgb(149,122,202);"></span>90–100 Rất mạnh</span>
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch" style="background:rgb(132,139,150);"></span>&lt;60 Yếu</span>
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch" style="background:rgb(96,184,148);"></span>60–85</span>
+                    <span class="toprs-legend-item"><span class="toprs-legend-swatch" style="background:rgb(149,122,202);"></span>85–100 Rất mạnh</span>
                 </div>
                 <div class="toprs-table-wrap" id="topRs52TableWrap">
                     <div class="toprs-loading">Đang tải dữ liệu...</div>
@@ -4595,18 +4595,21 @@
             const GRAY_LIGHT = [209, 213, 219], GRAY_DARK = [55, 65, 81];
             const GREEN_LIGHT = [187, 247, 208], GREEN_DARK = [4, 120, 87];
             const PURPLE_LIGHT = [221, 214, 254], PURPLE_DARK = [76, 29, 149];
-            let rgb, t;
-            if (v < 70) {
-                t = Math.max(0, Math.min(1, v / 70));
-                rgb = lerpRgb(GRAY_LIGHT, GRAY_DARK, t);
-            } else if (v < 90) {
-                t = (v - 70) / 20;
-                rgb = lerpRgb(GREEN_LIGHT, GREEN_DARK, t);
+            let rgb;
+            if (v < 60) {
+                const t = Math.max(0, Math.min(1, v / 60));
+                rgb = lerpRgb(GRAY_DARK, GRAY_LIGHT, t); // đậm khi RS thấp -> nhạt dần khi tiến gần 60
+            } else if (v < 85) {
+                const t = (v - 60) / 25;
+                rgb = lerpRgb(GREEN_LIGHT, GREEN_DARK, t); // nhạt ở 60 -> đậm ở gần 85
             } else {
-                t = Math.max(0, Math.min(1, (v - 90) / 10));
-                rgb = lerpRgb(PURPLE_LIGHT, PURPLE_DARK, t);
+                const t = Math.max(0, Math.min(1, (v - 85) / 15));
+                rgb = lerpRgb(PURPLE_LIGHT, PURPLE_DARK, t); // nhạt ở 85 -> đậm nhất ở 100
             }
-            const fg = t > 0.55 ? '#f8fafc' : '#0b1220';
+            // Chọn màu chữ theo độ sáng thực của nền (không theo t) vì dải xám
+            // đi ngược hướng sáng/tối so với 2 dải xanh/tím còn lại.
+            const lum = (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255;
+            const fg = lum > 0.6 ? '#0b1220' : '#f8fafc';
             return { bg: `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`, fg };
         }
 
