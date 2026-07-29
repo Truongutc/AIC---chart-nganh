@@ -6724,8 +6724,46 @@
         // 1 bar-index nhưng ứng với 2 ngày khác nhau ở mỗi pane, đúng hiện
         // tượng "dóng lên không cùng ngày" giữa giá và khối lượng/dòng tiền.
         function addDateAnchorSeries(chart, dates) {
-            chart.addLineSeries({ lineVisible: false, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: '' })
-                 .setData(dates.map(dt => ({ time: d2ts(dt) })));
+            const s = chart.addLineSeries({ lineVisible: false, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: '' });
+            s.setData(dates.map(dt => ({ time: d2ts(dt) })));
+            return s; // dùng làm "series tham chiếu" khi đồng bộ crosshair, xem syncPaneCrosshairs()
+        }
+
+        // Đồng bộ crosshair (vạch dọc khi rê chuột) giữa 2 pane của CÙNG 1
+        // cụm biểu đồ — không có bước này, mỗi pane tự nhớ vị trí hover CUỐI
+        // CÙNG của riêng nó, độc lập hoàn toàn với pane kia (lightweight-charts
+        // không tự đồng bộ giữa 2 instance chart tách biệt). Nếu người dùng
+        // rê chuột từ pane này sang pane kia mà không rời hẳn khỏi vùng biểu
+        // đồ trước, cả 2 pane có thể cùng lúc "đứng" ở 2 THỜI ĐIỂM HOVER KHÁC
+        // NHAU — trông y hệt như 2 pane lệch ngày dù dữ liệu thật ra vẫn khớp
+        // tuyệt đối (đã xác minh riêng bằng getVisibleRange()/getVisibleLogicalRange()
+        // ở cả dữ liệu giả lập lẫn dữ liệu Vietcap thật). setCrosshairPosition()
+        // TỰ bắn lại subscribeCrosshairMove của chính chart đó nên cần cờ
+        // chống lặp busy, giống hệt syncCharts().
+        function syncPaneCrosshairs(c1, series1, valueAt1, c2, series2, valueAt2) {
+            let busy = false;
+            c1.subscribeCrosshairMove(param => {
+                if (busy) return;
+                busy = true;
+                if (param.time === undefined) c2.clearCrosshairPosition();
+                else {
+                    const v = valueAt2(param.time);
+                    if (v === null || v === undefined || isNaN(v)) c2.clearCrosshairPosition();
+                    else try { c2.setCrosshairPosition(v, param.time, series2); } catch (e) {}
+                }
+                busy = false;
+            });
+            c2.subscribeCrosshairMove(param => {
+                if (busy) return;
+                busy = true;
+                if (param.time === undefined) c1.clearCrosshairPosition();
+                else {
+                    const v = valueAt1(param.time);
+                    if (v === null || v === undefined || isNaN(v)) c1.clearCrosshairPosition();
+                    else try { c1.setCrosshairPosition(v, param.time, series1); } catch (e) {}
+                }
+                busy = false;
+            });
         }
 
         function addColoredLineSegments(chart, dates, values, colors, scaleFactor = 1, lineWidth = 2) {
@@ -9170,7 +9208,7 @@
             // 1 phiên để tránh đổi màu chỉ vì 1 phiên nhiễu đơn lẻ.
             const { chart: c1, ro: ro1 } = mkChart(d1, h1, data.dates);
             instances.push({ chart: c1, ro: ro1 });
-            addDateAnchorSeries(c1, data.dates);
+            const anchor1 = addDateAnchorSeries(c1, data.dates);
             const diffArrC1 = data.dates.map((_, i) => {
                 const b = data.totalBuyUnmatchedVolume[i], s = data.totalSellUnmatchedVolume[i];
                 return (b !== null && b !== undefined && s !== null && s !== undefined) ? b - s : null;
@@ -9188,7 +9226,7 @@
             // dưới đường 0 (báo dư bán áp đảo) — không vẽ riêng cột dư bán nữa.
             const { chart: c2, ro: ro2 } = mkChart(d2, h2, data.dates);
             instances.push({ chart: c2, ro: ro2 });
-            addDateAnchorSeries(c2, data.dates);
+            const anchor2 = addDateAnchorSeries(c2, data.dates);
             const buyData = [], diffData = [];
             for (let i = 0; i < data.dates.length; i++) {
                 const t = d2ts(data.dates[i]);
@@ -9203,6 +9241,11 @@
             c2.addHistogramSeries({ color: '#ff00ff', priceLineVisible: false, title: '' }).setData(diffData);
 
             syncCharts([c1, c2]);
+            const timeToIdxC1 = {}; data.dates.forEach((dt, i) => { timeToIdxC1[d2ts(dt)] = i; });
+            syncPaneCrosshairs(
+                c1, anchor1, t => data.closes[timeToIdxC1[t]],
+                c2, anchor2, t => data.totalBuyUnmatchedVolume[timeToIdxC1[t]]
+            );
             applyDefaultChartRange(c1, data.dates, 90);
             return c1;
         }
@@ -9234,7 +9277,7 @@
             const diffMA5C2 = sma(diffArrC2, 5);
             const { chart: c1, ro: ro1 } = mkChart(d1, h1, data.dates);
             instances.push({ chart: c1, ro: ro1 });
-            addDateAnchorSeries(c1, data.dates);
+            const anchor1 = addDateAnchorSeries(c1, data.dates);
             const priceColors = data.dates.map((_, i) => {
                 const d5 = diffMA5C2[i];
                 if (d5 === null || d5 === undefined) return '#ffffff';
@@ -9251,7 +9294,7 @@
             // ngưỡng "khối lượng mạnh" dùng để tô màu đường giá ở trên.
             const { chart: c2, ro: ro2 } = mkChart(d2, h2, data.dates);
             instances.push({ chart: c2, ro: ro2 });
-            addDateAnchorSeries(c2, data.dates);
+            const anchor2 = addDateAnchorSeries(c2, data.dates);
             const kltbBuyData = [], kltbDiffData = [], kltbMA20Data = [];
             for (let i = 0; i < data.dates.length; i++) {
                 const t = d2ts(data.dates[i]);
@@ -9266,6 +9309,11 @@
             c2.addLineSeries({ color: '#ffd700', lineWidth: 3, priceLineVisible: false, lastValueVisible: false, title: '' }).setData(kltbMA20Data);
 
             syncCharts([c1, c2]);
+            const timeToIdxC2 = {}; data.dates.forEach((dt, i) => { timeToIdxC2[d2ts(dt)] = i; });
+            syncPaneCrosshairs(
+                c1, anchor1, t => data.closes[timeToIdxC2[t]],
+                c2, anchor2, t => data.averageBuyTradeVolume[timeToIdxC2[t]]
+            );
             applyDefaultChartRange(c1, data.dates, 90);
             return c1;
         }
@@ -9287,7 +9335,7 @@
             const ma5 = sma(data.foreignNetValueTotal, 5);
             const { chart: c1, ro: ro1 } = mkChart(d1, h1, data.dates);
             instances.push({ chart: c1, ro: ro1 });
-            addDateAnchorSeries(c1, data.dates);
+            const anchor1 = addDateAnchorSeries(c1, data.dates);
             const priceColorsC3 = data.dates.map((_, i) => {
                 const v = ma5[i];
                 return (v !== null && v !== undefined && v < 0) ? '#f59e0b' : '#ffffff';
@@ -9296,7 +9344,7 @@
 
             const { chart: c2, ro: ro2 } = mkChart(d2, h2, data.dates);
             instances.push({ chart: c2, ro: ro2 });
-            addDateAnchorSeries(c2, data.dates);
+            const anchor2 = addDateAnchorSeries(c2, data.dates);
             const histData = [];
             for (let i = 0; i < data.dates.length; i++) {
                 const v = ma5[i];
@@ -9306,6 +9354,11 @@
             c2.addHistogramSeries({ priceLineVisible: false, title: '' }).setData(histData);
 
             syncCharts([c1, c2]);
+            const timeToIdxC3 = {}; data.dates.forEach((dt, i) => { timeToIdxC3[d2ts(dt)] = i; });
+            syncPaneCrosshairs(
+                c1, anchor1, t => data.closes[timeToIdxC3[t]],
+                c2, anchor2, t => ma5[timeToIdxC3[t]]
+            );
             applyDefaultChartRange(c1, data.dates, 90);
             return c1;
         }
