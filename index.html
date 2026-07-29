@@ -6766,6 +6766,30 @@
             });
         }
 
+        // Đồng bộ ĐỘ RỘNG trục giá (price scale) bên phải giữa 2 pane — mỗi
+        // pane là 1 chart instance TÁCH BIỆT, độ rộng trục giá tự tính riêng
+        // theo số chữ số cần hiển thị (VD giá ~30.000 ở pane 1 vs dòng tiền
+        // khối ngoại có thể tới hàng chục NGHÌN TỶ ở pane 2). Nếu 2 bên rộng
+        // khác nhau, vùng vẽ (KHÔNG tính dải trục giá) hẹp/rộng khác nhau,
+        // khiến CÙNG 1 mốc thời gian rơi vào 2 CỘT PIXEL khác nhau giữa 2
+        // pane — vạch dọc crosshair lệch vài pixel dù ngày đã khớp đúng (đã
+        // xác minh bằng dữ liệu MBB thật: width() trả về 70 ở pane 1, 96 ở
+        // pane 2). Đo độ rộng thật của cả 2 sau khi layout đã ổn định
+        // (requestAnimationFrame), rồi ép cả 2 dùng chung độ rộng lớn nhất
+        // qua minimumWidth để vùng vẽ của 2 pane khớp tuyệt đối.
+        function syncPriceScaleWidth(c1, c2) {
+            const apply = () => {
+                const w1 = c1.priceScale('right').width();
+                const w2 = c2.priceScale('right').width();
+                const w = Math.max(w1, w2);
+                if (w > 0) {
+                    c1.priceScale('right').applyOptions({ minimumWidth: w });
+                    c2.priceScale('right').applyOptions({ minimumWidth: w });
+                }
+            };
+            requestAnimationFrame(() => requestAnimationFrame(apply));
+        }
+
         function addColoredLineSegments(chart, dates, values, colors, scaleFactor = 1, lineWidth = 2) {
             let currentSegment = [];
             let currentColor = null;
@@ -9246,6 +9270,7 @@
                 c1, anchor1, t => data.closes[timeToIdxC1[t]],
                 c2, anchor2, t => data.totalBuyUnmatchedVolume[timeToIdxC1[t]]
             );
+            syncPriceScaleWidth(c1, c2);
             applyDefaultChartRange(c1, data.dates, 90);
             return c1;
         }
@@ -9314,6 +9339,7 @@
                 c1, anchor1, t => data.closes[timeToIdxC2[t]],
                 c2, anchor2, t => data.averageBuyTradeVolume[timeToIdxC2[t]]
             );
+            syncPriceScaleWidth(c1, c2);
             applyDefaultChartRange(c1, data.dates, 90);
             return c1;
         }
@@ -9359,6 +9385,7 @@
                 c1, anchor1, t => data.closes[timeToIdxC3[t]],
                 c2, anchor2, t => ma5[timeToIdxC3[t]]
             );
+            syncPriceScaleWidth(c1, c2);
             applyDefaultChartRange(c1, data.dates, 90);
             return c1;
         }
