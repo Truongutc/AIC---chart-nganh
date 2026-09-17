@@ -4,18 +4,19 @@
     "stocklist_api_url": "https://finance.vietstock.vn/data/stocklist",
     "bypass_pageSize": 20,
     "cookies": {
+        "language": "vi-VN",
         "Theme": "Light",
         "AnonymousNotification": "",
-        "language": "vi-VN",
-        "_gid": "GA1.2.1838426009.1786949504",
-        "ASP.NET_SessionId": "ocifqphrfzyhahklwoybbyk1",
-        "__RequestVerificationToken": "bb5WJ2stW_F0lL4Croeolugi3kof9UvWja47U-Dgo1OLLRxhkB9z0bfOdI2AcAMStOzsVgPR8sog924W-2lHkPXWCGH0iKVyyDaQGZPABYQ1",
-        "_gat_UA-1460625-2": "1",
-        "CookieLogin": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiaHV1dHJ1b25ndXRjQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2hhc2giOiJzay1oNHp5T0NoVTJScHBVeUVYNHJhSGlnIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZWlkZW50aWZpZXIiOiJodXV0cnVvbmd1dGNAZ21haWwuY29tIiwiZXhwIjoxNzg5NTU1OTc1LCJpc3MiOiIudmlldHN0b2NrLnZuIiwiYXVkIjoiLnZpZXRzdG9jay52biJ9.y-vCoxwkkwMzYR9_cL9e6oy4u1Rs7pgsa3j5kFtitcc",
-        "vst_usr_lg_token": "fSKFH+yD40G861bU3gBaLw==",
-        "_ga_EXMM0DKVEX": "GS2.1.s1786963850$o218$g1$t1786963871$j39$l0$h0",
-        "_ga": "GA1.2.1417740156.1752282620",
-        "AuthRequest": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9hbm9ueW1vdXMiOiJGaW5hbmNlIiwiZXhwIjoxNzg2OTY0MTY0LCJpc3MiOiJodHRwczovL2ZpbmFuY2UudmlldHN0b2NrLnZuIiwiYXVkIjoiaHR0cHM6Ly9maW5hbmNlLnZpZXRzdG9jay52biJ9.mtLmTqgP5Yvtt08X73i-54ntjhybNS_vtSd17oS-MR4"
+        "ASP.NET_SessionId": "jbkjr2fh5cnq4owrpm3sfir3",
+        "__RequestVerificationToken": "HRoFrAHzdtfJuz-fifVmp4VahEu6m6qZSojYg4RYXcLvdwAix5Qqpy-M0AIvUHQHN7VeqV9COB42iBTqu-MzI1pHyjV8qErVhxMJPNVj0jY1",
+        "_gid": "GA1.2.1785051850.1789608795",
+        "CookieLogin": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiaHV1dHJ1b25ndXRjQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2hhc2giOiJzay1oNHp5T0NoVTJScHBVeUVYNHJhSGlnIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZWlkZW50aWZpZXIiOiJodXV0cnVvbmd1dGNAZ21haWwuY29tIiwiZXhwIjoxNzkyMjAwODE2LCJpc3MiOiIudmlldHN0b2NrLnZuIiwiYXVkIjoiLnZpZXRzdG9jay52biJ9.M0ztwb6IHkUQxeIt0-1JuJrg5jLlSp2Dk8DaOIazjYE",
+        "vst_usr_lg_token": "Cjb9TBPF80CK9BZGn02Hdg==",
+        "_ga": "GA1.1.1417740156.1752282620",
+        "packName": "Basic",
+        "qPerDay": "0",
+        "qPerMonth": "0",
+        "_ga_EXMM0DKVEX": "GS2.1.s1789608782$o223$g1$t1789608953$j60$l0$h0"
     },
     "headers": {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36",
@@ -32,8 +33,8 @@
         "sec-ch-ua-mobile": "?0",
         "sec-ch-ua-platform": "\"Windows\""
     },
-    "payload_token": "zk28_M0fVhZ44eqrd3H5-dy4eBOwoBpcdna3nVUkfe3F61Uwos1aYBX54ftZ7I-9lbssFYuiyEl6No5hoWR595T7LWRDdFjvjRgsp4FlFShPOhuTjPILvhjK2Opvl44HpkaUGXMErNdpvL3hIjUCMA2",
-    "raw_cookie_str": "Theme=Light; AnonymousNotification=; language=vi-VN; _gid=GA1.2.1838426009.1786949504; ASP.NET_SessionId=ocifqphrfzyhahklwoybbyk1; __RequestVerificationToken=bb5WJ2stW_F0lL4Croeolugi3kof9UvWja47U-Dgo1OLLRxhkB9z0bfOdI2AcAMStOzsVgPR8sog924W-2lHkPXWCGH0iKVyyDaQGZPABYQ1; _gat_UA-1460625-2=1; CookieLogin=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiaHV1dHJ1b25ndXRjQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2hhc2giOiJzay1oNHp5T0NoVTJScHBVeUVYNHJhSGlnIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZWlkZW50aWZpZXIiOiJodXV0cnVvbmd1dGNAZ21haWwuY29tIiwiZXhwIjoxNzg5NTU1OTc1LCJpc3MiOiIudmlldHN0b2NrLnZuIiwiYXVkIjoiLnZpZXRzdG9jay52biJ9.y-vCoxwkkwMzYR9_cL9e6oy4u1Rs7pgsa3j5kFtitcc; vst_usr_lg_token=fSKFH+yD40G861bU3gBaLw==; _ga_EXMM0DKVEX=GS2.1.s1786963850$o218$g1$t1786963871$j39$l0$h0; _ga=GA1.2.1417740156.1752282620; AuthRequest=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9hbm9ueW1vdXMiOiJGaW5hbmNlIiwiZXhwIjoxNzg2OTY0MTY0LCJpc3MiOiJodHRwczovL2ZpbmFuY2UudmlldHN0b2NrLnZuIiwiYXVkIjoiaHR0cHM6Ly9maW5hbmNlLnZpZXRzdG9jay52biJ9.mtLmTqgP5Yvtt08X73i-54ntjhybNS_vtSd17oS-MR4",
+    "payload_token": "JRopad78RFRl8d7eJRJSdBlJnqmNsTMNoDg1LdLF5C4mYfVO95TSB7lgzQB-y5XyvAU2OJpiRkNRtnF28xK4bCzDO-mej3Rr4e4_XY14Eh8ydLD6HqMYQijBPxWaT6gRSfpNzEtciUmErzlw20JRag2",
+    "raw_cookie_str": "language=vi-VN; Theme=Light; AnonymousNotification=; ASP.NET_SessionId=jbkjr2fh5cnq4owrpm3sfir3; __RequestVerificationToken=HRoFrAHzdtfJuz-fifVmp4VahEu6m6qZSojYg4RYXcLvdwAix5Qqpy-M0AIvUHQHN7VeqV9COB42iBTqu-MzI1pHyjV8qErVhxMJPNVj0jY1; _gid=GA1.2.1785051850.1789608795; CookieLogin=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiaHV1dHJ1b25ndXRjQGdtYWlsLmNvbSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2hhc2giOiJzay1oNHp5T0NoVTJScHBVeUVYNHJhSGlnIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZWlkZW50aWZpZXIiOiJodXV0cnVvbmd1dGNAZ21haWwuY29tIiwiZXhwIjoxNzkyMjAwODE2LCJpc3MiOiIudmlldHN0b2NrLnZuIiwiYXVkIjoiLnZpZXRzdG9jay52biJ9.M0ztwb6IHkUQxeIt0-1JuJrg5jLlSp2Dk8DaOIazjYE; vst_usr_lg_token=Cjb9TBPF80CK9BZGn02Hdg==; _ga=GA1.1.1417740156.1752282620; packName=Basic; qPerDay=0; qPerMonth=0; _ga_EXMM0DKVEX=GS2.1.s1789608782$o223$g1$t1789608953$j60$l0$h0",
     "captured_headers": {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
         "Accept": "application/json, text/javascript, */*; q=0.01",
